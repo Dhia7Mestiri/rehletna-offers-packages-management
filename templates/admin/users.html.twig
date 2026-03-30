@@ -1,0 +1,588 @@
+{% extends 'dashboard/index.html.twig' %}
+
+{% block title %}User Management - Admin Dashboard{% endblock %}
+
+{% block body %}
+    <div class="dashboard-page">
+        <div class="dashboard-top">
+            <div class="top-logo">
+                <img src="{{ asset('images/logo.png') }}" alt="Rehletna.tn" title="Rehletna.tn" />
+            </div>
+            <a class="back-main-btn" href="{{ path('app_mainpage') }}">← Back to Main Page</a>
+        </div>
+
+        <div class="dashboard-layout">
+            <aside class="dash-sidebar">
+                <div class="admin-avatar">
+                    {% if adminImageUrl is defined and adminImageUrl %}
+                        <img src="{{ adminImageUrl }}" alt="{{ app.user.username }}" />
+                    {% else %}
+                        {{ app.user.username|first|upper }}
+                    {% endif %}
+                </div>
+                <div class="admin-name">{{ app.user.username }}</div>
+                <div class="admin-role">ADMIN</div>
+
+                <a href="{{ path('app_dashboard') }}" class="sidebar-link">Dashboard</a>
+                <a href="{{ path('app_users') }}" class="sidebar-link active">Users</a>
+                <a href="{{ path('app_admin_stats') }}" class="sidebar-link">Statistics</a>
+                <a href="{{ path('app_todos') }}" class="sidebar-link">Todos</a>
+                <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.15); margin: 16px 0;">
+                <a href="{{ path('app_logout') }}" class="sidebar-link" style="color: #ff6b6b;">Logout</a>
+            </aside>
+
+            <div class="admin-content">
+                <div class="content-header">
+                    <h1 style="margin: 0; color: #213142; font-size: 28px; font-weight: 700;">User Management</h1>
+                    <a class="content-back-btn" href="{{ path('app_mainpage') }}">Back to Main Page</a>
+                </div>
+
+                <div class="content-panel">
+                    {% for label, messages in app.flashes %}
+                        {% for message in messages %}
+                            <div class="flash flash-{{ label == 'error' ? 'error' : 'success' }}">{{ message }}</div>
+                        {% endfor %}
+                    {% endfor %}
+
+                    <!-- Search and Filter Bar -->
+                    <div class="search-filter-bar">
+                        <input type="text" id="searchInput" class="search-input" placeholder="Search users..." />
+                        <button class="add-user-btn" type="button" onclick="window.location.reload()">Refresh</button>
+                    </div>
+
+                    <!-- Users Table -->
+                    <div class="table-wrapper">
+                        <table class="management-table">
+                            <thead>
+                                <tr>
+                                    <th>AVATAR</th>
+                                    <th>USER</th>
+                                    <th>EMAIL</th>
+                                    <th>ROLE</th>
+                                    <th>STATUS</th>
+                                    <th>ACTIONS</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                    <tr class="user-row" data-user-id="{{ user.id }}">
+                                        <td class="avatar-cell">
+                                            <img src="{{ user.image_url|default('/images/default_avatar.png') }}" alt="{{ user.username }}" class="user-avatar" />
+                                        </td>
+                                        <td class="username-cell">
+                                            <div class="user-detail">
+                                                <div class="username">{{ user.username }}</div>
+                                                <div class="fullname">{{ user.name }} {{ user.last_name }}</div>
+                                            </div>
+                                        </td>
+                                        <td class="email-cell">
+                                            <a href="mailto:{{ user.email }}" class="email-link">{{ user.email }}</a>
+                                        </td>
+                                        <td class="role-cell">
+                                            {% if user.role|upper == 'ADMIN' %}
+                                                <span class="badge badge-admin">ADMIN</span>
+                                            {% elseif user.role|upper == 'GUIDER' %}
+                                                <span class="badge badge-guider">GUIDE</span>
+                                            {% elseif user.role|upper == 'AGENCY' %}
+                                                <span class="badge badge-agency">AGENCY</span>
+                                            {% else %}
+                                                <span class="badge badge-user">USER</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="status-cell">
+                                            {% if user.status|default('offline')|lower == 'online' %}
+                                                <span class="status-badge online">
+                                                    <span class="status-dot"></span>Online
+                                                </span>
+                                            {% else %}
+                                                <span class="status-badge offline">
+                                                    <span class="status-dot"></span>Offline
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="actions-cell">
+                                            <div class="actions-wrap">
+                                                <a href="{{ path('app_user_edit', {'id': user.id}) }}" class="action-btn edit-btn" title="Edit user">
+                                                    <span aria-hidden="true">✎</span>
+                                                </a>
+                                                <form method="post" action="{{ path('app_user_delete', {'id': user.id}) }}" style="margin:0;" onsubmit="return confirm('Delete user {{ user.username }}?');">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('delete-user-' ~ user.id) }}">
+                                                    <button type="submit" class="action-btn delete-btn" title="Delete user">
+                                                        <span aria-hidden="true">🗑</span>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                        <td colspan="6" class="no-data">No users found</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if totalPages > 1 %}
+                        <div class="pagination">
+                            {% if page > 1 %}
+                                <a href="{{ path('app_users', {'page': page - 1}) }}" class="pagination-btn">← Previous</a>
+                            {% endif %}
+                            
+                            <span class="pagination-info">Page {{ page }} of {{ totalPages }}</span>
+                            
+                            {% if page < totalPages %}
+                                <a href="{{ path('app_users', {'page': page + 1}) }}" class="pagination-btn">Next →</a>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .admin-avatar {
+            overflow: hidden;
+        }
+
+        .admin-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .admin-content {
+            flex: 1;
+            padding: 28px;
+            background: #f2f4f7;
+            overflow-y: auto;
+        }
+
+        .content-header {
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .content-back-btn {
+            display: inline-flex;
+            align-items: center;
+            border: 1px solid #d4dce6;
+            border-radius: 999px;
+            padding: 8px 14px;
+            text-decoration: none;
+            color: #0BA4A1;
+            font-weight: 700;
+            background: #f5fffe;
+        }
+
+        .content-panel {
+            background: #ffffff;
+            border-radius: 14px;
+            border: 1px solid #e7edf2;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(11, 164, 161, 0.06);
+        }
+
+        .flash {
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-bottom: 10px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .flash-success {
+            background: #e7f9f3;
+            color: #11885f;
+            border: 1px solid #b8ebd7;
+        }
+
+        .flash-error {
+            background: #fff1f1;
+            color: #c43d3d;
+            border: 1px solid #ffd3d3;
+        }
+
+        .search-filter-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 10px 16px;
+            border: 1px solid #d4dce6;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #0BA4A1;
+            box-shadow: 0 0 0 3px rgba(11, 164, 161, 0.1);
+        }
+
+        .add-user-btn {
+            padding: 10px 20px;
+            background: #0BA4A1;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .add-user-btn:hover {
+            background: #099490;
+            box-shadow: 0 4px 12px rgba(11, 164, 161, 0.25);
+            transform: translateY(-1px);
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid #e7edf2;
+            background: #ffffff;
+        }
+
+        .management-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            table-layout: fixed;
+        }
+
+        .management-table thead {
+            background: #f8f9fb;
+            border-bottom: 2px solid #e7edf2;
+        }
+
+        .management-table th {
+            padding: 14px 16px;
+            text-align: left;
+            font-weight: 700;
+            color: #4d5f75;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .management-table th:nth-child(1) {
+            width: 88px;
+        }
+
+        .management-table th:nth-child(2) {
+            width: 240px;
+        }
+
+        .management-table th:nth-child(6) {
+            width: 140px;
+        }
+
+        .management-table tbody tr {
+            border-bottom: 1px solid #f0f2f5;
+            transition: background-color 0.2s ease;
+        }
+
+        .management-table tbody tr:hover {
+            background-color: #f8f9fb;
+        }
+
+        .management-table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .management-table td {
+            padding: 16px;
+            font-size: 14px;
+        }
+
+        .avatar-cell {
+            width: 60px;
+            padding: 12px;
+        }
+
+        .user-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #e7edf2;
+            transition: all 0.2s ease;
+        }
+
+        .user-row:hover .user-avatar {
+            border-color: #0BA4A1;
+            box-shadow: 0 0 0 2px rgba(11, 164, 161, 0.1);
+        }
+
+        .username-cell {
+            max-width: 200px;
+        }
+
+        .user-detail {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .username {
+            font-weight: 700;
+            color: #213142;
+            margin-bottom: 2px;
+        }
+
+        .fullname {
+            font-size: 12px;
+            color: #7b8a99;
+        }
+
+        .email-cell {
+            max-width: 250px;
+        }
+
+        .email-link {
+            color: #0BA4A1;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .email-link:hover {
+            color: #099490;
+            text-decoration: underline;
+        }
+
+        .role-cell {
+            text-align: center;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .badge-admin {
+            background: #FFF4E6;
+            color: #D97706;
+            border: 1px solid #FCBE31;
+        }
+
+        .badge-guider {
+            background: #F3E8FF;
+            color: #9b34c6;
+            border: 1px solid #d4a5ff;
+        }
+
+        .badge-agency {
+            background: #E0F2FE;
+            color: #0284c7;
+            border: 1px solid #06b6d4;
+        }
+
+        .badge-user {
+            background: #E6F3F2;
+            color: #0BA4A1;
+            border: 1px solid #0BA4A1;
+        }
+
+        .status-cell {
+            text-align: center;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-badge.online {
+            background: #E6FAF6;
+            color: #2fc56f;
+        }
+
+        .status-badge.offline {
+            background: #F3F5F8;
+            color: #7b8a99;
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .actions-cell {
+            text-align: center;
+            width: 130px;
+        }
+
+        .actions-wrap {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin: 0 4px;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .action-btn span {
+            line-height: 1;
+            font-size: 16px;
+        }
+
+        .edit-btn {
+            background: #0BA4A1;
+        }
+
+        .edit-btn:hover {
+            background: #099490;
+            box-shadow: 0 4px 12px rgba(11, 164, 161, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .delete-btn {
+            background: #ff6b6b;
+        }
+
+        .delete-btn:hover {
+            background: #ff5252;
+            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .no-data {
+            text-align: center;
+            color: #7b8a99;
+            padding: 40px !important;
+            font-style: italic;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 16px;
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid #e7edf2;
+        }
+
+        .pagination-btn {
+            padding: 8px 16px;
+            background: white;
+            border: 1px solid #d4dce6;
+            border-radius: 6px;
+            color: #0BA4A1;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .pagination-btn:hover {
+            background: #0BA4A1;
+            color: white;
+            border-color: #0BA4A1;
+        }
+
+        .pagination-info {
+            color: #7b8a99;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .admin-content {
+                padding: 16px;
+            }
+
+            .search-filter-bar {
+                flex-direction: column;
+            }
+
+            .content-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .add-user-btn {
+                width: 100%;
+            }
+
+            .management-table {
+                font-size: 12px;
+            }
+
+            .management-table th,
+            .management-table td {
+                padding: 12px 8px;
+            }
+
+            .username-cell,
+            .email-cell {
+                max-width: 120px;
+            }
+
+            .user-detail {
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+        }
+    </style>
+
+    <script>
+        (function () {
+            document.addEventListener('DOMContentLoaded', function () {
+                const input = document.getElementById('searchInput');
+                if (!input) {
+                    return;
+                }
+
+                const rows = Array.from(document.querySelectorAll('.management-table tbody .user-row'));
+                input.addEventListener('input', function () {
+                    const q = input.value.trim().toLowerCase();
+                    rows.forEach(function (row) {
+                        const text = row.textContent ? row.textContent.toLowerCase() : '';
+                        row.style.display = text.includes(q) ? '' : 'none';
+                    });
+                });
+            });
+        })();
+    </script>
+{% endblock %}

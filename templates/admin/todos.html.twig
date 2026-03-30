@@ -1,0 +1,525 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Todo Management - Admin Dashboard{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .dashboard-page {
+            min-height: 100vh;
+            background: #eef3f8;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #213142;
+        }
+
+        .dashboard-top {
+            height: 86px;
+            background: #ffffff;
+            border-bottom: 1px solid #e6ebf0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 28px;
+            position: sticky;
+            top: 0;
+            z-index: 20;
+        }
+
+        .back-main-btn {
+            border: 2px solid #0BA4A1;
+            color: #0BA4A1;
+            background: #f4fffe;
+            border-radius: 999px;
+            padding: 10px 18px;
+            font-weight: 700;
+            text-decoration: none;
+            box-shadow: 0 4px 10px rgba(11, 164, 161, 0.18);
+        }
+
+        .top-logo {
+            height: 40px;
+            width: auto;
+        }
+
+        .top-logo img {
+            height: 100%;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .dashboard-layout {
+            display: grid;
+            grid-template-columns: 260px minmax(0, 1fr);
+            min-height: calc(100vh - 86px);
+        }
+
+        .dash-sidebar {
+            background: #2f445a;
+            color: #fff;
+            padding: 28px 14px;
+        }
+
+        .admin-avatar {
+            width: 84px;
+            height: 84px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: #e5e9ef;
+            color: #2f445a;
+            font-size: 28px;
+            font-weight: 800;
+            margin: 0 auto 14px;
+            border: 4px solid rgba(255, 255, 255, 0.25);
+            overflow: hidden;
+        }
+
+        .admin-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .admin-name {
+            text-align: center;
+            font-size: 32px;
+            line-height: 1;
+            margin-bottom: 4px;
+            color: #ffffff;
+        }
+
+        .admin-role {
+            text-align: center;
+            color: #FCBE31;
+            font-weight: 800;
+            margin-bottom: 26px;
+        }
+
+        .sidebar-link {
+            display: block;
+            color: #d9e4ef;
+            text-decoration: none;
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .sidebar-link.active {
+            background: #d8f4f2;
+            color: #0BA4A1;
+            font-weight: 700;
+        }
+
+        .admin-content {
+            padding: 22px;
+        }
+
+        .header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .header-row h1 {
+            margin: 0;
+            font-size: 34px;
+            color: #153a63;
+        }
+
+        .search-form {
+            display: flex;
+            gap: 8px;
+        }
+
+        .search-form input {
+            width: 280px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid #d6e0ea;
+        }
+
+        .search-form button {
+            background: #0BA4A1;
+            color: white;
+            border: 0;
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .stat-mini {
+            background: #dff6f3;
+            border-radius: 12px;
+            padding: 12px;
+            border: 1px solid #bee8e2;
+            text-align: center;
+        }
+
+        .stat-mini-label {
+            font-size: 11px;
+            color: #61758a;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .stat-mini-value {
+            margin-top: 6px;
+            font-size: 36px;
+            font-weight: 800;
+            color: #0f8a87;
+            line-height: 1;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .column {
+            background: #f8fbff;
+            border: 1px solid #dce7f1;
+            border-radius: 14px;
+            min-height: 420px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .column-header {
+            padding: 12px;
+            border-bottom: 1px solid #e3ecf5;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .column-title {
+            font-size: 13px;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: #37526f;
+        }
+
+        .column-count {
+            background: #e8eff7;
+            border-radius: 999px;
+            padding: 2px 8px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #476380;
+        }
+
+        .column-body {
+            padding: 10px;
+            min-height: 320px;
+        }
+
+        .todo-card {
+            border: 1px solid #dce7f1;
+            border-radius: 12px;
+            background: #ffffff;
+            padding: 12px;
+            margin-bottom: 10px;
+            cursor: grab;
+            box-shadow: 0 6px 14px rgba(18, 44, 76, 0.06);
+        }
+
+        .todo-card:active {
+            cursor: grabbing;
+        }
+
+        .todo-card.dragging {
+            opacity: 0.5;
+            transform: rotate(1deg);
+        }
+
+        .todo-title {
+            font-weight: 800;
+            color: #183c66;
+            margin-bottom: 5px;
+        }
+
+        .todo-meta {
+            color: #6d8094;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        .todo-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+        }
+
+        .priority {
+            border-radius: 999px;
+            padding: 3px 8px;
+            font-weight: 700;
+        }
+
+        .priority.low {
+            background: #ddf6ee;
+            color: #0f8a87;
+        }
+
+        .priority.medium {
+            background: #fdf1ca;
+            color: #be7a00;
+        }
+
+        .priority.high {
+            background: #ffe2e2;
+            color: #d73333;
+        }
+
+        .dropzone.over {
+            background: #e9f8f6;
+            outline: 2px dashed #0BA4A1;
+            outline-offset: -6px;
+        }
+
+        .status-msg {
+            margin-top: 10px;
+            min-height: 22px;
+            color: #49617a;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        @media (max-width: 1100px) {
+            .dashboard-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .dash-sidebar {
+                display: none;
+            }
+
+            .board {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-row {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="dashboard-page">
+        <div class="dashboard-top">
+            <a class="back-main-btn" href="{{ path('app_mainpage') }}">← Back to Main Page</a>
+            <div class="top-logo">
+                <img src="{{ asset('images/logo.png') }}" alt="Rehletna.tn" title="Rehletna.tn" />
+            </div>
+        </div>
+
+        <div class="dashboard-layout">
+            <aside class="dash-sidebar">
+                <div class="admin-avatar">
+                    {% if adminImageUrl is defined and adminImageUrl %}
+                        <img src="{{ adminImageUrl }}" alt="{{ app.user.username }}" />
+                    {% else %}
+                        {{ app.user.username|first|upper }}
+                    {% endif %}
+                </div>
+                <div class="admin-name">{{ app.user.username }}</div>
+                <div class="admin-role">ADMIN</div>
+
+                <a href="{{ path('app_dashboard') }}" class="sidebar-link">Dashboard</a>
+                <a href="{{ path('app_users') }}" class="sidebar-link">Users</a>
+                <a href="{{ path('app_todos') }}" class="sidebar-link active">Todo List</a>
+                <a href="{{ path('app_admin_stats') }}" class="sidebar-link">Statistics</a>
+                <a href="{{ path('app_logout') }}" class="sidebar-link" style="color: #ff9aa5; margin-top: 30px;">Logout</a>
+            </aside>
+
+            <div class="admin-content">
+                <div class="header-row">
+                    <h1>Todo Management</h1>
+                    <form method="get" class="search-form">
+                        <input type="text" name="q" value="{{ search|default('') }}" placeholder="Search todos by title or user" />
+                        <button type="submit">Search</button>
+                    </form>
+                </div>
+
+                {% set todoCount = 0 %}
+                {% set progressCount = 0 %}
+                {% set doneCount = 0 %}
+                {% for status in statusCounts %}
+                    {% if status.status|lower in ['to do', 'todo'] %}
+                        {% set todoCount = status.count %}
+                    {% elseif status.status|lower == 'in progress' %}
+                        {% set progressCount = status.count %}
+                    {% elseif status.status|lower == 'done' %}
+                        {% set doneCount = status.count %}
+                    {% endif %}
+                {% endfor %}
+
+                <div class="stats-row">
+                    <div class="stat-mini">
+                        <div class="stat-mini-label">Total Todos</div>
+                        <div class="stat-mini-value">{{ totalTodos }}</div>
+                    </div>
+                    <div class="stat-mini">
+                        <div class="stat-mini-label">To Do</div>
+                        <div class="stat-mini-value">{{ todoCount }}</div>
+                    </div>
+                    <div class="stat-mini">
+                        <div class="stat-mini-label">In Progress</div>
+                        <div class="stat-mini-value">{{ progressCount }}</div>
+                    </div>
+                    <div class="stat-mini">
+                        <div class="stat-mini-label">Done</div>
+                        <div class="stat-mini-value">{{ doneCount }}</div>
+                    </div>
+                </div>
+
+                <div class="board">
+                    {% for columnName, items in todoColumns %}
+                        <section class="column">
+                            <div class="column-header">
+                                <span class="column-title">{{ columnName }}</span>
+                                <span class="column-count" data-count-for="{{ columnName }}">{{ items|length }}</span>
+                            </div>
+                            <div class="column-body dropzone" data-status="{{ columnName }}">
+                                {% for todo in items %}
+                                    <article class="todo-card" draggable="true" data-todo-id="{{ todo.id }}">
+                                        <div class="todo-title">{{ todo.title }}</div>
+                                        <div class="todo-meta">#{{ todo.id }} • {{ todo.username|default('No user') }}</div>
+                                        {% if todo.description %}
+                                            <div class="todo-meta">{{ todo.description|slice(0, 60) }}{% if todo.description|length > 60 %}...{% endif %}</div>
+                                        {% endif %}
+                                        <div class="todo-footer">
+                                            {% set p = todo.priority|default(2) %}
+                                            {% if p == 0 %}
+                                                <span class="priority low">Low</span>
+                                            {% elseif p == 1 %}
+                                                <span class="priority medium">Medium</span>
+                                            {% else %}
+                                                <span class="priority high">High</span>
+                                            {% endif %}
+                                            <span>{{ todo.category|default('General') }}</span>
+                                        </div>
+                                    </article>
+                                {% else %}
+                                    <div class="todo-meta">Drop todos here</div>
+                                {% endfor %}
+                            </div>
+                        </section>
+                    {% endfor %}
+                </div>
+
+                <div class="status-msg" id="boardStatus"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            const zones = Array.from(document.querySelectorAll('.dropzone'));
+            const cards = Array.from(document.querySelectorAll('.todo-card'));
+            const statusBox = document.getElementById('boardStatus');
+            let draggedCard = null;
+
+            function showStatus(text, isError) {
+                if (!statusBox) return;
+                statusBox.textContent = text;
+                statusBox.style.color = isError ? '#d73333' : '#2d5f86';
+            }
+
+            function updateCounts() {
+                const map = {};
+                zones.forEach((zone) => {
+                    const status = zone.dataset.status;
+                    map[status] = zone.querySelectorAll('.todo-card').length;
+                });
+
+                document.querySelectorAll('[data-count-for]').forEach((badge) => {
+                    const key = badge.getAttribute('data-count-for');
+                    badge.textContent = map[key] ?? 0;
+                });
+            }
+
+            function attachDrag(card) {
+                card.addEventListener('dragstart', function () {
+                    draggedCard = card;
+                    card.classList.add('dragging');
+                });
+
+                card.addEventListener('dragend', function () {
+                    card.classList.remove('dragging');
+                    draggedCard = null;
+                });
+            }
+
+            cards.forEach(attachDrag);
+
+            zones.forEach((zone) => {
+                zone.addEventListener('dragover', function (event) {
+                    event.preventDefault();
+                    zone.classList.add('over');
+                });
+
+                zone.addEventListener('dragleave', function () {
+                    zone.classList.remove('over');
+                });
+
+                zone.addEventListener('drop', function (event) {
+                    event.preventDefault();
+                    zone.classList.remove('over');
+                    if (!draggedCard) return;
+
+                    const todoId = draggedCard.dataset.todoId;
+                    const newStatus = zone.dataset.status;
+                    const oldZone = draggedCard.closest('.dropzone');
+                    if (!todoId || !newStatus || !oldZone || oldZone === zone) {
+                        return;
+                    }
+
+                    zone.appendChild(draggedCard);
+                    updateCounts();
+                    showStatus('Updating todo #' + todoId + '...', false);
+
+                    const body = new URLSearchParams();
+                    body.set('status', newStatus);
+
+                    fetch('{{ path('app_todo_status_update', {'id': 0}) }}'.replace('/0/status', '/' + todoId + '/status'), {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+                        },
+                        body: body.toString()
+                    })
+                        .then((response) => response.json())
+                        .then((data) => {
+                            if (data && data.success) {
+                                showStatus('Todo #' + todoId + ' moved to ' + newStatus + '.', false);
+                                return;
+                            }
+                            oldZone.appendChild(draggedCard);
+                            updateCounts();
+                            showStatus('Unable to update todo status.', true);
+                        })
+                        .catch(() => {
+                            oldZone.appendChild(draggedCard);
+                            updateCounts();
+                            showStatus('Request failed while updating todo.', true);
+                        });
+                });
+            });
+        })();
+    </script>
+{% endblock %}

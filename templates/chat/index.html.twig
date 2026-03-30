@@ -1,0 +1,96 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Chat - Rehletna.tn{% endblock %}
+
+{% block body %}
+    <style>
+        .chat-page {
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            background:
+                radial-gradient(1200px 450px at 0% -20%, rgba(10, 160, 159, 0.2), transparent 60%),
+                radial-gradient(900px 400px at 100% 0%, rgba(254, 199, 76, 0.2), transparent 58%),
+                linear-gradient(180deg, #f4f9ff 0%, #edf5fb 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .chat-card {
+            width: min(720px, 95vw);
+            background: rgba(255, 255, 255, 0.94);
+            border-radius: 18px;
+            box-shadow: 0 16px 36px rgba(6, 43, 77, 0.14);
+            padding: 28px;
+        }
+
+        .chat-title {
+            margin: 0 0 10px;
+            color: #15416b;
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.3px;
+        }
+
+        .chat-subtitle {
+            margin: 0 0 20px;
+            color: #4c647e;
+            font-size: 15px;
+        }
+
+        .chat-placeholder {
+            border-radius: 14px;
+            background: #f7fbff;
+            color: #5d7490;
+            padding: 18px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .chat-actions {
+            margin-top: 18px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .chat-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            border-radius: 10px;
+            border: none;
+            padding: 10px 14px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .chat-btn-primary {
+            background: linear-gradient(135deg, #0fa5a2, #1788b6);
+            color: #fff;
+        }
+
+        .chat-btn-secondary {
+            background: #eaf2fa;
+            color: #234b74;
+        }
+    </style>
+
+    <section class="chat-page">
+        <article class="chat-card">
+            <h1 class="chat-title">Chat Support</h1>
+            <p class="chat-subtitle">Your chat page is now available and rendering correctly.</p>
+
+            <div class="chat-placeholder">
+                This is the initial chat template. The next step can be wiring live messages and unread indicators with your backend endpoints.
+            </div>
+
+            <div class="chat-actions">
+                <a href="{{ path('app_mainpage') }}" class="chat-btn chat-btn-secondary">Back to Main Page</a>
+                <a href="{{ path('app_home') }}" class="chat-btn chat-btn-primary">Go to Home</a>
+            </div>
+        </article>
+    </section>
+{% endblock %}

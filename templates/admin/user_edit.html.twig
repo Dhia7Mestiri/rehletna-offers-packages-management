@@ -1,0 +1,244 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit User - Admin Dashboard{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .admin-edit-page {
+            min-height: 100vh;
+            background: #f2f4f7;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #213142;
+        }
+
+        .dashboard-top {
+            height: 86px;
+            background: #ffffff;
+            border-bottom: 1px solid #e6ebf0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 28px;
+        }
+
+        .dashboard-top a {
+            border: 2px solid #0BA4A1;
+            color: #0BA4A1;
+            background: #f4fffe;
+            border-radius: 999px;
+            padding: 10px 18px;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .dashboard-top img {
+            height: 40px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .edit-shell {
+            max-width: 980px;
+            margin: 26px auto;
+            padding: 0 16px 24px;
+        }
+
+        .edit-card {
+            background: #ffffff;
+            border: 1px solid #e7edf2;
+            border-radius: 14px;
+            box-shadow: 0 6px 16px rgba(10, 34, 62, 0.06);
+            padding: 24px;
+        }
+
+        .edit-title {
+            margin: 0 0 4px;
+            font-size: 28px;
+            color: #173f69;
+        }
+
+        .edit-subtitle {
+            margin: 0 0 20px;
+            color: #6c7f93;
+        }
+
+        .avatar-line {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .avatar-line img {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #dce7f1;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .field label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #4e6378;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .field input,
+        .field select {
+            border: 1px solid #d4dce6;
+            border-radius: 9px;
+            padding: 10px 12px;
+            font-size: 14px;
+            font-family: inherit;
+            background: #ffffff;
+        }
+
+        .field input:focus,
+        .field select:focus {
+            outline: none;
+            border-color: #0BA4A1;
+            box-shadow: 0 0 0 3px rgba(11, 164, 161, 0.12);
+        }
+
+        .actions {
+            margin-top: 22px;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            border: 0;
+            border-radius: 9px;
+            padding: 10px 16px;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .btn-primary {
+            background: #0BA4A1;
+            color: #ffffff;
+        }
+
+        .btn-secondary {
+            background: #edf3f8;
+            color: #3f566d;
+        }
+
+        @media (max-width: 760px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="admin-edit-page">
+        <div class="dashboard-top">
+            <a href="{{ path('app_users') }}">Back to User Management</a>
+            <img src="{{ asset('images/logo.png') }}" alt="Rehletna.tn" title="Rehletna.tn" />
+        </div>
+
+        <div class="edit-shell">
+            <div class="edit-card">
+                <h1 class="edit-title">Edit User</h1>
+                <p class="edit-subtitle">Update account details, role, status and subscription tier.</p>
+
+                <div class="avatar-line">
+                    <img src="{{ editedUser.image_url|default('/images/default_avatar.png') }}" alt="{{ editedUser.username }}" />
+                    <div>
+                        <strong>{{ editedUser.username }}</strong><br>
+                        <span>{{ editedUser.email }}</span>
+                    </div>
+                </div>
+
+                <form method="post">
+                    <input type="hidden" name="_token" value="{{ csrf_token('edit-user-' ~ editedUser.id) }}">
+
+                    <div class="grid">
+                        <div class="field">
+                            <label for="name">First Name</label>
+                            <input id="name" type="text" name="name" required value="{{ editedUser.name|default('') }}">
+                        </div>
+
+                        <div class="field">
+                            <label for="last_name">Last Name</label>
+                            <input id="last_name" type="text" name="last_name" required value="{{ editedUser.last_name|default('') }}">
+                        </div>
+
+                        <div class="field">
+                            <label for="username">Username</label>
+                            <input id="username" type="text" name="username" required value="{{ editedUser.username|default('') }}">
+                        </div>
+
+                        <div class="field">
+                            <label for="email">Email</label>
+                            <input id="email" type="email" name="email" required value="{{ editedUser.email|default('') }}">
+                        </div>
+
+                        <div class="field">
+                            <label for="role">Role</label>
+                            <select id="role" name="role">
+                                {% set role = editedUser.role|default('USER')|upper %}
+                                <option value="USER" {% if role in ['USER', 'ROLE_USER'] %}selected{% endif %}>USER</option>
+                                <option value="GUIDER" {% if role in ['GUIDER', 'ROLE_GUIDE'] %}selected{% endif %}>GUIDER</option>
+                                <option value="AGENCY" {% if role in ['AGENCY', 'ROLE_AGENCY'] %}selected{% endif %}>AGENCY</option>
+                                <option value="ADMIN" {% if role in ['ADMIN', 'ROLE_ADMIN'] %}selected{% endif %}>ADMIN</option>
+                            </select>
+                        </div>
+
+                        <div class="field">
+                            <label for="status">Status</label>
+                            {% set status = editedUser.status|default('offline')|lower %}
+                            <select id="status" name="status">
+                                <option value="online" {% if status == 'online' %}selected{% endif %}>online</option>
+                                <option value="offline" {% if status != 'online' %}selected{% endif %}>offline</option>
+                            </select>
+                        </div>
+
+                        <div class="field">
+                            <label for="member_premium">Membership Tier</label>
+                            {% set tier = editedUser.member_premium|default('standard')|lower %}
+                            <select id="member_premium" name="member_premium">
+                                <option value="standard" {% if tier == 'standard' %}selected{% endif %}>standard</option>
+                                <option value="premium" {% if tier == 'premium' %}selected{% endif %}>premium</option>
+                                <option value="vip" {% if tier == 'vip' %}selected{% endif %}>vip</option>
+                                <option value="vip+" {% if tier == 'vip+' %}selected{% endif %}>vip+</option>
+                            </select>
+                        </div>
+
+                        <div class="field">
+                            <label for="language">Language</label>
+                            <input id="language" type="text" name="language" value="{{ editedUser.language|default('English') }}">
+                        </div>
+                    </div>
+
+                    <div class="actions">
+                        <a href="{{ path('app_users') }}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

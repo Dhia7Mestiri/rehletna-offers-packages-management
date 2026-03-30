@@ -1,0 +1,92 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Loading...{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .loading-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at 20% 20%, #1b7ca8 0%, #0c3f5b 40%, #07283a 100%);
+            color: #fff;
+            text-align: center;
+            padding: 24px;
+        }
+
+        .loading-box {
+            width: min(92vw, 520px);
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 22px;
+            padding: 30px;
+            backdrop-filter: blur(6px);
+        }
+
+        .loading-title {
+            margin: 0 0 8px;
+            font-size: clamp(1.8rem, 4vw, 2.4rem);
+            font-weight: 800;
+            letter-spacing: 0.4px;
+        }
+
+        .loading-subtitle {
+            margin: 0 0 22px;
+            opacity: 0.92;
+        }
+
+        .loading-dots {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .loading-dots span {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #fff;
+            animation: loading-wave 1s infinite ease-in-out;
+        }
+
+        .loading-dots span:nth-child(2) {
+            animation-delay: 0.12s;
+        }
+
+        .loading-dots span:nth-child(3) {
+            animation-delay: 0.24s;
+        }
+
+        @keyframes loading-wave {
+            0%, 80%, 100% {
+                transform: translateY(0);
+                opacity: 0.5;
+            }
+            40% {
+                transform: translateY(-10px);
+                opacity: 1;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="loading-page">
+    <div class="loading-box">
+        <h1 class="loading-title">Rehletna.tn</h1>
+        <p class="loading-subtitle">Please wait while we prepare your experience...</p>
+        <div class="loading-dots" aria-label="Loading">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </div>
+</div>
+<script>
+    setTimeout(() => {
+        window.location.href = '{{ path('app_mainpage') }}';
+    }, 1400);
+</script>
+{% endblock %}

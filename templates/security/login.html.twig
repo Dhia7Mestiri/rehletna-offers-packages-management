@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rehletna.tn - Login</title>
+    <link rel="prefetch" href="{{ path('app_register') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --reh-teal: #0AA09F;
+            --reh-gold: #FCBA30;
+            --reh-blue: #07396B;
+            --shadow-soft: 0 10px 40px rgba(0, 0, 0, 0.15);
+            --shadow-medium: 0 20px 60px rgba(0, 0, 0, 0.25);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            overflow-x: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', sans-serif;
+            background: #0a2c44;
+        }
+
+        .bg-slideshow {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .bg-slide {
+            position: absolute;
+            inset: 0;
+            background-position: center;
+            background-size: cover;
+            background-repeat: no-repeat;
+            filter: brightness(0.80) saturate(1.08) contrast(1.05);
+            opacity: 0;
+            transform: scale(1);
+            transition: opacity 1s cubic-bezier(0.4, 0, 0.2, 1), transform 2s ease;
+            will-change: opacity, transform;
+        }
+
+        .bg-slide.active {
+            opacity: 1;
+            transform: scale(1.08);
+        }
+
+        .bg-overlay-layer {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(5, 25, 45, 0.28) 0%, rgba(10, 35, 60, 0.42) 100%);
+            backdrop-filter: blur(0.5px);
+        }
+
+        .overlay {
+            display: none;
+        }
+        
+        .container-fluid {
+            position: relative;
+            z-index: 2;
+            height: 100vh;
+        }
+        
+        .login-card {
+            background: linear-gradient(135deg, rgba(248, 251, 255, 0.85) 0%, rgba(240, 247, 252, 0.80) 100%);
+            border: 2px solid rgba(11, 164, 161, 0.32);
+            border-radius: 24px;
+            padding: 42px;
+            box-shadow:
+                0 24px 52px rgba(0, 57, 114, 0.22),
+                0 10px 24px rgba(11, 164, 161, 0.16),
+                inset 0 1px 0 rgba(255, 255, 255, 0.84);
+            max-width: 420px;
+            width: 100%;
+            backdrop-filter: blur(18px) saturate(135%);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .login-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 24px;
+            border: 1px solid rgba(252, 190, 49, 0.35);
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0.7;
+        }
+
+        .login-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -22%;
+            width: 72%;
+            height: 200%;
+            background: linear-gradient(110deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0));
+            transform: rotate(12deg);
+            pointer-events: none;
+        }
+
+        .login-card > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .login-card h2 {
+            color: #0a2f57;
+            font-size: 1.75rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+        }
+
+        .login-card h2::after {
+            content: '';
+            display: block;
+            width: 50px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--reh-teal), var(--reh-gold));
+            margin-top: 12px;
+            border-radius: 2px;
+        }
+
+        .auth-panel {
+            display: none;
+            padding: 0;
+        }
+
+        .auth-panel.active {
+            display: block;
+            padding: 2px;
+            border-radius: 16px;
+            box-shadow: inset 0 0 0 1px rgba(0, 57, 114, 0.08);
+        }
+
+        .validation-line {
+            height: 2px;
+            background: #dc3545;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            margin-top: 6px;
+            opacity: 0;
+            width: 0;
+        }
+
+        .validation-line.invalid {
+            opacity: 1;
+            background: #dc3545;
+            width: 100%;
+        }
+
+        .validation-line.valid {
+            opacity: 1;
+            background: #198754;
+            width: 100%;
+        }
+
+        .signup-submit {
+            visibility: visible;
+            opacity: 1;
+            pointer-events: auto;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .signup-submit:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .validation-message {
+            min-height: 18px;
+            margin-top: 6px;
+            font-size: 0.75rem;
+            color: #dc3545;
+            font-weight: 500;
+            animation: slideIn 0.3s ease;
+        }
+
+        .role-flesh-trigger {
+            position: absolute;
+            left: auto;
+            right: -14px;
+            top: 50%;
+            transform: translateY(-50%) translateX(-6px);
+            width: 34px;
+            height: 72px;
+            border: none;
+            border-radius: 0 16px 16px 0;
+            background: linear-gradient(180deg, #0BA4A1 0%, #003972 100%);
+            color: #fff;
+            box-shadow: 0 10px 24px rgba(0, 57, 114, 0.35);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.25s ease, box-shadow 0.25s ease, opacity 0.2s ease;
+            z-index: 8;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #authRow.swapped .role-flesh-trigger {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(-50%) translateX(0);
+        }
+
+        .role-flesh-trigger:hover {
+            transform: translateY(-50%) translateX(1px);
+            box-shadow: 0 12px 26px rgba(0, 57, 114, 0.5);
+        }
+
+        .role-flesh-trigger i {
+            font-size: 1.2rem;
+            transition: transform 0.2s ease;
+        }
+
+        .role-flesh-trigger.open i {
+            transform: rotate(180deg);
+        }
+
+        .welcome-content {
+            opacity: 1;
+            transition: opacity 0.25s ease;
+        }
+
+        .welcome-content.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .welcome-role-panel {
+            position: absolute;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            text-align: center;
+            z-index: 5;
+            padding: 40px;
+            background: linear-gradient(145deg, rgba(0, 57, 114, 0.78), rgba(11, 164, 161, 0.48));
+            backdrop-filter: blur(6px);
+            border-radius: 20px;
+        }
+
+        .welcome-role-panel.active {
+            display: flex;
+        }
+
+        .welcome-role-panel h3 {
+            color: #FCBE31;
+            font-size: 1.8rem;
+            margin: 0 0 8px;
+            font-weight: 800;
+        }
+
+        .welcome-role-panel p {
+            color: rgba(236, 247, 255, 0.95);
+            margin: 0 0 18px;
+        }
+
+        .role-options {
+            display: grid;
+            gap: 12px;
+            width: min(340px, 100%);
+        }
+
+        .role-option {
+            text-align: left;
+        }
+
+        .role-checkbox {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .role-checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(11, 164, 161, 0.48);
+            color: #eaf8ff;
+            background: rgba(0, 57, 114, 0.38);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 600;
+        }
+
+        .role-checkbox-label:hover {
+            border-color: rgba(252, 190, 49, 0.72);
+            background: rgba(11, 164, 161, 0.24);
+        }
+
+        .role-checkbox-label i {
+            width: 22px;
+            text-align: center;
+            color: #b8d9f0;
+            transition: color 0.2s ease, text-shadow 0.2s ease, transform 0.2s ease;
+        }
+
+        .role-checkbox:checked + .role-checkbox-label i,
+        .role-icon-pop {
+            animation: roleIconWiggle 0.42s cubic-bezier(0.22, 0.61, 0.36, 1);
+        }
+
+        @keyframes roleIconWiggle {
+            0% {
+                transform: rotate(0deg) scale(1);
+            }
+            30% {
+                transform: rotate(-12deg) scale(1.18);
+            }
+            62% {
+                transform: rotate(8deg) scale(1.08);
+            }
+            100% {
+                transform: rotate(0deg) scale(1);
+            }
+        }
+
+        .role-checkbox:checked + .role-checkbox-label {
+            background: linear-gradient(135deg, rgba(11, 164, 161, 0.55), rgba(0, 57, 114, 0.68));
+            border-color: #FCBE31;
+            box-shadow: 0 8px 18px rgba(252, 190, 49, 0.28);
+        }
+
+        .role-checkbox:checked + .role-checkbox-label i {
+            color: #FCBE31;
+            text-shadow: 0 0 10px rgba(252, 190, 49, 0.6);
+        }
+
+        .role-error {
+            color: #ffd4d4;
+            font-size: 0.85rem;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .role-error.show {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-4px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        #authRow.swapped .welcome-section {
+            transform: translateX(100%);
+            opacity: 0.5;
+        }
+
+        #authRow.swapped .login-col {
+            transform: translateX(-100%);
+        }
+
+        #authRow.swapped .login-card {
+            border-color: rgba(252, 190, 49, 0.62);
+            box-shadow:
+                0 26px 56px rgba(0, 57, 114, 0.25),
+                0 12px 30px rgba(252, 190, 49, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        }
+
+        #authRow .welcome-section,
+        #authRow .login-col {
+            transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.7s ease;
+        }
+
+        .auth-panel h2 {
+            margin-bottom: 24px;
+        }
+
+        .auth-panel form {
+            min-height: auto;
+        }
+        
+        .welcome-section {
+            color: white;
+            padding: 50px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .login-col {
+            position: relative;
+        }
+        
+        .welcome-section h1 {
+            font-size: 3.2rem;
+            font-weight: 800;
+            margin-bottom: 16px;
+            letter-spacing: -1px;
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            line-height: 1.2;
+        }
+
+        .welcome-section h2 {
+            color: var(--reh-gold);
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+            font-weight: 700;
+            font-size: 1.9rem;
+            margin-bottom: 24px;
+        }
+
+        .brand-logo-welcome {
+            width: min(480px, 90%);
+            height: auto;
+            margin-bottom: 28px;
+            filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.3));
+            animation: fadeInDown 0.8s ease;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .welcome-section p {
+            font-size: 1.15rem;
+            color: rgba(228, 245, 242, 0.95);
+            text-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            font-weight: 500;
+            line-height: 1.6;
+        }
+        
+        .btn-login {
+            background: linear-gradient(135deg, #0AA09F 0%, #087F7C 100%);
+            border: none;
+            color: white;
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1.05rem;
+            letter-spacing: 0.3px;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            box-shadow: 0 8px 20px rgba(10, 160, 159, 0.25);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-login::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 50%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .btn-login:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 28px rgba(10, 160, 159, 0.35);
+            background: linear-gradient(135deg, #0AA09F 0%, #065F5E 100%);
+        }
+
+        .btn-login:active {
+            transform: translateY(-1px);
+        }
+        
+        .form-control {
+            border-radius: 12px;
+            padding: 14px 16px;
+            border: 1.5px solid rgba(10, 160, 159, 0.15);
+            margin-bottom: 18px;
+            background: rgba(255, 255, 255, 0.88);
+            color: #07396B;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .form-control::placeholder {
+            color: rgba(28, 53, 82, 0.55);
+            font-weight: 500;
+        }
+        
+        .form-control:focus {
+            box-shadow: 0 0 0 4px rgba(10, 160, 159, 0.12), inset 0 0 0 1.5px rgba(10, 160, 159, 0.5);
+            border-color: var(--reh-teal);
+            background: rgba(255, 255, 255, 0.95);
+            color: #07396B;
+        }
+
+        .form-control:hover:not(:focus) {
+            border-color: rgba(10, 160, 159, 0.3);
+            background: rgba(255, 255, 255, 0.92);
+        }
+        
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            color: #999;
+            margin: 26px 0;
+            font-size: 0.9rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid rgba(10, 160, 159, 0.15);
+        }
+        
+        .divider span {
+            padding: 0 14px;
+            color: #666;
+        }
+        
+        .biometric-btn {
+            background: linear-gradient(135deg, rgba(240, 248, 252, 0.9), rgba(230, 245, 250, 0.8));
+            border: 1.5px solid rgba(10, 160, 159, 0.15);
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: #07396B;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        
+        .biometric-btn:hover {
+            background: linear-gradient(135deg, rgba(245, 250, 255, 1), rgba(235, 247, 252, 1));
+            border-color: rgba(10, 160, 159, 0.35);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(10, 160, 159, 0.12);
+        }
+        
+        .qr-btn {
+            background: linear-gradient(135deg, #ec6652 0%, #d85d4a 100%);
+            color: white;
+            border: none;
+        }
+        
+        .qr-btn:hover {
+            color: white;
+            background: linear-gradient(135deg, #e15a4a 0%, #cc5540 100%);
+        }
+
+        .form-check-label {
+            color: #0a2f57 !important;
+            font-weight: 500;
+            font-size: 0.95rem;
+            cursor: pointer;
+        }
+
+        a {
+            color: var(--reh-teal);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        a:hover {
+            color: var(--reh-blue);
+        }
+
+        .page-loader {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(4, 22, 38, 0.94), rgba(10, 160, 159, 0.15));
+            backdrop-filter: blur(8px);
+            z-index: 9999;
+            color: #fff;
+            padding: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .page-loader.active {
+            display: flex;
+        }
+
+        .page-loader h3 {
+            font-size: clamp(1.6rem, 3vw, 2.2rem);
+            margin: 0 0 14px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .loader-brand-logo {
+            width: clamp(220px, 34vw, 380px);
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 16px;
+            filter: drop-shadow(0 10px 28px rgba(0, 0, 0, 0.4));
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.85;
+            }
+        }
+
+        .page-loader p {
+            margin: 0 0 20px;
+            opacity: 0.95;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+        }
+
+        .loader-dots {
+            display: flex;
+            gap: 12px;
+        }
+
+        .loader-dots span {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--reh-teal), var(--reh-gold));
+            animation: dot-bounce 1.2s infinite cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            box-shadow: 0 4px 12px rgba(10, 160, 159, 0.3);
+        }
+
+        .loader-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .loader-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes dot-bounce {
+            0%, 80%, 100% {
+                transform: translateY(0);
+                opacity: 0.6;
+            }
+            40% {
+                transform: translateY(-12px);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-slideshow" aria-hidden="true">
+        <div id="bgSlideA" class="bg-slide active"></div>
+        <div id="bgSlideB" class="bg-slide"></div>
+        <div class="bg-overlay-layer"></div>
+    </div>
+
+    <div id="pageLoader" class="page-loader" aria-hidden="true">
+        <img class="loader-brand-logo" src="{{ asset('images/logo.png') }}" alt="Rehletna logo">
+        <p id="pageLoaderText">Loading...</p>
+        <div class="loader-dots" aria-label="Loading">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </div>
+    
+    <div class="container-fluid">
+        <div class="row" id="authRow" style="min-height: 100vh;">
+            <!-- Left Column - Welcome Section -->
+            <div class="col-lg-6 d-flex align-items-center justify-content-center welcome-section">
+                <div class="text-center welcome-content" id="welcomeContent">
+                    <img class="brand-logo-welcome" src="{{ asset('images/logo.png') }}" alt="Rehletna logo">
+                    <h2 class="mb-4">Explore The World</h2>
+                    <p class="mb-5">Join thousands of travelers discovering new experiences every day.</p>
+                </div>
+
+                <div class="welcome-role-panel" id="welcomeRolePanel">
+                    <h3>Choose Your Role</h3>
+                    <p>Select one role to continue</p>
+                    <div class="role-options">
+                        <div class="role-option">
+                            <input type="checkbox" class="role-checkbox" id="role-user" name="role" value="USER" form="registerForm" onchange="updateRoleSelection(this)">
+                            <label for="role-user" class="role-checkbox-label">
+                                <i class="fas fa-user-circle"></i>
+                                <span>Traveler</span>
+                            </label>
+                        </div>
+                        <div class="role-option">
+                            <input type="checkbox" class="role-checkbox" id="role-guide" name="role" value="GUIDER" form="registerForm" onchange="updateRoleSelection(this)">
+                            <label for="role-guide" class="role-checkbox-label">
+                                <i class="fas fa-compass"></i>
+                                <span>Guide</span>
+                            </label>
+                        </div>
+                        <div class="role-option">
+                            <input type="checkbox" class="role-checkbox" id="role-agency" name="role" value="AGENCY" form="registerForm" onchange="updateRoleSelection(this)">
+                            <label for="role-agency" class="role-checkbox-label">
+                                <i class="fas fa-building"></i>
+                                <span>Agency</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="role-error" id="role-error">Please select at least one role</div>
+                </div>
+            </div>
+            
+            <!-- Right Column - Login Form -->
+            <div class="col-lg-6 login-col d-flex align-items-center justify-content-center">
+                <div class="login-card" id="authCard">
+                <div class="auth-panel active" id="loginPanel">
+                    <h2 class="text-center mb-4">Welcome Back</h2>
+
+                    {% for label, messages in app.flashes %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ label == 'error' ? 'danger' : label }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endfor %}
+
+                    {% if error %}
+                        <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+                    {% endif %}
+
+                    <form method="post" action="{{ path('app_login') }}">
+                        <div class="mb-3">
+                            <input type="email" 
+                                   class="form-control" 
+                                   placeholder="Email"
+                                   name="_username"
+                                   value="{{ last_username }}"
+                                   required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <input type="password" 
+                                   class="form-control" 
+                                   placeholder="Password"
+                                   name="_password"
+                                   required>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="_remember_me" id="remember">
+                                <label class="form-check-label" for="remember">
+                                    Remember me
+                                </label>
+                            </div>
+                            <a href="{{ path('app_forgot_password') }}" class="text-decoration-none">Forgot Password?</a>
+                        </div>
+                        
+                        <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+                        
+                        <button type="submit" id="loginSubmit" class="btn btn-login w-100 mb-3">Login</button>
+                        
+                        <div class="row g-2 mb-4">
+                            <div class="col-6">
+                                <button type="button" class="btn biometric-btn w-100">
+                                    <i class="fas fa-face-smile me-2"></i>Face ID
+                                </button>
+                            </div>
+                            <div class="col-6">
+                                <button type="button" class="btn biometric-btn qr-btn w-100">
+                                    <i class="fas fa-qrcode me-2"></i>Scan QR
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <button type="button" class="btn biometric-btn w-100 mb-4">
+                            <i class="fas fa-fingerprint me-2"></i>Login with Fingerprint
+                        </button>
+                        
+                        <div class="divider mb-4">
+                            <span>OR</span>
+                        </div>
+                        
+                        <div class="text-center">
+                            <p class="mb-2">
+                                <a href="{{ path('app_forgot_password') }}" class="text-decoration-none">Forgot your password? Reset it here</a>
+                            </p>
+                            <p class="mb-0">
+                                Don't have an account? <a href="#" id="gotoSignup" class="text-decoration-none fw-bold" data-no-loader="true">Sign Up</a>
+                            </p>
+                        </div>
+                    </form>
+                </div>
+                <div class="auth-panel" id="signupPanel">
+                    <h2 class="text-center mb-4">Create Account</h2>
+                    <form id="registerForm" method="post" action="{{ path('app_register_submit') }}">
+                        <div class="mb-3">
+                            <input type="text" class="form-control" name="name" placeholder="First Name" required oninput="validateField(this)">
+                            <div class="validation-line" id="name-line"></div>
+                            <small class="validation-message" id="name-message"></small>
+                        </div>
+                        <div class="mb-3">
+                            <input type="text" class="form-control" name="last_name" placeholder="Last Name" required oninput="validateField(this)">
+                            <div class="validation-line" id="last_name-line"></div>
+                            <small class="validation-message" id="last_name-message"></small>
+                        </div>
+                        <div class="mb-3">
+                            <input type="text" class="form-control" name="username" placeholder="Username" required oninput="validateField(this)">
+                            <div class="validation-line" id="username-line"></div>
+                            <small class="validation-message" id="username-message"></small>
+                        </div>
+                        <div class="mb-3">
+                            <input type="text" class="form-control" name="birth_date" placeholder="DD/MM/YYYY" pattern="\d{2}/\d{2}/\d{4}" required oninput="validateField(this)">
+                            <div class="validation-line" id="birth_date-line"></div>
+                            <small class="validation-message" id="birth_date-message"></small>
+                        </div>
+                        <div class="mb-3">
+                            <input type="email" class="form-control" name="email" placeholder="Email" required oninput="validateField(this)">
+                            <div class="validation-line" id="email-line"></div>
+                            <small class="validation-message" id="email-message"></small>
+                        </div>
+                        <div class="mb-3">
+                            <input type="password" class="form-control" name="password" placeholder="Password" required oninput="validateField(this)">
+                            <div class="validation-line" id="password-line"></div>
+                            <small class="validation-message" id="password-message"></small>
+                        </div>
+                        <div class="mb-3">
+                            <input type="password" class="form-control" name="confirm_password" placeholder="Confirm Password" required oninput="validateField(this)">
+                            <div class="validation-line" id="confirm_password-line"></div>
+                            <small class="validation-message" id="confirm_password-message"></small>
+                        </div>
+                        <button type="submit" class="btn btn-login w-100 mb-3 signup-submit" id="signupSubmit" disabled>Sign Up</button>
+                        <div class="text-center">
+                            <p class="mb-0">Already have an account? <a href="#" id="gotoLogin" class="text-decoration-none fw-bold">Login</a></p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <button type="button" class="role-flesh-trigger" id="roleFleshTrigger" aria-label="Open role selector" title="Choose role">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const pageLoader = document.getElementById('pageLoader');
+            const pageLoaderText = document.getElementById('pageLoaderText');
+            const bgSlideA = document.getElementById('bgSlideA');
+            const bgSlideB = document.getElementById('bgSlideB');
+            const backgroundImages = [
+                'https://images.unsplash.com/photo-1488085061387-422e29b40080?auto=format&fit=crop&w=1920&q=80',
+                'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1920&q=80',
+                'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=1920&q=80',
+                'https://images.unsplash.com/photo-1467269204594-9661b134dd2b?auto=format&fit=crop&w=1920&q=80'
+            ];
+
+            const showPageLoader = (text) => {
+                if (!pageLoader) {
+                    return;
+                }
+
+                if (pageLoaderText && text) {
+                    pageLoaderText.textContent = text;
+                }
+
+                pageLoader.classList.add('active');
+                pageLoader.setAttribute('aria-hidden', 'false');
+            };
+
+            const startBackgroundSlideshow = () => {
+                if (!bgSlideA || !bgSlideB || backgroundImages.length === 0) {
+                    return;
+                }
+
+                let currentIndex = 0;
+                let showingA = true;
+
+                bgSlideA.style.backgroundImage = `url('${backgroundImages[currentIndex]}')`;
+                bgSlideA.classList.add('active');
+                bgSlideB.classList.remove('active');
+
+                setInterval(() => {
+                    const nextIndex = (currentIndex + 1) % backgroundImages.length;
+                    const incomingSlide = showingA ? bgSlideB : bgSlideA;
+                    const outgoingSlide = showingA ? bgSlideA : bgSlideB;
+
+                    incomingSlide.style.backgroundImage = `url('${backgroundImages[nextIndex]}')`;
+                    incomingSlide.classList.add('active');
+                    outgoingSlide.classList.remove('active');
+
+                    currentIndex = nextIndex;
+                    showingA = !showingA;
+                }, 5000);
+            };
+
+            startBackgroundSlideshow();
+
+            const authRow = document.getElementById('authRow');
+            const loginPanel = document.getElementById('loginPanel');
+            const signupPanel = document.getElementById('signupPanel');
+            const gotoSignup = document.getElementById('gotoSignup');
+            const gotoLogin = document.getElementById('gotoLogin');
+            const signupForm = document.querySelector('#signupPanel form');
+            const signupSubmit = document.getElementById('signupSubmit');
+            const roleFleshTrigger = document.getElementById('roleFleshTrigger');
+            const welcomeContent = document.getElementById('welcomeContent');
+            const welcomeRolePanel = document.getElementById('welcomeRolePanel');
+            const roleError = document.getElementById('role-error');
+            const fieldNames = ['name', 'last_name', 'username', 'birth_date', 'email', 'password', 'confirm_password'];
+            const initialView = '{{ initial_view|default('login') }}';
+
+            const isRoleSelected = () => {
+                const checkboxes = document.querySelectorAll('.role-checkbox');
+                return Array.from(checkboxes).some((checkbox) => checkbox.checked);
+            };
+
+            const updateRoleSelection = (changedCheckbox) => {
+                const checkboxes = document.querySelectorAll('.role-checkbox');
+
+                checkboxes.forEach((checkbox) => {
+                    if (checkbox !== changedCheckbox) {
+                        checkbox.checked = false;
+                    }
+                });
+
+                if (changedCheckbox && changedCheckbox.id) {
+                    const icon = document.querySelector(`label[for="${changedCheckbox.id}"] i`);
+                    if (icon) {
+                        icon.classList.remove('role-icon-pop');
+                        void icon.offsetWidth;
+                        icon.classList.add('role-icon-pop');
+                    }
+                }
+
+                if (roleError && isRoleSelected()) {
+                    roleError.classList.remove('show');
+                }
+
+                updateSignupButtonState();
+            };
+
+            window.updateRoleSelection = updateRoleSelection;
+
+            const isValidBirthDate = (value) => {
+                if (!/^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
+                    return false;
+                }
+
+                const [dayString, monthString, yearString] = value.split('/');
+                const day = Number(dayString);
+                const month = Number(monthString);
+                const year = Number(yearString);
+                const date = new Date(year, month - 1, day);
+
+                return date.getFullYear() === year && date.getMonth() === (month - 1) && date.getDate() === day;
+            };
+
+            const setLineState = (name, isValid) => {
+                if (!signupForm) {
+                    return;
+                }
+
+                const input = signupForm.querySelector(`input[name="${name}"]`);
+                const line = document.getElementById(`${name}-line`);
+                const message = document.getElementById(`${name}-message`);
+
+                if (!input || !line || !message) {
+                    return;
+                }
+
+                const value = input.value.trim();
+                line.classList.remove('valid', 'invalid');
+                message.textContent = '';
+
+                if (value === '') {
+                    return;
+                }
+
+                line.classList.add(isValid ? 'valid' : 'invalid');
+
+                if (!isValid) {
+                    message.textContent = getFieldErrorMessage(name);
+                }
+            };
+
+            const getFieldErrorMessage = (name) => {
+                switch (name) {
+                    case 'name':
+                        return 'First name: letters only, length 3 to 12.';
+                    case 'last_name':
+                        return 'Last name: letters only, length 3 to 12.';
+                    case 'username':
+                        return 'Username: letters/numbers only, length 3 to 12.';
+                    case 'birth_date':
+                        return 'Use a valid date format DD/MM/YYYY.';
+                    case 'email':
+                        return 'Use an email like example@example.com.';
+                    case 'password':
+                        return 'Min 8 chars with uppercase, lowercase and number.';
+                    case 'confirm_password':
+                        return 'Confirm password must match password.';
+                    default:
+                        return 'Invalid value.';
+                }
+            };
+
+            const validateFieldValue = (name) => {
+                if (!signupForm) {
+                    return false;
+                }
+
+                const input = signupForm.querySelector(`input[name="${name}"]`);
+                if (!input) {
+                    return false;
+                }
+
+                const value = input.value.trim();
+                const passwordValue = signupForm.querySelector('input[name="password"]').value;
+
+                switch (name) {
+                    case 'name':
+                    case 'last_name':
+                        return /^[A-Za-z]{3,12}$/.test(value);
+                    case 'username':
+                        return /^[A-Za-z0-9]{3,12}$/.test(value);
+                    case 'birth_date':
+                        return isValidBirthDate(value);
+                    case 'email':
+                        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+                    case 'password':
+                        return value.length >= 8 && /[A-Z]/.test(value) && /[a-z]/.test(value) && /\d/.test(value);
+                    case 'confirm_password':
+                        return value.length > 0 && value === passwordValue;
+                    default:
+                        return false;
+                }
+            };
+
+            const validateField = (input) => {
+                const isValid = validateFieldValue(input.name);
+                setLineState(input.name, isValid);
+
+                if (input.name === 'password') {
+                    const confirmValid = validateFieldValue('confirm_password');
+                    setLineState('confirm_password', confirmValid);
+                }
+
+                updateSignupButtonState();
+                return isValid;
+            };
+
+            window.validateField = validateField;
+
+            const isSignupFormValid = () => {
+                if (!signupForm) {
+                    return false;
+                }
+
+                const fieldsValid = fieldNames.every((name) => validateFieldValue(name));
+                const roleValid = isRoleSelected();
+
+                return fieldsValid && roleValid;
+            };
+
+            const updateSignupButtonState = () => {
+                if (!signupSubmit) {
+                    return;
+                }
+
+                const valid = isSignupFormValid();
+                signupSubmit.disabled = !valid;
+            };
+
+            const switchToSignup = () => {
+                loginPanel.classList.remove('active');
+                signupPanel.classList.add('active');
+                if (authRow) authRow.classList.add('swapped');
+            };
+
+            const switchToLogin = () => {
+                signupPanel.classList.remove('active');
+                loginPanel.classList.add('active');
+                if (authRow) authRow.classList.remove('swapped');
+                if (welcomeContent && welcomeRolePanel && roleFleshTrigger) {
+                    welcomeContent.classList.remove('hidden');
+                    welcomeRolePanel.classList.remove('active');
+                    roleFleshTrigger.classList.remove('open');
+                }
+            };
+
+            if (gotoLogin) gotoLogin.addEventListener('click', (e) => {
+                e.preventDefault();
+                switchToLogin();
+            });
+
+            if (gotoSignup) gotoSignup.addEventListener('click', (e) => {
+                e.preventDefault();
+                switchToSignup();
+            });
+
+            if (roleFleshTrigger && welcomeContent && welcomeRolePanel) {
+                roleFleshTrigger.addEventListener('click', () => {
+                    welcomeContent.classList.toggle('hidden');
+                    welcomeRolePanel.classList.toggle('active');
+                    roleFleshTrigger.classList.toggle('open');
+                });
+            }
+
+            if (initialView === 'signup') {
+                switchToSignup();
+            }
+
+            const form = document.querySelector('#loginPanel form');
+            if (form) {
+                form.addEventListener('submit', (event) => {
+                    const email = form.querySelector('input[name="_username"]').value.trim();
+                    const password = form.querySelector('input[name="_password"]').value.trim();
+
+                    if (!email || !password) {
+                        event.preventDefault();
+                        alert('Please enter both email and password.');
+                        return;
+                    }
+
+                    showPageLoader('Signing you in...');
+                });
+            }
+
+            if (signupForm) {
+                fieldNames.forEach((name) => {
+                    const input = signupForm.querySelector(`input[name="${name}"]`);
+                    if (input) {
+                        input.addEventListener('input', () => validateField(input));
+                    }
+                });
+
+                signupForm.addEventListener('submit', (event) => {
+                    fieldNames.forEach((name) => {
+                        setLineState(name, validateFieldValue(name));
+                    });
+
+                    if (!isSignupFormValid()) {
+                        event.preventDefault();
+                        if (roleError && !isRoleSelected()) {
+                            roleError.classList.add('show');
+                            if (welcomeContent && welcomeRolePanel && roleFleshTrigger) {
+                                welcomeContent.classList.add('hidden');
+                                welcomeRolePanel.classList.add('active');
+                                roleFleshTrigger.classList.add('open');
+                            }
+                        }
+                        alert('Please fill all fields correctly before signing up.');
+                        return;
+                    }
+
+                    showPageLoader('Creating your account...');
+                });
+            }
+
+            document.addEventListener('click', (event) => {
+                const link = event.target.closest('a[href]');
+                if (!link) {
+                    return;
+                }
+
+                const href = link.getAttribute('href') || '';
+                if (
+                    href.startsWith('#') ||
+                    href.startsWith('mailto:') ||
+                    href.startsWith('tel:') ||
+                    href.startsWith('javascript:') ||
+                    link.target === '_blank' ||
+                    link.hasAttribute('download') ||
+                    link.dataset.noLoader === 'true'
+                ) {
+                    return;
+                }
+
+                const url = new URL(link.href, window.location.origin);
+                if (url.origin !== window.location.origin) {
+                    return;
+                }
+
+                showPageLoader('Opening page...');
+            });
+
+            updateSignupButtonState();
+        });
+    </script>
+</body>
+</html>

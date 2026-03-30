@@ -1,0 +1,301 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Admin Statistics{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .stats-page {
+            min-height: 100vh;
+            background:
+                radial-gradient(900px 420px at 5% -10%, rgba(11, 164, 161, 0.12), transparent 62%),
+                radial-gradient(900px 420px at 95% 0%, rgba(15, 122, 176, 0.10), transparent 60%),
+                #edf3f8;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #213142;
+        }
+
+        .topbar {
+            height: 86px;
+            background: #ffffff;
+            border-bottom: 1px solid #e2e9f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 28px;
+        }
+
+        .topbar img {
+            height: 40px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .top-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .top-actions a {
+            border: 1px solid #d4dce6;
+            color: #0BA4A1;
+            background: #f4fffe;
+            border-radius: 999px;
+            padding: 9px 15px;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .shell {
+            max-width: 1120px;
+            margin: 24px auto;
+            padding: 0 16px 24px;
+        }
+
+        .hero {
+            background: linear-gradient(140deg, #ffffff 0%, #f4fbff 100%);
+            border: 1px solid #e7edf2;
+            border-radius: 16px;
+            padding: 22px;
+            margin-bottom: 18px;
+            box-shadow: 0 8px 24px rgba(15, 45, 76, 0.06);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        .hero h1 {
+            margin: 0;
+            color: #173f69;
+            font-size: 32px;
+        }
+
+        .hero p {
+            margin: 8px 0 0;
+            color: #6e8093;
+        }
+
+        .hero-total {
+            border-radius: 12px;
+            background: #eff8ff;
+            border: 1px solid #d7e8f5;
+            padding: 10px 14px;
+            text-align: right;
+        }
+
+        .hero-total small {
+            color: #5c738b;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 11px;
+        }
+
+        .hero-total strong {
+            display: block;
+            font-size: 30px;
+            color: #173f69;
+            line-height: 1;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .panel {
+            background: #ffffff;
+            border: 1px solid #e7edf2;
+            border-radius: 14px;
+            padding: 18px;
+        }
+
+        .panel h2 {
+            margin: 0 0 14px;
+            color: #194575;
+            font-size: 21px;
+        }
+
+        .panel-subtitle {
+            margin: -4px 0 14px;
+            color: #6b8298;
+            font-size: 13px;
+        }
+
+        .bar-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .bar-row {
+            display: grid;
+            grid-template-columns: 86px minmax(0, 1fr) 44px;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .bar-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #4d6279;
+        }
+
+        .bar-track {
+            background: #edf3f9;
+            border-radius: 999px;
+            overflow: hidden;
+            height: 12px;
+        }
+
+        .bar-fill {
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #0BA4A1, #0f7ab0);
+        }
+
+        .bar-value {
+            text-align: right;
+            font-weight: 800;
+            color: #173f69;
+            font-size: 13px;
+        }
+
+        .bar-percent {
+            font-size: 11px;
+            color: #658097;
+            margin-left: 4px;
+            font-weight: 700;
+        }
+
+        .tier-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .tier-card {
+            border-radius: 12px;
+            border: 1px solid #dce7f1;
+            background: #f8fbff;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .tier-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: #5a7087;
+            font-weight: 700;
+        }
+
+        .tier-value {
+            margin-top: 8px;
+            font-size: 30px;
+            line-height: 1;
+            font-weight: 800;
+            color: #0a5f8f;
+        }
+
+        .tier-hint {
+            margin-top: 6px;
+            color: #70879d;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        @media (max-width: 900px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .bar-row {
+                grid-template-columns: 70px minmax(0, 1fr) 40px;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="stats-page">
+        <div class="topbar">
+            <img src="{{ asset('images/logo.png') }}" alt="Rehletna.tn" title="Rehletna.tn" />
+            <div class="top-actions">
+                <a href="{{ path('app_dashboard') }}">Back to Dashboard</a>
+                <a href="{{ path('app_mainpage') }}">Back to Main Page</a>
+            </div>
+        </div>
+
+        {% set ageTotal = 0 %}
+        {% for count in ageRanges %}
+            {% set ageTotal = ageTotal + count %}
+        {% endfor %}
+
+        {% set tierTotal = 0 %}
+        {% for count in membershipTiers %}
+            {% set tierTotal = tierTotal + count %}
+        {% endfor %}
+
+        <main class="shell">
+            <section class="hero">
+                <div>
+                    <h1>User Statistics</h1>
+                    <p>Distribution by age range and membership tier.</p>
+                </div>
+                <div class="hero-total">
+                    <small>Total Profiles</small>
+                    <strong>{{ tierTotal }}</strong>
+                </div>
+            </section>
+
+            <div class="grid">
+                <section class="panel">
+                    <h2>Age Ranges</h2>
+                    <p class="panel-subtitle">Based on users birth date values.</p>
+                    <div class="bar-list">
+                        {% for label, count in ageRanges %}
+                            {% set pct = ageTotal > 0 ? (count * 100 / ageTotal) : 0 %}
+                            <div class="bar-row">
+                                <div class="bar-label">{{ label }}</div>
+                                <div class="bar-track">
+                                    <div class="bar-fill" style="width: {{ pct|number_format(0, '.', '') }}%;"></div>
+                                </div>
+                                <div class="bar-value">{{ count }} <span class="bar-percent">{{ pct|number_format(0) }}%</span></div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <h2>Membership Tiers</h2>
+                    <p class="panel-subtitle">Standard, premium and VIP segments.</p>
+                    <div class="tier-grid">
+                        <article class="tier-card">
+                            <div class="tier-label">Standard</div>
+                            <div class="tier-value">{{ membershipTiers.standard|default(0) }}</div>
+                            <div class="tier-hint">{{ tierTotal > 0 ? ((membershipTiers.standard|default(0) * 100 / tierTotal)|number_format(0)) : 0 }}%</div>
+                        </article>
+                        <article class="tier-card">
+                            <div class="tier-label">Premium</div>
+                            <div class="tier-value">{{ membershipTiers.premium|default(0) }}</div>
+                            <div class="tier-hint">{{ tierTotal > 0 ? ((membershipTiers.premium|default(0) * 100 / tierTotal)|number_format(0)) : 0 }}%</div>
+                        </article>
+                        <article class="tier-card">
+                            <div class="tier-label">VIP</div>
+                            <div class="tier-value">{{ membershipTiers.vip|default(0) }}</div>
+                            <div class="tier-hint">{{ tierTotal > 0 ? ((membershipTiers.vip|default(0) * 100 / tierTotal)|number_format(0)) : 0 }}%</div>
+                        </article>
+                        <article class="tier-card">
+                            <div class="tier-label">VIP+</div>
+                            <div class="tier-value">{{ membershipTiers['vip+']|default(0) }}</div>
+                            <div class="tier-hint">{{ tierTotal > 0 ? ((membershipTiers['vip+']|default(0) * 100 / tierTotal)|number_format(0)) : 0 }}%</div>
+                        </article>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+{% endblock %}

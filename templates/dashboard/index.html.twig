@@ -1,0 +1,518 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Admin Dashboard - Rehletna.tn{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .dashboard-page {
+            min-height: 100vh;
+            background: #f2f4f7;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #213142;
+        }
+
+        .dashboard-top {
+            height: 86px;
+            background: #ffffff;
+            border-bottom: 1px solid #e6ebf0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 28px;
+            position: sticky;
+            top: 0;
+            z-index: 20;
+        }
+
+        .back-main-btn {
+            border: 2px solid #0BA4A1;
+            color: #0BA4A1;
+            background: #f4fffe;
+            border-radius: 999px;
+            padding: 10px 18px;
+            font-weight: 700;
+            text-decoration: none;
+            box-shadow: 0 4px 10px rgba(11, 164, 161, 0.18);
+        }
+
+        .top-logo {
+            color: #0BA4A1;
+            font-weight: 800;
+            letter-spacing: -0.3px;
+            height: 40px;
+            width: auto;
+        }
+
+        .top-logo img {
+            height: 100%;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .dashboard-layout {
+            display: grid;
+            grid-template-columns: 260px minmax(0, 1fr);
+            min-height: calc(100vh - 86px);
+        }
+
+        .dash-sidebar {
+            background: #2f445a;
+            color: #fff;
+            padding: 28px 14px;
+        }
+
+        .admin-avatar {
+            width: 84px;
+            height: 84px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: #e5e9ef;
+            color: #2f445a;
+            font-size: 28px;
+            font-weight: 800;
+            margin: 0 auto 14px;
+            border: 4px solid rgba(255, 255, 255, 0.25);
+            overflow: hidden;
+        }
+
+        .admin-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .admin-name {
+            text-align: center;
+            font-size: 32px;
+            line-height: 1;
+            margin-bottom: 4px;
+            color: #ffffff;
+        }
+
+        .admin-role {
+            text-align: center;
+            color: #FCBE31;
+            font-weight: 800;
+            margin-bottom: 26px;
+        }
+
+        .sidebar-link {
+            display: block;
+            color: #d9e4ef;
+            text-decoration: none;
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .sidebar-link.active {
+            background: #d8f4f2;
+            color: #0BA4A1;
+            font-weight: 700;
+        }
+
+        .sidebar-link.logout {
+            margin-top: 36px;
+            color: #ff9aa5;
+        }
+
+        .dash-content {
+            padding: 22px;
+        }
+
+        .welcome-strip {
+            background: #ffffff;
+            border-radius: 14px;
+            padding: 18px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+            border: 1px solid #e8edf2;
+        }
+
+        .welcome-strip h2 {
+            margin: 0;
+            color: #194575;
+            font-size: 40px;
+            font-weight: 800;
+        }
+
+        .timer-ring {
+            width: 62px;
+            height: 62px;
+            border-radius: 50%;
+            border: 3px solid #0BA4A1;
+            display: grid;
+            place-items: center;
+            color: #194575;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+
+        .stat-card {
+            background: #ffffff;
+            border-radius: 14px;
+            border: 1px solid #e7edf2;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-card h4 {
+            margin: 0;
+            color: #5b6e81;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .stat-value {
+            margin-top: 8px;
+            font-size: 42px;
+            line-height: 1;
+            font-weight: 800;
+        }
+
+        .stat-value.total {
+            color: #0BA4A1;
+        }
+
+        .stat-value.admin {
+            color: #FCBE31;
+        }
+
+        .stat-value.guider {
+            color: #9b34c6;
+        }
+
+        .stat-value.user {
+            color: #003972;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1.2fr;
+            gap: 18px;
+        }
+
+        .panel {
+            background: #ffffff;
+            border-radius: 14px;
+            border: 1px solid #e7edf2;
+            padding: 16px;
+        }
+
+        .panel h3 {
+            margin: 0 0 12px;
+            color: #194575;
+            font-size: 30px;
+            font-weight: 800;
+        }
+
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .users-table th,
+        .users-table td {
+            text-align: left;
+            padding: 8px 10px;
+            border-bottom: 1px solid #edf2f7;
+            font-size: 12px;
+        }
+
+        .users-table th {
+            color: #586b7f;
+            font-weight: 700;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        .badge-role {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 700;
+            border-radius: 999px;
+            padding: 4px 8px;
+            background: #eef5fb;
+            color: #355272;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .status-item {
+            background: #f7fafc;
+            border-radius: 10px;
+            padding: 14px;
+            text-align: center;
+            border: 1px solid #e8edf2;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+
+        .online {
+            background: #2fc56f;
+        }
+
+        .offline {
+            background: #9ca9b5;
+        }
+
+        .status-item strong {
+            display: block;
+            font-size: 38px;
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+
+        .user-list {
+            margin-top: 8px;
+            border: 1px solid #e7edf2;
+            border-radius: 10px;
+            background: #fafcfe;
+            max-height: 130px;
+            overflow: auto;
+        }
+
+        .user-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 10px;
+            border-bottom: 1px solid #edf2f7;
+        }
+
+        .user-row:last-child {
+            border-bottom: none;
+        }
+
+        .user-mini {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #3f556b;
+            font-size: 12px;
+        }
+
+        .user-mini-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: #0BA4A1;
+            color: #fff;
+            font-size: 10px;
+            font-weight: 800;
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .dash-sidebar {
+                display: none;
+            }
+
+            .stats-grid,
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .welcome-strip h2 {
+                font-size: 30px;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="dashboard-page">
+        <div class="dashboard-top">
+            <a class="back-main-btn" href="{{ path('app_mainpage') }}">← Back to Main Page</a>
+            <div class="top-logo">
+                <img src="{{ asset('images/logo.png') }}" alt="Rehletna.tn" title="Rehletna.tn" />
+            </div>
+        </div>
+
+        <div class="dashboard-layout">
+            <aside class="dash-sidebar">
+                <div class="admin-avatar">
+                    {% if adminImageUrl is defined and adminImageUrl %}
+                        <img src="{{ adminImageUrl }}" alt="{{ app.user.username }}" />
+                    {% else %}
+                        {{ app.user.username|first|upper }}
+                    {% endif %}
+                </div>
+                <div class="admin-name">{{ app.user.username }}</div>
+                <div class="admin-role">ADMIN</div>
+
+                <a href="{{ path('app_dashboard') }}" class="sidebar-link active">Dashboard</a>
+                <a href="{{ path('app_users') }}" class="sidebar-link">Users</a>
+                <a href="{{ path('app_todos') }}" class="sidebar-link">Todo List</a>
+                <a href="{{ path('app_admin_stats') }}" class="sidebar-link">Stats</a>
+                <a href="#" class="sidebar-link">Shop</a>
+                <a href="#" class="sidebar-link">Message Stats</a>
+                <a href="#" class="sidebar-link">Service</a>
+                <a href="{{ path('app_logout') }}" class="sidebar-link logout">Logout</a>
+            </aside>
+
+            <main class="dash-content">
+                <section class="welcome-strip">
+                    <div>
+                        <div>Welcome back,</div>
+                        <h2>{{ app.user.username }}!</h2>
+                    </div>
+                    <div class="timer-ring" id="dashboardClock">00:00:00</div>
+                </section>
+
+                <section class="stats-grid">
+                    <article class="stat-card">
+                        <h4>Total Users</h4>
+                        <div class="stat-value total">{{ stats.totalUsers }}</div>
+                    </article>
+                    <article class="stat-card">
+                        <h4>Admins</h4>
+                        <div class="stat-value admin">{{ stats.admins }}</div>
+                    </article>
+                    <article class="stat-card">
+                        <h4>Guiders</h4>
+                        <div class="stat-value guider">{{ stats.guiders }}</div>
+                    </article>
+                    <article class="stat-card">
+                        <h4>Regular Users</h4>
+                        <div class="stat-value user">{{ stats.regularUsers }}</div>
+                    </article>
+                </section>
+
+                <section class="dashboard-grid">
+                    <article class="panel">
+                        <h3>Recent Users</h3>
+                        <table class="users-table">
+                            <thead>
+                                <tr>
+                                    <th>Avatar</th>
+                                    <th>Username</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in recentUsers %}
+                                    <tr>
+                                        <td>
+                                            <img src="{{ user.image_url|default('/images/default_avatar.png') }}" alt="{{ user.username }}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover;" />
+                                        </td>
+                                        <td>{{ user.username }}</td>
+                                        <td>{{ user.email }}</td>
+                                        <td><span class="badge-role">{{ user.role|upper }}</span></td>
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                        <td colspan="4">No users found.</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </article>
+
+                    <article class="panel">
+                        <h3>User Status</h3>
+                        <div class="status-grid">
+                            <div class="status-item">
+                                <div><span class="status-dot online"></span>Online</div>
+                                <strong style="color:#2fc56f;">{{ stats.online }}</strong>
+                            </div>
+                            <div class="status-item">
+                                <div><span class="status-dot offline"></span>Offline</div>
+                                <strong style="color:#9ca9b5;">{{ stats.offline }}</strong>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div style="font-weight:700;color:#2aa35f;">Online Users</div>
+                            <div class="user-list">
+                                {% for user in onlineUsers %}
+                                    <div class="user-row">
+                                        <div class="user-mini">
+                                            <div class="user-mini-avatar">{{ user.username|first|upper }}</div>
+                                            <div>
+                                                <div>{{ user.username }}</div>
+                                                <div style="font-size:10px;color:#7b8a99;">{{ user.role|upper }}</div>
+                                            </div>
+                                        </div>
+                                        <span class="status-dot online"></span>
+                                    </div>
+                                {% else %}
+                                    <div class="user-row">No online users</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div style="margin-top:10px;">
+                            <div style="font-weight:700;color:#6f7f90;">Offline Users</div>
+                            <div class="user-list">
+                                {% for user in offlineUsers %}
+                                    <div class="user-row">
+                                        <div class="user-mini">
+                                            <div class="user-mini-avatar" style="background:#9ca9b5;">{{ user.username|first|upper }}</div>
+                                            <div>
+                                                <div>{{ user.username }}</div>
+                                                <div style="font-size:10px;color:#7b8a99;">{{ user.role|upper }}</div>
+                                            </div>
+                                        </div>
+                                        <span class="status-dot offline"></span>
+                                    </div>
+                                {% else %}
+                                    <div class="user-row">No offline users</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </article>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            const clock = document.getElementById('dashboardClock');
+            if (!clock) {
+                return;
+            }
+
+            const tick = () => {
+                const now = new Date();
+                const h = String(now.getHours()).padStart(2, '0');
+                const m = String(now.getMinutes()).padStart(2, '0');
+                const s = String(now.getSeconds()).padStart(2, '0');
+                clock.textContent = `${h}:${m}:${s}`;
+            };
+
+            tick();
+            setInterval(tick, 1000);
+        })();
+    </script>
+{% endblock %}

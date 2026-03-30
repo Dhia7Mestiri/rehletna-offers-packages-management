@@ -10,8 +10,155 @@
         {% block javascripts %}
             {% block importmap %}{{ importmap('app') }}{% endblock %}
         {% endblock %}
+        <style>
+            html,
+            body {
+                margin: 0;
+                padding: 0;
+                min-height: 100%;
+                border: 0;
+                outline: 0;
+                background: #f4f9ff;
+                overflow-x: hidden;
+            }
+
+            .global-loader {
+                position: fixed;
+                inset: 0;
+                display: none;
+                align-items: center;
+                justify-content: center;
+                flex-direction: column;
+                background: linear-gradient(140deg, rgba(4, 22, 38, 0.92), rgba(11, 69, 96, 0.9));
+                z-index: 9999;
+                color: #ffffff;
+                text-align: center;
+                padding: 24px;
+            }
+
+            .global-loader.active {
+                display: flex;
+            }
+
+            .global-loader-logo {
+                width: clamp(220px, 34vw, 360px);
+                max-width: 100%;
+                height: auto;
+                margin-bottom: 12px;
+                filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.28));
+            }
+
+            .global-loader-text {
+                font-size: 1rem;
+                opacity: 0.92;
+                margin-bottom: 22px;
+            }
+
+            .global-loader-dots {
+                display: flex;
+                gap: 10px;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .global-loader-dots span {
+                width: 12px;
+                height: 12px;
+                border-radius: 50%;
+                background: #ffffff;
+                animation: loader-bounce 0.95s infinite ease-in-out;
+            }
+
+            .global-loader-dots span:nth-child(2) {
+                animation-delay: 0.12s;
+            }
+
+            .global-loader-dots span:nth-child(3) {
+                animation-delay: 0.24s;
+            }
+
+            @keyframes loader-bounce {
+                0%, 80%, 100% {
+                    transform: translateY(0);
+                    opacity: 0.5;
+                }
+                40% {
+                    transform: translateY(-8px);
+                    opacity: 1;
+                }
+            }
+        </style>
     </head>
     <body>
+        <div id="globalLoader" class="global-loader" aria-hidden="true">
+            <img class="global-loader-logo" src="{{ asset('images/logo.png') }}" alt="Rehletna logo">
+            <div id="globalLoaderText" class="global-loader-text">Loading your page...</div>
+            <div class="global-loader-dots" aria-label="Loading">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
         {% block body %}{% endblock %}
+        <script>
+            (function () {
+                const loader = document.getElementById('globalLoader');
+                const loaderText = document.getElementById('globalLoaderText');
+
+                if (!loader) {
+                    return;
+                }
+
+                const showLoader = (text) => {
+                    if (loaderText && text) {
+                        loaderText.textContent = text;
+                    }
+                    loader.classList.add('active');
+                    loader.setAttribute('aria-hidden', 'false');
+                };
+
+                window.showGlobalLoader = showLoader;
+
+                document.addEventListener('click', (event) => {
+                    const link = event.target.closest('a[href]');
+                    if (!link) {
+                        return;
+                    }
+
+                    const href = link.getAttribute('href') || '';
+                    if (
+                        href.startsWith('#') ||
+                        href.startsWith('mailto:') ||
+                        href.startsWith('tel:') ||
+                        href.startsWith('javascript:') ||
+                        link.target === '_blank' ||
+                        link.hasAttribute('download') ||
+                        link.dataset.noLoader === 'true'
+                    ) {
+                        return;
+                    }
+
+                    const url = new URL(link.href, window.location.origin);
+                    if (url.origin !== window.location.origin) {
+                        return;
+                    }
+
+                    showLoader('Opening page...');
+                });
+
+                document.addEventListener('submit', (event) => {
+                    const form = event.target;
+                    if (!(form instanceof HTMLFormElement)) {
+                        return;
+                    }
+
+                    if (form.dataset.noLoader === 'true') {
+                        return;
+                    }
+
+                    showLoader('Loading...');
+                });
+            })();
+        </script>
     </body>
 </html>

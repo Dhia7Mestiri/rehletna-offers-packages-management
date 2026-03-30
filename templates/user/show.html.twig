@@ -1,0 +1,107 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}User Details{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-header">
+            <h2>User Details</h2>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <tr>
+                    <th style="width: 200px;">ID:</th>
+                    <td>{{ user.id }}</td>
+                </tr>
+                <tr>
+                    <th>Email:</th>
+                    <td>{{ user.email }}</td>
+                </tr>
+                <tr>
+                    <th>Username:</th>
+                    <td>{{ user.username }}</td>
+                </tr>
+                <tr>
+                    <th>First Name:</th>
+                    <td>{{ user.name }}</td>
+                </tr>
+                <tr>
+                    <th>Last Name:</th>
+                    <td>{{ user.lastName }}</td>
+                </tr>
+                <tr>
+                    <th>Full Name:</th>
+                    <td>{{ user.fullName }}</td>
+                </tr>
+                <tr>
+                    <th>Role:</th>
+                    <td>{{ user.role }}</td>
+                </tr>
+                <tr>
+                    <th>Date:</th>
+                    <td>{{ user.date|date('Y-m-d') }}</td>
+                </tr>
+                <tr>
+                    <th>Status:</th>
+                    <td>
+                        {% if user.status %}
+                            <span class="badge bg-success">{{ user.status }}</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Inactive</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <th>Two Factor Enabled:</th>
+                    <td>
+                        {% if user.twoFactorEnabled %}
+                            <span class="badge bg-success">Yes</span>
+                        {% else %}
+                            <span class="badge bg-secondary">No</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <th>Fingerprint Slot:</th>
+                    <td>{{ user.fingerprintSlotId ?: 'Not set' }}</td>
+                </tr>
+            </table>
+            
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Statistics</h5>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Todos:</strong> {{ user.todosCount }} ({{ user.completedTodosCount }} completed, {{ user.pendingTodosCount }} pending)</p>
+                            <p><strong>Shops:</strong> {{ user.shopsCount }}</p>
+                            <p><strong>Messages:</strong> {{ user.unreadMessagesCount }} unread</p>
+                            <p><strong>Purchases:</strong> {{ user.purchasesCount }}</p>
+                            <p><strong>Total Spent:</strong> ${{ user.totalSpent|number_format(2) }}</p>
+                            {% if user.lastPurchaseDate %}
+                                <p><strong>Last Purchase:</strong> {{ user.lastPurchaseDate|date('Y-m-d') }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Initials</h5>
+                        </div>
+                        <div class="card-body text-center">
+                            <div class="display-1">{{ user.initials }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-3">
+                <a href="{{ path('app_user_index') }}" class="btn btn-secondary">Back to List</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

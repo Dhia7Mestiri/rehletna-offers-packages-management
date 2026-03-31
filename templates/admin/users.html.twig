@@ -27,6 +27,7 @@
                 <a href="{{ path('app_users') }}" class="sidebar-link active">Users</a>
                 <a href="{{ path('app_admin_stats') }}" class="sidebar-link">Statistics</a>
                 <a href="{{ path('app_todos') }}" class="sidebar-link">Todos</a>
+                <a href="{{ path('app_admin_shop') }}" class="sidebar-link">Shop</a>
                 <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.15); margin: 16px 0;">
                 <a href="{{ path('app_logout') }}" class="sidebar-link" style="color: #ff6b6b;">Logout</a>
             </aside>
@@ -50,77 +51,64 @@
                         <button class="add-user-btn" type="button" onclick="window.location.reload()">Refresh</button>
                     </div>
 
-                    <!-- Users Table -->
-                    <div class="table-wrapper">
-                        <table class="management-table">
-                            <thead>
-                                <tr>
-                                    <th>AVATAR</th>
-                                    <th>USER</th>
-                                    <th>EMAIL</th>
-                                    <th>ROLE</th>
-                                    <th>STATUS</th>
-                                    <th>ACTIONS</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for user in users %}
-                                    <tr class="user-row" data-user-id="{{ user.id }}">
-                                        <td class="avatar-cell">
-                                            <img src="{{ user.image_url|default('/images/default_avatar.png') }}" alt="{{ user.username }}" class="user-avatar" />
-                                        </td>
-                                        <td class="username-cell">
-                                            <div class="user-detail">
-                                                <div class="username">{{ user.username }}</div>
-                                                <div class="fullname">{{ user.name }} {{ user.last_name }}</div>
-                                            </div>
-                                        </td>
-                                        <td class="email-cell">
-                                            <a href="mailto:{{ user.email }}" class="email-link">{{ user.email }}</a>
-                                        </td>
-                                        <td class="role-cell">
-                                            {% if user.role|upper == 'ADMIN' %}
-                                                <span class="badge badge-admin">ADMIN</span>
-                                            {% elseif user.role|upper == 'GUIDER' %}
-                                                <span class="badge badge-guider">GUIDE</span>
-                                            {% elseif user.role|upper == 'AGENCY' %}
-                                                <span class="badge badge-agency">AGENCY</span>
-                                            {% else %}
-                                                <span class="badge badge-user">USER</span>
-                                            {% endif %}
-                                        </td>
-                                        <td class="status-cell">
-                                            {% if user.status|default('offline')|lower == 'online' %}
-                                                <span class="status-badge online">
-                                                    <span class="status-dot"></span>Online
-                                                </span>
-                                            {% else %}
-                                                <span class="status-badge offline">
-                                                    <span class="status-dot"></span>Offline
-                                                </span>
-                                            {% endif %}
-                                        </td>
-                                        <td class="actions-cell">
-                                            <div class="actions-wrap">
-                                                <a href="{{ path('app_user_edit', {'id': user.id}) }}" class="action-btn edit-btn" title="Edit user">
-                                                    <span aria-hidden="true">✎</span>
-                                                </a>
-                                                <form method="post" action="{{ path('app_user_delete', {'id': user.id}) }}" style="margin:0;" onsubmit="return confirm('Delete user {{ user.username }}?');">
-                                                    <input type="hidden" name="_token" value="{{ csrf_token('delete-user-' ~ user.id) }}">
-                                                    <button type="submit" class="action-btn delete-btn" title="Delete user">
-                                                        <span aria-hidden="true">🗑</span>
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                {% else %}
-                                    <tr>
-                                        <td colspan="6" class="no-data">No users found</td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                    <!-- Users Cards -->
+                    <div class="users-grid" id="usersGrid">
+                        {% for user in users %}
+                            <article class="user-card" data-user-id="{{ user.id }}">
+                                <div class="user-card-head">
+                                    <img src="{{ user.image_url|default('/images/default_avatar.png') }}" alt="{{ user.username }}" class="user-avatar" />
+                                    <div class="user-detail">
+                                        <div class="username">{{ user.username }}</div>
+                                        <div class="fullname">{{ user.name }} {{ user.last_name }}</div>
+                                    </div>
+                                </div>
+
+                                <div class="user-card-body">
+                                    <div class="card-field">
+                                        <span class="field-label">Email</span>
+                                        <a href="mailto:{{ user.email }}" class="email-link">{{ user.email }}</a>
+                                    </div>
+                                    <div class="card-field">
+                                        <span class="field-label">Role</span>
+                                        {% if user.role|upper == 'ADMIN' %}
+                                            <span class="badge badge-admin">ADMIN</span>
+                                        {% elseif user.role|upper == 'GUIDER' %}
+                                            <span class="badge badge-guider">GUIDE</span>
+                                        {% elseif user.role|upper == 'AGENCY' %}
+                                            <span class="badge badge-agency">AGENCY</span>
+                                        {% else %}
+                                            <span class="badge badge-user">USER</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="card-field">
+                                        <span class="field-label">Status</span>
+                                        {% if user.status|default('offline')|lower == 'online' %}
+                                            <span class="status-badge online">
+                                                <span class="status-dot"></span>Online
+                                            </span>
+                                        {% else %}
+                                            <span class="status-badge offline">
+                                                <span class="status-dot"></span>Offline
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="actions-wrap">
+                                    <a href="{{ path('app_user_edit', {'id': user.id}) }}" class="action-btn edit-btn" title="Edit user">
+                                        <span aria-hidden="true">✎</span>
+                                    </a>
+                                    <form method="post" action="{{ path('app_user_delete', {'id': user.id}) }}" style="margin:0;" onsubmit="return confirm('Delete user {{ user.username }}?');">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete-user-' ~ user.id) }}">
+                                        <button type="submit" class="action-btn delete-btn" title="Delete user">
+                                            <span aria-hidden="true">🗑</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </article>
+                        {% else %}
+                            <div class="no-data">No users found</div>
+                        {% endfor %}
                     </div>
 
                     <!-- Pagination -->
@@ -249,68 +237,65 @@
             transform: translateY(-1px);
         }
 
-        .table-wrapper {
-            overflow-x: auto;
-            border-radius: 8px;
-            border: 1px solid #e7edf2;
-            background: #ffffff;
+        .users-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 14px;
         }
 
-        .management-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            table-layout: fixed;
+        .user-card {
+            border: 1px solid #e2ecf3;
+            border-radius: 16px;
+            background: linear-gradient(170deg, #ffffff 0%, #f3f9ff 100%);
+            box-shadow: 0 6px 20px rgba(15, 45, 76, 0.06);
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+            overflow: hidden;
         }
 
-        .management-table thead {
-            background: #f8f9fb;
-            border-bottom: 2px solid #e7edf2;
+        .user-card:hover {
+            transform: translateY(-3px);
+            border-color: #b8d8ea;
+            box-shadow: 0 18px 34px rgba(15, 45, 76, 0.18), 0 4px 16px rgba(11, 164, 161, 0.2);
         }
 
-        .management-table th {
-            padding: 14px 16px;
-            text-align: left;
-            font-weight: 700;
-            color: #4d5f75;
+        .user-card:hover .user-card-head {
+            background: linear-gradient(120deg, #0e6996 0%, #0aa18c 100%);
+        }
+
+        .user-card-head {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: -14px -14px 2px;
+            padding: 12px 14px;
+            background: linear-gradient(120deg, #0f7ab0 0%, #0BA4A1 100%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+        }
+
+        .user-card-body {
+            display: grid;
+            gap: 10px;
+        }
+
+        .card-field {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            border-top: 1px solid #edf2f7;
+            padding-top: 10px;
+        }
+
+        .field-label {
+            color: #66809a;
             font-size: 12px;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .management-table th:nth-child(1) {
-            width: 88px;
-        }
-
-        .management-table th:nth-child(2) {
-            width: 240px;
-        }
-
-        .management-table th:nth-child(6) {
-            width: 140px;
-        }
-
-        .management-table tbody tr {
-            border-bottom: 1px solid #f0f2f5;
-            transition: background-color 0.2s ease;
-        }
-
-        .management-table tbody tr:hover {
-            background-color: #f8f9fb;
-        }
-
-        .management-table tbody tr:last-child {
-            border-bottom: none;
-        }
-
-        .management-table td {
-            padding: 16px;
-            font-size: 14px;
-        }
-
-        .avatar-cell {
-            width: 60px;
-            padding: 12px;
+            letter-spacing: 0.4px;
         }
 
         .user-avatar {
@@ -318,17 +303,13 @@
             height: 44px;
             border-radius: 50%;
             object-fit: cover;
-            border: 2px solid #e7edf2;
+            border: 2px solid rgba(255, 255, 255, 0.85);
             transition: all 0.2s ease;
         }
 
-        .user-row:hover .user-avatar {
-            border-color: #0BA4A1;
-            box-shadow: 0 0 0 2px rgba(11, 164, 161, 0.1);
-        }
-
-        .username-cell {
-            max-width: 200px;
+        .user-card:hover .user-avatar {
+            border-color: rgba(255, 255, 255, 1);
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.22);
         }
 
         .user-detail {
@@ -338,32 +319,27 @@
 
         .username {
             font-weight: 700;
-            color: #213142;
+            color: #ffffff;
             margin-bottom: 2px;
         }
 
         .fullname {
             font-size: 12px;
-            color: #7b8a99;
-        }
-
-        .email-cell {
-            max-width: 250px;
+            color: rgba(255, 255, 255, 0.84);
         }
 
         .email-link {
             color: #0BA4A1;
             text-decoration: none;
             transition: color 0.2s ease;
+            font-size: 13px;
+            text-align: right;
+            overflow-wrap: anywhere;
         }
 
         .email-link:hover {
             color: #099490;
             text-decoration: underline;
-        }
-
-        .role-cell {
-            text-align: center;
         }
 
         .badge {
@@ -400,10 +376,6 @@
             border: 1px solid #0BA4A1;
         }
 
-        .status-cell {
-            text-align: center;
-        }
-
         .status-badge {
             display: inline-flex;
             align-items: center;
@@ -433,16 +405,12 @@
             background: currentColor;
         }
 
-        .actions-cell {
-            text-align: center;
-            width: 130px;
-        }
-
         .actions-wrap {
-            display: inline-flex;
+            display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 8px;
+            justify-content: space-between;
+            border-top: 1px solid #edf2f7;
+            padding-top: 12px;
         }
 
         .action-btn {
@@ -489,8 +457,12 @@
         .no-data {
             text-align: center;
             color: #7b8a99;
-            padding: 40px !important;
+            padding: 40px;
             font-style: italic;
+            border: 1px dashed #c8d7e4;
+            border-radius: 12px;
+            background: #f9fcff;
+            grid-column: 1 / -1;
         }
 
         .pagination {
@@ -545,23 +517,17 @@
                 width: 100%;
             }
 
-            .management-table {
-                font-size: 12px;
+            .users-grid {
+                grid-template-columns: 1fr;
             }
 
-            .management-table th,
-            .management-table td {
-                padding: 12px 8px;
+            .card-field {
+                flex-direction: column;
+                align-items: flex-start;
             }
 
-            .username-cell,
-            .email-cell {
-                max-width: 120px;
-            }
-
-            .user-detail {
-                overflow: hidden;
-                text-overflow: ellipsis;
+            .email-link {
+                text-align: left;
             }
         }
     </style>
@@ -574,12 +540,12 @@
                     return;
                 }
 
-                const rows = Array.from(document.querySelectorAll('.management-table tbody .user-row'));
+                const cards = Array.from(document.querySelectorAll('#usersGrid .user-card'));
                 input.addEventListener('input', function () {
                     const q = input.value.trim().toLowerCase();
-                    rows.forEach(function (row) {
-                        const text = row.textContent ? row.textContent.toLowerCase() : '';
-                        row.style.display = text.includes(q) ? '' : 'none';
+                    cards.forEach(function (card) {
+                        const text = card.textContent ? card.textContent.toLowerCase() : '';
+                        card.style.display = text.includes(q) ? '' : 'none';
                     });
                 });
             });

@@ -739,6 +739,117 @@ class HomeController extends AbstractController
         ]);
     }
 
+    #[Route('/admin/shop', name: 'app_admin_shop', methods: ['GET', 'POST'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function adminShop(Request $request, Connection $connection): Response
+    {
+        $adminImageUrl = $this->getCurrentUserProfileImageUrl($connection);
+
+        $schemaManager = $connection->createSchemaManager();
+        $shopTable = null;
+        foreach (['shop', 'shops'] as $candidate) {
+            if ($schemaManager->tablesExist([$candidate])) {
+                $shopTable = $candidate;
+                break;
+            }
+        }
+
+        if ($shopTable === null) {
+            $this->addFlash('error', 'Shop table was not found in database.');
+            return $this->render('admin/shop.html.twig', [
+                'adminImageUrl' => $adminImageUrl,
+                'products' => [],
+            ]);
+        }
+
+        if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('shop-product-create', (string) $request->request->get('_token'))) {
+                $this->addFlash('error', 'Invalid request token. Please try again.');
+                return $this->redirectToRoute('app_admin_shop');
+            }
+
+            $name = trim((string) $request->request->get('name', ''));
+            $description = trim((string) $request->request->get('description', ''));
+            $category = trim((string) $request->request->get('category', ''));
+            $priceCoins = (int) $request->request->get('price_coins', 0);
+            $quantity = (int) $request->request->get('quantity', 0);
+            $imageBlob = null;
+
+            if ($name === '') {
+                $this->addFlash('error', 'Product name is required.');
+                return $this->redirectToRoute('app_admin_shop');
+            }
+
+            if ($priceCoins < 0 || $quantity < 0) {
+                $this->addFlash('error', 'Price and quantity must be 0 or greater.');
+                return $this->redirectToRoute('app_admin_shop');
+            }
+
+            $imageFile = $request->files->get('image');
+            if ($imageFile !== null) {
+                if (!$imageFile->isValid()) {
+                    $this->addFlash('error', 'Uploaded image is invalid.');
+                    return $this->redirectToRoute('app_admin_shop');
+                }
+
+                $imageData = @file_get_contents($imageFile->getPathname());
+                if ($imageData !== false && $imageData !== '') {
+                    $imageBlob = $imageData;
+                }
+            }
+
+            try {
+                $connection->executeStatement(
+                    'INSERT INTO ' . $shopTable . ' (name, description, price_coins, quantity, image, category, created_at, updated_at)
+                     VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())',
+                    [
+                        $name,
+                        $description !== '' ? $description : null,
+                        $priceCoins,
+                        $quantity,
+                        $imageBlob,
+                        $category !== '' ? $category : null,
+                    ],
+                    [
+                        ParameterType::STRING,
+                        ParameterType::STRING,
+                        ParameterType::INTEGER,
+                        ParameterType::INTEGER,
+                        ParameterType::LARGE_OBJECT,
+                        ParameterType::STRING,
+                    ]
+                );
+
+                $this->addFlash('success', 'Product added successfully.');
+            } catch (\Throwable $e) {
+                $this->addFlash('error', 'Unable to add product: ' . $e->getMessage());
+            }
+
+            return $this->redirectToRoute('app_admin_shop');
+        }
+
+        $products = [];
+        try {
+            $products = $connection->executeQuery(
+                'SELECT id, name, description, price_coins, quantity, image, category, created_at, updated_at
+                 FROM ' . $shopTable . '
+                 ORDER BY id DESC'
+            )->fetchAllAssociative();
+
+            foreach ($products as &$product) {
+                $product['image_url'] = $this->imageToUrl($product['image'] ?? null);
+            }
+            unset($product);
+        } catch (\Throwable $e) {
+            $this->addFlash('error', 'Unable to load products: ' . $e->getMessage());
+        }
+
+        return $this->render('admin/shop.html.twig', [
+            'adminImageUrl' => $adminImageUrl,
+            'products' => $products,
+        ]);
+    }
+
     #[Route('/reservations', name: 'app_reservations')]
     #[IsGranted('ROLE_USER')]
     public function reservations(): Response

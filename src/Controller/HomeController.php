@@ -23,6 +23,34 @@ class HomeController extends AbstractController
         return $this->render('home/index.html.twig');
     }
 
+    #[Route('/language/{locale}', name: 'app_set_locale', methods: ['GET', 'POST'])]
+    public function setLocale(string $locale, Request $request, Connection $connection): Response
+    {
+        $normalizedLocale = in_array($locale, ['en', 'fr'], true) ? $locale : 'en';
+        $session = $request->getSession();
+        $session->set('_locale', $normalizedLocale);
+        $session->save();
+
+        $user = $this->getUser();
+        if ($user instanceof User) {
+            $profile = $this->fetchOrCreateProfileRow($connection, (int) $user->getId());
+            if ($profile && isset($profile['id'])) {
+                $connection->executeStatement(
+                    'UPDATE profile SET language = ? WHERE id = ?',
+                    [$normalizedLocale === 'fr' ? 'Francais' : 'English', (int) $profile['id']],
+                    [ParameterType::STRING, ParameterType::INTEGER]
+                );
+            }
+        }
+
+        $redirectTo = $request->query->get('redirect') ?: $request->request->get('redirect', '');
+        if (empty($redirectTo) || str_starts_with($redirectTo, 'http://') || str_starts_with($redirectTo, 'https://')) {
+            $redirectTo = $this->generateUrl('app_mainpage');
+        }
+
+        return $this->redirect($redirectTo);
+    }
+
     #[Route('/mainpage', name: 'app_mainpage')]
     #[IsGranted('ROLE_USER')]
     public function mainpage(Connection $connection): Response
@@ -275,25 +303,93 @@ class HomeController extends AbstractController
         $user = $this->getUser();
         $profile = null;
 
-        if ($user) {
-            $result = $connection->executeQuery(
-                'SELECT id, member_premium FROM profile WHERE id_user = ? LIMIT 1',
-                [$user->getId()]
-            );
-            $profile = $result->fetchAssociative();
-
-            if (!$profile) {
-                $connection->executeStatement(
-                    'INSERT INTO profile (image, member_premium, language, id_user, coins) VALUES (?, ?, ?, ?, ?)',
-                    [null, 'standard', 'English', $user->getId(), 0],
-                    [ParameterType::LARGE_OBJECT, ParameterType::STRING, ParameterType::STRING, ParameterType::INTEGER, ParameterType::INTEGER]
-                );
-            }
+        if ($user instanceof User) {
+            $profile = $this->fetchOrCreateProfileRow($connection, (int) $user->getId());
         }
 
         return $this->render('premium/subscription.html.twig', [
             'user' => $user,
             'profile' => $profile,
+        ]);
+    }
+
+    #[Route('/premium/subscribe', name: 'app_premium_subscribe', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function premiumSubscribe(Request $request, Connection $connection): JsonResponse
+    {
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Unauthorized.',
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $payload = json_decode($request->getContent(), true);
+        if (!is_array($payload)) {
+            $payload = $request->request->all();
+        }
+
+        $offer = strtolower(trim((string) ($payload['offer'] ?? '')));
+        $allowedOffers = ['premium', 'vip', 'vip+'];
+        if (!in_array($offer, $allowedOffers, true)) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Invalid offer selected.',
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        $cardHolder = trim((string) ($payload['cardHolder'] ?? ''));
+        $cardNumber = preg_replace('/\D+/', '', (string) ($payload['cardNumber'] ?? ''));
+        $expiry = trim((string) ($payload['expiry'] ?? ''));
+        $cvc = preg_replace('/\D+/', '', (string) ($payload['cvc'] ?? ''));
+
+        if ($cardHolder === '' || strlen($cardHolder) < 3) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Card holder name is required.',
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        if ($cardNumber === '' || strlen($cardNumber) < 12 || strlen($cardNumber) > 19) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Card number is invalid.',
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        if (!preg_match('/^(0[1-9]|1[0-2])\/\d{2}$/', $expiry)) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Expiry must be in MM/YY format.',
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        if ($cvc === '' || (strlen($cvc) !== 3 && strlen($cvc) !== 4)) {
+            return $this->json([
+                'success' => false,
+                'message' => 'CVC is invalid.',
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        $profile = $this->fetchOrCreateProfileRow($connection, (int) $user->getId());
+        if (!$profile || !isset($profile['id'])) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Profile not found.',
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
+        $connection->executeStatement(
+            'UPDATE profile SET member_premium = ? WHERE id = ?',
+            [$offer, (int) $profile['id']],
+            [ParameterType::STRING, ParameterType::INTEGER]
+        );
+
+        return $this->json([
+            'success' => true,
+            'message' => 'Subscription activated successfully.',
+            'offer' => $offer,
         ]);
     }
 

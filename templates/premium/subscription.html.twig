@@ -100,6 +100,65 @@
             <button class="plan-btn premium-plus-btn" onclick="selectPlan('vip+', 99)">GET PLAN</button>
         </div>
     </div>
+
+    <div id="checkoutOverlay" class="checkout-overlay" aria-hidden="true">
+        <div class="checkout-modal" role="dialog" aria-modal="true" aria-labelledby="checkoutTitle">
+            <button id="checkoutCloseBtn" type="button" class="checkout-close" aria-label="Close checkout">x</button>
+            <h3 id="checkoutTitle">Card Payment</h3>
+            <p id="checkoutPlanText" class="checkout-plan-text">Selected plan: PREMIUM - 29DT/month</p>
+
+            <div class="cc-scene">
+                <div id="creditCardPreview" class="cc-card">
+                    <div class="cc-face cc-front">
+                        <div class="cc-chip"></div>
+                        <div id="previewCardNumber" class="cc-number">•••• •••• •••• ••••</div>
+                        <div class="cc-front-bottom">
+                            <div>
+                                <div class="cc-label">Card Holder</div>
+                                <div id="previewCardHolder" class="cc-value">YOUR NAME</div>
+                            </div>
+                            <div>
+                                <div class="cc-label">Expires</div>
+                                <div id="previewExpiry" class="cc-value">MM/YY</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="cc-face cc-back">
+                        <div class="cc-strip"></div>
+                        <div class="cc-cvc-wrap">
+                            <div class="cc-label">CVC</div>
+                            <div id="previewCvc" class="cc-cvc">•••</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <form id="checkoutForm" class="checkout-form">
+                <input type="hidden" id="checkoutOffer" name="offer" value="premium">
+
+                <label class="checkout-label" for="cardHolderInput">Card Holder</label>
+                <input id="cardHolderInput" name="cardHolder" class="checkout-input" type="text" placeholder="Name on card" required>
+
+                <label class="checkout-label" for="cardNumberInput">Card Number</label>
+                <input id="cardNumberInput" name="cardNumber" class="checkout-input" type="text" inputmode="numeric" maxlength="19" placeholder="1234 5678 9012 3456" required>
+
+                <div class="checkout-row">
+                    <div>
+                        <label class="checkout-label" for="expiryInput">Expiry</label>
+                        <input id="expiryInput" name="expiry" class="checkout-input" type="text" inputmode="numeric" maxlength="5" placeholder="MM/YY" required>
+                    </div>
+                    <div>
+                        <label class="checkout-label" for="cvcInput">CVC</label>
+                        <input id="cvcInput" name="cvc" class="checkout-input" type="password" inputmode="numeric" maxlength="4" placeholder="123" required>
+                    </div>
+                </div>
+
+                <div id="checkoutMessage" class="checkout-message" aria-live="polite"></div>
+
+                <button id="checkoutSubmitBtn" class="checkout-submit" type="submit">Confirm Payment</button>
+            </form>
+        </div>
+    </div>
 </div>
 
 <style>
@@ -460,29 +519,484 @@
     html.dark-mode .plan-card:hover {
         box-shadow: 0 16px 32px rgba(45, 212, 191, 0.1);
     }
+
+    .checkout-overlay {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 18px;
+        background: rgba(8, 24, 40, 0.55);
+        backdrop-filter: blur(6px);
+        z-index: 3000;
+    }
+
+    .checkout-overlay.show {
+        display: flex;
+    }
+
+    .checkout-modal {
+        width: min(520px, 100%);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(246, 251, 255, 0.95));
+        border: 1px solid rgba(152, 189, 216, 0.5);
+        border-radius: 20px;
+        padding: 24px;
+        position: relative;
+        box-shadow: 0 20px 40px rgba(11, 42, 70, 0.25);
+    }
+
+    .checkout-close {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 32px;
+        height: 32px;
+        border: none;
+        border-radius: 50%;
+        background: rgba(9, 73, 108, 0.08);
+        color: #1e456e;
+        cursor: pointer;
+        font-weight: 700;
+    }
+
+    .checkout-modal h3 {
+        margin: 0 0 6px;
+        color: #144468;
+        font-size: 24px;
+    }
+
+    .checkout-plan-text {
+        margin: 0 0 16px;
+        color: #59758f;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .cc-scene {
+        perspective: 1200px;
+        margin-bottom: 14px;
+    }
+
+    .cc-card {
+        width: 100%;
+        height: 188px;
+        position: relative;
+        transform-style: preserve-3d;
+        transition: transform 0.65s cubic-bezier(0.2, 0.8, 0.2, 1);
+        border-radius: 16px;
+    }
+
+    .cc-card.is-flipped {
+        transform: rotateY(180deg);
+    }
+
+    .cc-face {
+        position: absolute;
+        inset: 0;
+        border-radius: 16px;
+        backface-visibility: hidden;
+        padding: 18px;
+        box-sizing: border-box;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .cc-front {
+        background:
+            radial-gradient(320px 140px at -10% -20%, rgba(255, 255, 255, 0.4), transparent 70%),
+            linear-gradient(135deg, #0f8faf, #0f4b84 60%, #0a2f55);
+        color: #ffffff;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .cc-chip {
+        width: 42px;
+        height: 30px;
+        border-radius: 8px;
+        background: linear-gradient(145deg, #ffd875, #e6b84c);
+        box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.15);
+    }
+
+    .cc-number {
+        margin-top: 14px;
+        font-size: 25px;
+        font-weight: 700;
+        letter-spacing: 1.6px;
+        font-family: 'Courier New', monospace;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+    }
+
+    .cc-front-bottom {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .cc-label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.7px;
+        opacity: 0.8;
+    }
+
+    .cc-value {
+        margin-top: 3px;
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0.6px;
+        text-transform: uppercase;
+    }
+
+    .cc-back {
+        transform: rotateY(180deg);
+        background:
+            radial-gradient(280px 130px at 110% 110%, rgba(255, 255, 255, 0.2), transparent 70%),
+            linear-gradient(145deg, #1f2d3f, #162331);
+        color: #ffffff;
+    }
+
+    .cc-strip {
+        height: 36px;
+        background: rgba(4, 8, 16, 0.85);
+        margin: 10px -18px 0;
+    }
+
+    .cc-cvc-wrap {
+        margin-top: 22px;
+        margin-left: auto;
+        width: 136px;
+    }
+
+    .cc-cvc {
+        margin-top: 4px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.95);
+        color: #1b2a3d;
+        padding: 8px 10px;
+        font-size: 16px;
+        font-family: 'Courier New', monospace;
+        letter-spacing: 2px;
+        text-align: right;
+        font-weight: 700;
+    }
+
+    .checkout-form {
+        display: grid;
+        gap: 10px;
+    }
+
+    .checkout-label {
+        font-size: 12px;
+        font-weight: 700;
+        color: #365874;
+    }
+
+    .checkout-input {
+        width: 100%;
+        box-sizing: border-box;
+        border: 1px solid rgba(122, 161, 190, 0.55);
+        border-radius: 10px;
+        padding: 11px 12px;
+        font-size: 14px;
+        background: #ffffff;
+        color: #1e456e;
+    }
+
+    .checkout-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    .checkout-message {
+        min-height: 18px;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .checkout-message.error {
+        color: #c0392b;
+    }
+
+    .checkout-message.success {
+        color: #1f8a4c;
+    }
+
+    .checkout-submit {
+        border: none;
+        border-radius: 12px;
+        padding: 12px 14px;
+        font-size: 13px;
+        font-weight: 800;
+        color: #ffffff;
+        background: linear-gradient(135deg, #0fa5a2, #1788b6);
+        cursor: pointer;
+        margin-top: 4px;
+    }
+
+    .checkout-submit:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    html.dark-mode .checkout-modal {
+        background: linear-gradient(180deg, rgba(21, 33, 48, 0.98), rgba(20, 31, 44, 0.95));
+        border-color: rgba(66, 95, 125, 0.8);
+    }
+
+    html.dark-mode .checkout-close {
+        background: rgba(145, 194, 233, 0.12);
+        color: #d3e7f7;
+    }
+
+    html.dark-mode .checkout-modal h3 {
+        color: #d8e8f6;
+    }
+
+    html.dark-mode .checkout-plan-text {
+        color: #9fb5c9;
+    }
+
+    html.dark-mode .checkout-label {
+        color: #bcd2e5;
+    }
+
+    html.dark-mode .checkout-input {
+        border-color: rgba(95, 130, 160, 0.75);
+        background: rgba(11, 20, 31, 0.85);
+        color: #e6f0f8;
+    }
+
+    html.dark-mode .cc-front {
+        background:
+            radial-gradient(320px 140px at -10% -20%, rgba(255, 255, 255, 0.2), transparent 70%),
+            linear-gradient(135deg, #156f8a, #123f68 60%, #10283f);
+    }
+
+    @media (max-width: 520px) {
+        .cc-card {
+            height: 176px;
+        }
+
+        .cc-number {
+            font-size: 21px;
+            letter-spacing: 1.2px;
+        }
+    }
 </style>
 
 <script>
-    function selectPlan(planType, price) {
-        // Show a message or redirect to checkout/payment
-        alert('You selected ' + planType.toUpperCase() + ' plan for ' + price + 'DT/month.\n\nPayment integration coming soon!');
-    }
+    (function () {
+        const checkoutOverlay = document.getElementById('checkoutOverlay');
+        const checkoutCloseBtn = document.getElementById('checkoutCloseBtn');
+        const checkoutForm = document.getElementById('checkoutForm');
+        const checkoutOffer = document.getElementById('checkoutOffer');
+        const checkoutPlanText = document.getElementById('checkoutPlanText');
+        const checkoutSubmitBtn = document.getElementById('checkoutSubmitBtn');
+        const checkoutMessage = document.getElementById('checkoutMessage');
+        const creditCardPreview = document.getElementById('creditCardPreview');
+        const previewCardNumber = document.getElementById('previewCardNumber');
+        const previewCardHolder = document.getElementById('previewCardHolder');
+        const previewExpiry = document.getElementById('previewExpiry');
+        const previewCvc = document.getElementById('previewCvc');
+        const cardHolderInput = document.getElementById('cardHolderInput');
+        const cardNumberInput = document.getElementById('cardNumberInput');
+        const expiryInput = document.getElementById('expiryInput');
+        const cvcInput = document.getElementById('cvcInput');
 
-    // Update coin count from the global state
-    document.addEventListener('DOMContentLoaded', function() {
+        const syncCardPreview = () => {
+            if (previewCardHolder && cardHolderInput) {
+                const holder = String(cardHolderInput.value || '').trim();
+                previewCardHolder.textContent = holder !== '' ? holder.toUpperCase() : 'YOUR NAME';
+            }
+
+            if (previewCardNumber && cardNumberInput) {
+                const cardDigits = String(cardNumberInput.value || '').replace(/\D+/g, '').slice(0, 16);
+                let grouped = cardDigits.replace(/(\d{4})(?=\d)/g, '$1 ').trim();
+                if (grouped === '') {
+                    grouped = '•••• •••• •••• ••••';
+                }
+                previewCardNumber.textContent = grouped;
+            }
+
+            if (previewExpiry && expiryInput) {
+                const expiry = String(expiryInput.value || '').trim();
+                previewExpiry.textContent = expiry !== '' ? expiry : 'MM/YY';
+            }
+
+            if (previewCvc && cvcInput) {
+                const cvcDigits = String(cvcInput.value || '').replace(/\D+/g, '').slice(0, 4);
+                previewCvc.textContent = cvcDigits !== '' ? cvcDigits : '•••';
+            }
+        };
+
+        const showCardBack = (isBackVisible) => {
+            if (!creditCardPreview) {
+                return;
+            }
+            creditCardPreview.classList.toggle('is-flipped', !!isBackVisible);
+        };
+
+        const setCheckoutMessage = (text, type) => {
+            if (!checkoutMessage) {
+                return;
+            }
+            checkoutMessage.textContent = text || '';
+            checkoutMessage.classList.remove('error', 'success');
+            if (type) {
+                checkoutMessage.classList.add(type);
+            }
+        };
+
+        const openCheckout = (planType, price) => {
+            if (!checkoutOverlay || !checkoutOffer || !checkoutPlanText) {
+                return;
+            }
+
+            checkoutOffer.value = String(planType || 'premium');
+            checkoutPlanText.textContent = 'Selected plan: ' + String(planType || '').toUpperCase() + ' - ' + String(price || 0) + 'DT/month';
+            setCheckoutMessage('', null);
+            syncCardPreview();
+            showCardBack(false);
+            checkoutOverlay.classList.add('show');
+            checkoutOverlay.setAttribute('aria-hidden', 'false');
+        };
+
+        const closeCheckout = () => {
+            if (!checkoutOverlay) {
+                return;
+            }
+            checkoutOverlay.classList.remove('show');
+            checkoutOverlay.setAttribute('aria-hidden', 'true');
+        };
+
+        window.selectPlan = openCheckout;
+
+        if (checkoutCloseBtn) {
+            checkoutCloseBtn.addEventListener('click', closeCheckout);
+        }
+
+        if (checkoutOverlay) {
+            checkoutOverlay.addEventListener('click', function (event) {
+                if (event.target === checkoutOverlay) {
+                    closeCheckout();
+                }
+            });
+        }
+
+        if (cardNumberInput) {
+            cardNumberInput.addEventListener('input', function () {
+                const digits = this.value.replace(/\D+/g, '').slice(0, 16);
+                this.value = digits.replace(/(\d{4})(?=\d)/g, '$1 ').trim();
+                syncCardPreview();
+            });
+        }
+
+        if (cardHolderInput) {
+            cardHolderInput.addEventListener('input', syncCardPreview);
+        }
+
+        if (expiryInput) {
+            expiryInput.addEventListener('input', function () {
+                const digits = this.value.replace(/\D+/g, '').slice(0, 4);
+                if (digits.length >= 3) {
+                    this.value = digits.slice(0, 2) + '/' + digits.slice(2);
+                } else {
+                    this.value = digits;
+                }
+                syncCardPreview();
+            });
+        }
+
+        if (cvcInput) {
+            cvcInput.addEventListener('input', syncCardPreview);
+            cvcInput.addEventListener('focus', function () {
+                showCardBack(true);
+            });
+            cvcInput.addEventListener('blur', function () {
+                showCardBack(false);
+            });
+        }
+
+        syncCardPreview();
+
+        if (checkoutForm) {
+            checkoutForm.addEventListener('submit', function (event) {
+                event.preventDefault();
+
+                const formData = new FormData(checkoutForm);
+                const payload = {
+                    offer: formData.get('offer'),
+                    cardHolder: formData.get('cardHolder'),
+                    cardNumber: formData.get('cardNumber'),
+                    expiry: formData.get('expiry'),
+                    cvc: formData.get('cvc'),
+                };
+
+                setCheckoutMessage('', null);
+                if (checkoutSubmitBtn) {
+                    checkoutSubmitBtn.disabled = true;
+                    checkoutSubmitBtn.textContent = 'Processing...';
+                }
+
+                fetch('{{ path('app_premium_subscribe') }}', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    body: JSON.stringify(payload),
+                })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        if (!data || !data.success) {
+                            setCheckoutMessage((data && data.message) ? data.message : 'Payment failed.', 'error');
+                            return;
+                        }
+
+                        setCheckoutMessage('Offer accepted. Your plan is now ' + String(data.offer || '').toUpperCase() + '.', 'success');
+                        window.setTimeout(function () {
+                            window.location.reload();
+                        }, 900);
+                    })
+                    .catch(() => {
+                        setCheckoutMessage('Network error. Please try again.', 'error');
+                    })
+                    .finally(() => {
+                        if (checkoutSubmitBtn) {
+                            checkoutSubmitBtn.disabled = false;
+                            checkoutSubmitBtn.textContent = 'Confirm Payment';
+                        }
+                    });
+            });
+        }
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                closeCheckout();
+            }
+        });
+
         fetch('{{ path('app_collect_coin_status') }}', {
             credentials: 'same-origin',
             headers: { 'X-Requested-With': 'XMLHttpRequest' },
         })
             .then(response => response.json())
             .then(data => {
-                if (data && data.coins) {
-                    document.querySelector('.coin-count').textContent = data.coins;
+                if (data && data.coins !== undefined) {
+                    const coinCount = document.querySelector('.coin-count');
+                    if (coinCount) {
+                        coinCount.textContent = data.coins;
+                    }
                 }
             })
             .catch(() => {
-                // Silently fail if endpoint not available
+                // Keep page usable if endpoint fails.
             });
-    });
+    })();
 </script>
 {% endblock %}

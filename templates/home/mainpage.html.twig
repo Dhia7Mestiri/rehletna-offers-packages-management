@@ -254,6 +254,23 @@
             border: 2px solid rgba(255, 255, 255, 0.7);
         }
 
+        .premium-crown-badge {
+            position: absolute;
+            top: -8px;
+            right: -6px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            background: linear-gradient(135deg, #ffd66e, #f3b019);
+            border: 2px solid #ffffff;
+            box-shadow: 0 6px 14px rgba(90, 63, 0, 0.28);
+            z-index: 3;
+        }
+
         .online-status {
             position: absolute;
             bottom: 1px;
@@ -337,6 +354,11 @@
 
         body.dark-mode .profile-role {
             color: #ffd89b !important;
+        }
+
+        body.dark-mode .premium-crown-badge {
+            border-color: #1b2b3e;
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
         }
 
         body.dark-mode .theme-toggle {
@@ -1011,6 +1033,9 @@
 {% endblock %}
 
 {% block body %}
+    {% set membershipTier = profile.member_premium|default('standard')|lower|trim %}
+    {% set hasPremiumCrown = membershipTier in ['premium', 'premuim', 'vip', 'vip+', 'vip plus', 'vip_plus'] %}
+
     <!-- Menu Overlay -->
     <div class="menu-overlay"></div>
     
@@ -1025,33 +1050,33 @@
                     <p class="user-name">{{ app.user.fullName|default(app.user.username) }}</p>
                     <p class="user-role">
                         {% if 'ROLE_ADMIN' in app.user.roles %}
-                            Administrator
+                            {{ 'main.role.administrator'|trans }}
                         {% elseif 'ROLE_GUIDE' in app.user.roles %}
-                            Guide
+                            {{ 'main.role.guide'|trans }}
                         {% else %}
-                            Member
+                            {{ 'main.role.member'|trans }}
                         {% endif %}
                     </p>
                 {% endif %}
             </div>
             
             {% if is_granted('ROLE_ADMIN') %}
-                <button class="side-menu-btn" data-action="dashboard">🏠 Dashboard</button>
+                <button class="side-menu-btn" data-action="dashboard">🏠 {{ 'main.menu.dashboard'|trans }}</button>
             {% endif %}
             
             {% if is_granted('ROLE_GUIDE') %}
-                <button class="side-menu-btn" data-action="guide-dashboard">👤 Guide Dashboard</button>
+                <button class="side-menu-btn" data-action="guide-dashboard">👤 {{ 'main.menu.guide_dashboard'|trans }}</button>
             {% endif %}
             
-            <button class="side-menu-btn" data-action="my-reservations">👤 My Reservations</button>
-            <button class="side-menu-btn" data-action="reservations">💻 Reservations</button>
-            <button class="side-menu-btn" data-action="reservation-details">📋 Reservation Details</button>
+            <button class="side-menu-btn" data-action="my-reservations">👤 {{ 'main.menu.my_reservations'|trans }}</button>
+            <button class="side-menu-btn" data-action="reservations">💻 {{ 'main.menu.reservations'|trans }}</button>
+            <button class="side-menu-btn" data-action="reservation-details">📋 {{ 'main.menu.reservation_details'|trans }}</button>
             
             {% if is_granted('ROLE_AGENCY') %}
-                <button class="side-menu-btn" data-action="offers-grid">📋 Offers Grid</button>
+                <button class="side-menu-btn" data-action="offers-grid">📋 {{ 'main.menu.offers_grid'|trans }}</button>
             {% endif %}
             
-            <button class="side-menu-btn logout-btn" data-action="logout">🚪 Logout</button>
+            <button class="side-menu-btn logout-btn" data-action="logout">🚪 {{ 'main.menu.logout'|trans }}</button>
         </div>
     </div>
     
@@ -1077,16 +1102,19 @@
                             <p class="profile-name">{{ app.user.fullName|default(app.user.username) }}</p>
                             <p class="profile-role">
                                 {% if 'ROLE_ADMIN' in app.user.roles %}
-                                    Administrator
+                                    {{ 'main.role.administrator'|trans }}
                                 {% elseif 'ROLE_GUIDE' in app.user.roles %}
-                                    Guide
+                                    {{ 'main.role.guide'|trans }}
                                 {% else %}
-                                    Member
+                                    {{ 'main.role.member'|trans }}
                                 {% endif %}
                             </p>
                         </div>
                         <div class="profile-avatar">
                             <img src="{{ profile.image_url|default(asset('images/default_image.png')) }}" alt="Profile" class="profile-img" />
+                            {% if hasPremiumCrown %}
+                                <div class="premium-crown-badge" title="Premium Member">👑</div>
+                            {% endif %}
                             <div class="online-status"></div>
                         </div>
                     </div>
@@ -1095,53 +1123,53 @@
             
             <!-- Navigation Tabs -->
             <div class="nav-tabs">
-                <button class="nav-tab active" data-view="services">💻 Services</button>
-                <button class="nav-tab" data-view="activities">🏞 Activities</button>
-                <button class="nav-tab" data-view="shop">🛒 Shop</button>
-                <button class="nav-tab" data-view="ai-guide">🤖 AI Guide</button>
-                <button class="nav-tab" data-view="offers">🔖 Offers</button>
+                <button class="nav-tab active" data-view="services">💻 {{ 'main.tab.services'|trans }}</button>
+                <button class="nav-tab" data-view="activities">🏞 {{ 'main.tab.activities'|trans }}</button>
+                <button class="nav-tab" data-view="shop">🛒 {{ 'main.tab.shop'|trans }}</button>
+                <button class="nav-tab" data-view="ai-guide">🤖 {{ 'main.tab.ai_guide'|trans }}</button>
+                <button class="nav-tab" data-view="offers">🔖 {{ 'main.tab.offers'|trans }}</button>
                 {% if is_granted('ROLE_ADMIN') %}
-                    <a class="nav-tab" href="{{ path('app_admin_stats') }}">📊 Stats</a>
+                    <a class="nav-tab" href="{{ path('app_admin_stats') }}">📊 {{ 'main.tab.stats'|trans }}</a>
                 {% endif %}
             </div>
             
             <!-- Content Area -->
             <div class="content-area">
                 <div class="welcome-section">
-                    <h1 class="welcome-title">Welcome to Rehletna.tn</h1>
-                    <p class="welcome-subtitle">Your ultimate travel companion in Tunisia</p>
+                    <h1 class="welcome-title">{{ 'main.welcome.title'|trans }}</h1>
+                    <p class="welcome-subtitle">{{ 'main.welcome.subtitle'|trans }}</p>
                 </div>
                 
                 <div class="feature-grid">
                     <a href="{{ path('app_todo_index') }}" class="feature-card">
                         <div class="feature-icon">🗺️</div>
-                        <div class="feature-title">Activities</div>
-                        <div class="feature-text">Explore activities</div>
+                        <div class="feature-title">{{ 'main.feature.activities.title'|trans }}</div>
+                        <div class="feature-text">{{ 'main.feature.activities.text'|trans }}</div>
                     </a>
                     <a href="{{ path('app_shop') }}" class="feature-card">
                         <div class="feature-icon">🛒</div>
-                        <div class="feature-title">Shop</div>
-                        <div class="feature-text">Buy merchandise</div>
+                        <div class="feature-title">{{ 'main.feature.shop.title'|trans }}</div>
+                        <div class="feature-text">{{ 'main.feature.shop.text'|trans }}</div>
                     </a>
                     <a href="{{ path('app_ai_guide') }}" class="feature-card">
                         <div class="feature-icon">🤖</div>
-                        <div class="feature-title">AI Guide</div>
-                        <div class="feature-text">Get AI assistance</div>
+                        <div class="feature-title">{{ 'main.feature.ai_guide.title'|trans }}</div>
+                        <div class="feature-text">{{ 'main.feature.ai_guide.text'|trans }}</div>
                     </a>
                     <a href="#" class="feature-card" onclick="showChatPopup(); return false;">
                         <div class="feature-icon">💬</div>
-                        <div class="feature-title">Chat</div>
-                        <div class="feature-text">Talk with support</div>
+                        <div class="feature-title">{{ 'main.feature.chat.title'|trans }}</div>
+                        <div class="feature-text">{{ 'main.feature.chat.text'|trans }}</div>
                     </a>
                     <a href="{{ path('app_post') }}" class="feature-card">
                         <div class="feature-icon">✉️</div>
-                        <div class="feature-title">Post</div>
-                        <div class="feature-text">Publish your updates</div>
+                        <div class="feature-title">{{ 'main.feature.post.title'|trans }}</div>
+                        <div class="feature-text">{{ 'main.feature.post.text'|trans }}</div>
                     </a>
                     <a href="{{ path('app_services') }}" class="feature-card">
                         <div class="feature-icon">💼</div>
-                        <div class="feature-title">Services</div>
-                        <div class="feature-text">Hire Tourism Services</div>
+                        <div class="feature-title">{{ 'main.feature.services.title'|trans }}</div>
+                        <div class="feature-text">{{ 'main.feature.services.text'|trans }}</div>
                     </a>
                 </div>
             </div>
@@ -1154,17 +1182,17 @@
         <span class="chat-badge" style="display: none;">0</span>
     </button>
 
-    <div id="chatModal" class="chat-modal" aria-live="polite" aria-label="Chat popup">
+    <div id="chatModal" class="chat-modal" aria-live="polite" aria-label="{{ 'main.chat.popup'|trans }}">
         <div class="chat-modal-header">
-            <p class="chat-modal-title">Chat with Admin Team</p>
-            <button id="chatCloseBtn" class="chat-modal-close" type="button" aria-label="Close chat">×</button>
+            <p class="chat-modal-title">{{ 'main.chat.title'|trans }}</p>
+            <button id="chatCloseBtn" class="chat-modal-close" type="button" aria-label="{{ 'main.chat.close'|trans }}">×</button>
         </div>
         <div id="chatMessages" class="chat-modal-messages">
-            <div class="chat-empty">Loading messages...</div>
+            <div class="chat-empty">{{ 'main.chat.loading'|trans }}</div>
         </div>
         <div class="chat-modal-input">
-            <input id="chatInput" class="chat-input" type="text" maxlength="1000" placeholder="Type your message..." />
-            <button id="chatSendBtn" class="chat-send-btn" type="button">Send</button>
+            <input id="chatInput" class="chat-input" type="text" maxlength="1000" placeholder="{{ 'main.chat.placeholder'|trans }}" />
+            <button id="chatSendBtn" class="chat-send-btn" type="button">{{ 'main.chat.send'|trans }}</button>
         </div>
         <div id="chatStatus" class="chat-status"></div>
     </div>
@@ -1173,17 +1201,17 @@
     <div class="profile-popup">
         <div>
             <strong>{{ app.user.fullName|default(app.user.username) }}</strong>
-            <p>Membership: {{ profile.member_premium|default('Standard') }}</p>
-            <p>Language: {{ profile.language|default('English') }}</p>
-            <p>Coins: {{ profile.coins|default(0) }}</p>
-            <p>Rate:
+            <p>{{ 'main.popup.membership'|trans }}: {{ profile.member_premium|default('Standard') }}</p>
+            <p>{{ 'main.popup.language'|trans }}: {{ profile.language|default('English') }}</p>
+            <p>{{ 'main.popup.coins'|trans }}: {{ profile.coins|default(0) }}</p>
+            <p>{{ 'main.popup.rate'|trans }}:
                 {% set membership = profile.member_premium|default('Standard') %}
                 {% if membership in ['Administrator', 'VIP', 'VIP+'] %}
-                    5 coins/30s
+                    {{ 'main.popup.rate_vip'|trans }}
                 {% elseif membership == 'Premium' %}
-                    1 coin/30s
+                    {{ 'main.popup.rate_premium'|trans }}
                 {% else %}
-                    0.5 coin/30s
+                    {{ 'main.popup.rate_standard'|trans }}
                 {% endif %}
             </p>
         </div>

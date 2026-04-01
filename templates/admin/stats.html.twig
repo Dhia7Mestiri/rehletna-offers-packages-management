@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Admin Statistics{% endblock %}
+{% block title %}{{ 'admin.stats.title'|trans }}{% endblock %}
 
 {% block stylesheets %}
     {{ parent() }}
@@ -488,8 +488,8 @@
         <div class="topbar">
             <img src="{{ asset('images/logo.png') }}" alt="Rehletna.tn" title="Rehletna.tn" />
             <div class="top-actions">
-                <a href="{{ path('app_dashboard') }}">Back to Dashboard</a>
-                <a href="{{ path('app_mainpage') }}">Back to Main Page</a>
+                <a href="{{ path('app_dashboard') }}">{{ 'admin.back_dashboard'|trans }}</a>
+                <a href="{{ path('app_mainpage') }}">{{ 'admin.back_main'|trans }}</a>
             </div>
         </div>
 
@@ -506,16 +506,16 @@
         <main class="shell">
             <section class="hero">
                 <div>
-                    <h1>User Statistics</h1>
-                    <p>Distribution overview by age range and membership tier.</p>
+                    <h1>{{ 'admin.stats.user_statistics'|trans }}</h1>
+                    <p>{{ 'admin.stats.subtitle'|trans }}</p>
                 </div>
                 <div class="hero-total-wrap">
                     <div class="hero-total">
-                        <small>Total Profiles</small>
+                        <small>{{ 'admin.stats.total_profiles'|trans }}</small>
                         <strong>{{ tierTotal }}</strong>
                     </div>
                     <div class="hero-total accent">
-                        <small>Age Entries</small>
+                        <small>{{ 'admin.stats.age_entries'|trans }}</small>
                         <strong>{{ ageTotal }}</strong>
                     </div>
                 </div>
@@ -523,27 +523,27 @@
 
             <section class="summary-grid">
                 <article class="summary-card">
-                    <small>13-24 Users</small>
+                    <small>{{ 'admin.stats.summary.13_24'|trans }}</small>
                     <strong>{{ (ageRanges['13-17']|default(0)) + (ageRanges['18-24']|default(0)) }}</strong>
                 </article>
                 <article class="summary-card">
-                    <small>25-44 Users</small>
+                    <small>{{ 'admin.stats.summary.25_44'|trans }}</small>
                     <strong>{{ (ageRanges['25-34']|default(0)) + (ageRanges['35-44']|default(0)) }}</strong>
                 </article>
                 <article class="summary-card">
-                    <small>45+ Users</small>
+                    <small>{{ 'admin.stats.summary.45_plus'|trans }}</small>
                     <strong>{{ (ageRanges['45-54']|default(0)) + (ageRanges['55+']|default(0)) }}</strong>
                 </article>
                 <article class="summary-card">
-                    <small>VIP + VIP+</small>
+                    <small>{{ 'admin.stats.summary.vip'|trans }}</small>
                     <strong>{{ (membershipTiers.vip|default(0)) + (membershipTiers['vip+']|default(0)) }}</strong>
                 </article>
             </section>
 
             <div class="grid">
                 <section class="panel">
-                    <h2>Age Ranges</h2>
-                    <p class="panel-subtitle">Based on users birth date values.</p>
+                    <h2>{{ 'admin.stats.age_ranges'|trans }}</h2>
+                    <p class="panel-subtitle">{{ 'admin.stats.age_ranges_subtitle'|trans }}</p>
                     {% set age13 = ageRanges['13-17']|default(0) %}
                     {% set age18 = ageRanges['18-24']|default(0) %}
                     {% set age25 = ageRanges['25-34']|default(0) %}
@@ -575,15 +575,15 @@
 
                         <div class="age-breakdown">
                             <div class="age-pill">
-                                <small>Largest Segment</small>
+                                <small>{{ 'admin.stats.largest_segment'|trans }}</small>
                                 <strong>{% set maxAge = ageRanges|reduce((carry, v) => v > carry ? v : carry, 0) %}{{ maxAge }}</strong>
                             </div>
                             <div class="age-pill">
-                                <small>Total Counted</small>
+                                <small>{{ 'admin.stats.total_counted'|trans }}</small>
                                 <strong>{{ ageTotal }}</strong>
                             </div>
                             <div class="age-pill">
-                                <small>Average Segment</small>
+                                <small>{{ 'admin.stats.average_segment'|trans }}</small>
                                 <strong>{{ (ageTotal / 6)|number_format(1) }}</strong>
                             </div>
                         </div>
@@ -591,31 +591,31 @@
                 </section>
 
                 <section class="panel">
-                    <h2>Membership Tiers</h2>
-                    <p class="panel-subtitle">Standard, premium and VIP segments.</p>
+                    <h2>{{ 'admin.stats.membership_tiers'|trans }}</h2>
+                    <p class="panel-subtitle">{{ 'admin.stats.membership_tiers_subtitle'|trans }}</p>
                     <div class="tier-grid">
                         <article class="tier-card">
-                            <div class="tier-label">Standard</div>
+                            <div class="tier-label">{{ 'admin.stats.tier.standard'|trans }}</div>
                             <div class="tier-value">{{ membershipTiers.standard|default(0) }}</div>
-                            <div class="tier-count">{{ membershipTiers.standard|default(0) }} users</div>
+                            <div class="tier-count">{{ 'admin.stats.users_count'|trans({'%count%': membershipTiers.standard|default(0)}) }}</div>
                             <div class="tier-hint">{{ tierTotal > 0 ? ((membershipTiers.standard|default(0) * 100 / tierTotal)|number_format(0)) : 0 }}%</div>
                         </article>
                         <article class="tier-card">
-                            <div class="tier-label">Premium</div>
+                            <div class="tier-label">{{ 'admin.stats.tier.premium'|trans }}</div>
                             <div class="tier-value">{{ membershipTiers.premium|default(0) }}</div>
-                            <div class="tier-count">{{ membershipTiers.premium|default(0) }} users</div>
+                            <div class="tier-count">{{ 'admin.stats.users_count'|trans({'%count%': membershipTiers.premium|default(0)}) }}</div>
                             <div class="tier-hint">{{ tierTotal > 0 ? ((membershipTiers.premium|default(0) * 100 / tierTotal)|number_format(0)) : 0 }}%</div>
                         </article>
                         <article class="tier-card">
-                            <div class="tier-label">VIP</div>
+                            <div class="tier-label">{{ 'admin.stats.tier.vip'|trans }}</div>
                             <div class="tier-value">{{ membershipTiers.vip|default(0) }}</div>
-                            <div class="tier-count">{{ membershipTiers.vip|default(0) }} users</div>
+                            <div class="tier-count">{{ 'admin.stats.users_count'|trans({'%count%': membershipTiers.vip|default(0)}) }}</div>
                             <div class="tier-hint">{{ tierTotal > 0 ? ((membershipTiers.vip|default(0) * 100 / tierTotal)|number_format(0)) : 0 }}%</div>
                         </article>
                         <article class="tier-card">
-                            <div class="tier-label">VIP+</div>
+                            <div class="tier-label">{{ 'admin.stats.tier.vip_plus'|trans }}</div>
                             <div class="tier-value">{{ membershipTiers['vip+']|default(0) }}</div>
-                            <div class="tier-count">{{ membershipTiers['vip+']|default(0) }} users</div>
+                            <div class="tier-count">{{ 'admin.stats.users_count'|trans({'%count%': membershipTiers['vip+']|default(0)}) }}</div>
                             <div class="tier-hint">{{ tierTotal > 0 ? ((membershipTiers['vip+']|default(0) * 100 / tierTotal)|number_format(0)) : 0 }}%</div>
                         </article>
                     </div>

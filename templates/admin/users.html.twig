@@ -1,6 +1,6 @@
 {% extends 'dashboard/index.html.twig' %}
 
-{% block title %}User Management - Admin Dashboard{% endblock %}
+{% block title %}{{ 'admin.users.title'|trans }} - {{ 'dashboard.title'|trans }}{% endblock %}
 
 {% block body %}
     <div class="dashboard-page">
@@ -8,7 +8,7 @@
             <div class="top-logo">
                 <img src="{{ asset('images/logo.png') }}" alt="Rehletna.tn" title="Rehletna.tn" />
             </div>
-            <a class="back-main-btn" href="{{ path('app_mainpage') }}">← Back to Main Page</a>
+            <a class="back-main-btn" href="{{ path('app_dashboard') }}">← {{ 'admin.back_dashboard'|trans }}</a>
         </div>
 
         <div class="dashboard-layout">
@@ -21,21 +21,21 @@
                     {% endif %}
                 </div>
                 <div class="admin-name">{{ app.user.username }}</div>
-                <div class="admin-role">ADMIN</div>
+                <div class="admin-role">{{ 'dashboard.admin_role'|trans }}</div>
 
-                <a href="{{ path('app_dashboard') }}" class="sidebar-link">Dashboard</a>
-                <a href="{{ path('app_users') }}" class="sidebar-link active">Users</a>
-                <a href="{{ path('app_admin_stats') }}" class="sidebar-link">Statistics</a>
-                <a href="{{ path('app_todos') }}" class="sidebar-link">Todos</a>
-                <a href="{{ path('app_admin_shop') }}" class="sidebar-link">Shop</a>
+                <a href="{{ path('app_dashboard') }}" class="sidebar-link">{{ 'dashboard.sidebar.dashboard'|trans }}</a>
+                <a href="{{ path('app_users') }}" class="sidebar-link active">{{ 'dashboard.sidebar.users'|trans }}</a>
+                <a href="{{ path('app_admin_stats') }}" class="sidebar-link">{{ 'dashboard.sidebar.statistics'|trans }}</a>
+                <a href="{{ path('app_todos') }}" class="sidebar-link">{{ 'dashboard.sidebar.todo_list'|trans }}</a>
+                <a href="{{ path('app_admin_shop') }}" class="sidebar-link">{{ 'dashboard.sidebar.shop'|trans }}</a>
                 <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.15); margin: 16px 0;">
-                <a href="{{ path('app_logout') }}" class="sidebar-link" style="color: #ff6b6b;">Logout</a>
+                <a href="{{ path('app_logout') }}" class="sidebar-link" style="color: #ff6b6b;">{{ 'dashboard.sidebar.logout'|trans }}</a>
             </aside>
 
             <div class="admin-content">
                 <div class="content-header">
-                    <h1 style="margin: 0; color: #213142; font-size: 28px; font-weight: 700;">User Management</h1>
-                    <a class="content-back-btn" href="{{ path('app_mainpage') }}">Back to Main Page</a>
+                    <h1 style="margin: 0; color: #213142; font-size: 28px; font-weight: 700;">{{ 'admin.users.title'|trans }}</h1>
+                    <a class="content-back-btn" href="{{ path('app_mainpage') }}">{{ 'admin.back_main'|trans }}</a>
                 </div>
 
                 <div class="content-panel">
@@ -47,8 +47,8 @@
 
                     <!-- Search and Filter Bar -->
                     <div class="search-filter-bar">
-                        <input type="text" id="searchInput" class="search-input" placeholder="Search users..." />
-                        <button class="add-user-btn" type="button" onclick="window.location.reload()">Refresh</button>
+                        <input type="text" id="searchInput" class="search-input" placeholder="{{ 'admin.users.search_placeholder'|trans }}" />
+                        <button class="add-user-btn" type="button" onclick="window.location.reload()">{{ 'admin.users.refresh'|trans }}</button>
                     </div>
 
                     <!-- Users Cards -->
@@ -65,11 +65,11 @@
 
                                 <div class="user-card-body">
                                     <div class="card-field">
-                                        <span class="field-label">Email</span>
+                                        <span class="field-label">{{ 'admin.users.email'|trans }}</span>
                                         <a href="mailto:{{ user.email }}" class="email-link">{{ user.email }}</a>
                                     </div>
                                     <div class="card-field">
-                                        <span class="field-label">Role</span>
+                                        <span class="field-label">{{ 'admin.users.role'|trans }}</span>
                                         {% if user.role|upper == 'ADMIN' %}
                                             <span class="badge badge-admin">ADMIN</span>
                                         {% elseif user.role|upper == 'GUIDER' %}
@@ -81,14 +81,14 @@
                                         {% endif %}
                                     </div>
                                     <div class="card-field">
-                                        <span class="field-label">Status</span>
+                                        <span class="field-label">{{ 'admin.users.status'|trans }}</span>
                                         {% if user.status|default('offline')|lower == 'online' %}
                                             <span class="status-badge online">
-                                                <span class="status-dot"></span>Online
+                                                <span class="status-dot"></span>{{ 'dashboard.status.online'|trans }}
                                             </span>
                                         {% else %}
                                             <span class="status-badge offline">
-                                                <span class="status-dot"></span>Offline
+                                                <span class="status-dot"></span>{{ 'dashboard.status.offline'|trans }}
                                             </span>
                                         {% endif %}
                                     </div>
@@ -107,7 +107,7 @@
                                 </div>
                             </article>
                         {% else %}
-                            <div class="no-data">No users found</div>
+                            <div class="no-data">{{ 'dashboard.table.no_users'|trans }}</div>
                         {% endfor %}
                     </div>
 
@@ -115,13 +115,13 @@
                     {% if totalPages > 1 %}
                         <div class="pagination">
                             {% if page > 1 %}
-                                <a href="{{ path('app_users', {'page': page - 1}) }}" class="pagination-btn">← Previous</a>
+                                <a href="{{ path('app_users', {'page': page - 1}) }}" class="pagination-btn">← {{ 'admin.users.pagination.previous'|trans }}</a>
                             {% endif %}
                             
-                            <span class="pagination-info">Page {{ page }} of {{ totalPages }}</span>
+                            <span class="pagination-info">{{ 'admin.users.pagination.page_of'|trans({'%page%': page, '%total%': totalPages}) }}</span>
                             
                             {% if page < totalPages %}
-                                <a href="{{ path('app_users', {'page': page + 1}) }}" class="pagination-btn">Next →</a>
+                                <a href="{{ path('app_users', {'page': page + 1}) }}" class="pagination-btn">{{ 'admin.users.pagination.next'|trans }} →</a>
                             {% endif %}
                         </div>
                     {% endif %}

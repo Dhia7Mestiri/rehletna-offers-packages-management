@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Todo Management - Admin Dashboard{% endblock %}
+{% block title %}{{ 'admin.todos.title'|trans }} - {{ 'dashboard.title'|trans }}{% endblock %}
 
 {% block stylesheets %}
     {{ parent() }}
@@ -385,7 +385,7 @@
 {% block body %}
     <div class="dashboard-page">
         <div class="dashboard-top">
-            <a class="back-main-btn" href="{{ path('app_mainpage') }}">← Back to Main Page</a>
+            <a class="back-main-btn" href="{{ path('app_dashboard') }}">← {{ 'admin.back_dashboard'|trans }}</a>
             <div class="top-logo">
                 <img src="{{ asset('images/logo.png') }}" alt="Rehletna.tn" title="Rehletna.tn" />
             </div>
@@ -401,22 +401,22 @@
                     {% endif %}
                 </div>
                 <div class="admin-name">{{ app.user.username }}</div>
-                <div class="admin-role">ADMIN</div>
+                <div class="admin-role">{{ 'dashboard.admin_role'|trans }}</div>
 
-                <a href="{{ path('app_dashboard') }}" class="sidebar-link">Dashboard</a>
-                <a href="{{ path('app_users') }}" class="sidebar-link">Users</a>
-                <a href="{{ path('app_todos') }}" class="sidebar-link active">Todo List</a>
-                <a href="{{ path('app_admin_stats') }}" class="sidebar-link">Statistics</a>
-                <a href="{{ path('app_admin_shop') }}" class="sidebar-link">Shop</a>
-                <a href="{{ path('app_logout') }}" class="sidebar-link" style="color: #ff9aa5; margin-top: 30px;">Logout</a>
+                <a href="{{ path('app_dashboard') }}" class="sidebar-link">{{ 'dashboard.sidebar.dashboard'|trans }}</a>
+                <a href="{{ path('app_users') }}" class="sidebar-link">{{ 'dashboard.sidebar.users'|trans }}</a>
+                <a href="{{ path('app_todos') }}" class="sidebar-link active">{{ 'dashboard.sidebar.todo_list'|trans }}</a>
+                <a href="{{ path('app_admin_stats') }}" class="sidebar-link">{{ 'dashboard.sidebar.statistics'|trans }}</a>
+                <a href="{{ path('app_admin_shop') }}" class="sidebar-link">{{ 'dashboard.sidebar.shop'|trans }}</a>
+                <a href="{{ path('app_logout') }}" class="sidebar-link" style="color: #ff9aa5; margin-top: 30px;">{{ 'dashboard.sidebar.logout'|trans }}</a>
             </aside>
 
             <div class="admin-content">
                 <div class="header-row">
-                    <h1>Todo Management</h1>
+                    <h1>{{ 'admin.todos.title'|trans }}</h1>
                     <form method="get" class="search-form">
-                        <input type="text" name="q" value="{{ search|default('') }}" placeholder="Search todos by title or user" />
-                        <button type="submit">Search</button>
+                        <input type="text" name="q" value="{{ search|default('') }}" placeholder="{{ 'admin.todos.search_placeholder'|trans }}" />
+                        <button type="submit">{{ 'admin.todos.search'|trans }}</button>
                     </form>
                 </div>
 
@@ -435,19 +435,19 @@
 
                 <div class="stats-row">
                     <div class="stat-mini">
-                        <div class="stat-mini-label">Total Todos</div>
+                        <div class="stat-mini-label">{{ 'admin.todos.total_todos'|trans }}</div>
                         <div class="stat-mini-value">{{ totalTodos }}</div>
                     </div>
                     <div class="stat-mini">
-                        <div class="stat-mini-label">To Do</div>
+                        <div class="stat-mini-label">{{ 'admin.todos.to_do'|trans }}</div>
                         <div class="stat-mini-value">{{ todoCount }}</div>
                     </div>
                     <div class="stat-mini">
-                        <div class="stat-mini-label">In Progress</div>
+                        <div class="stat-mini-label">{{ 'admin.todos.in_progress'|trans }}</div>
                         <div class="stat-mini-value">{{ progressCount }}</div>
                     </div>
                     <div class="stat-mini">
-                        <div class="stat-mini-label">Done</div>
+                        <div class="stat-mini-label">{{ 'admin.todos.done'|trans }}</div>
                         <div class="stat-mini-value">{{ doneCount }}</div>
                     </div>
                 </div>
@@ -463,24 +463,24 @@
                                 {% for todo in items %}
                                     <article class="todo-card" draggable="true" data-todo-id="{{ todo.id }}">
                                         <div class="todo-title">{{ todo.title }}</div>
-                                        <div class="todo-meta">#{{ todo.id }} • {{ todo.username|default('No user') }}</div>
+                                        <div class="todo-meta">#{{ todo.id }} • {{ todo.username|default('admin.todos.no_user'|trans) }}</div>
                                         {% if todo.description %}
                                             <div class="todo-meta">{{ todo.description|slice(0, 60) }}{% if todo.description|length > 60 %}...{% endif %}</div>
                                         {% endif %}
                                         <div class="todo-footer">
                                             {% set p = todo.priority|default(2) %}
                                             {% if p == 0 %}
-                                                <span class="priority low">Low</span>
+                                                <span class="priority low">{{ 'todo.priority.low'|trans }}</span>
                                             {% elseif p == 1 %}
-                                                <span class="priority medium">Medium</span>
+                                                <span class="priority medium">{{ 'todo.priority.medium'|trans }}</span>
                                             {% else %}
-                                                <span class="priority high">High</span>
+                                                <span class="priority high">{{ 'todo.priority.high'|trans }}</span>
                                             {% endif %}
-                                            <span>{{ todo.category|default('General') }}</span>
+                                            <span>{{ todo.category|default('admin.todos.general'|trans) }}</span>
                                         </div>
                                     </article>
                                 {% else %}
-                                    <div class="todo-meta">Drop todos here</div>
+                                    <div class="todo-meta">{{ 'admin.todos.drop_here'|trans }}</div>
                                 {% endfor %}
                             </div>
                         </section>
@@ -497,6 +497,12 @@
             const zones = Array.from(document.querySelectorAll('.dropzone'));
             const cards = Array.from(document.querySelectorAll('.todo-card'));
             const statusBox = document.getElementById('boardStatus');
+            const text = {
+                updating: '{{ 'admin.todos.status.updating'|trans|e('js') }}',
+                movedTo: '{{ 'admin.todos.status.moved_to'|trans|e('js') }}',
+                unable: '{{ 'admin.todos.status.unable'|trans|e('js') }}',
+                failed: '{{ 'admin.todos.status.failed'|trans|e('js') }}'
+            };
             let draggedCard = null;
 
             function showStatus(text, isError) {
@@ -556,7 +562,7 @@
 
                     zone.appendChild(draggedCard);
                     updateCounts();
-                    showStatus('Updating todo #' + todoId + '...', false);
+                    showStatus(text.updating.replace('%id%', todoId), false);
 
                     const body = new URLSearchParams();
                     body.set('status', newStatus);
@@ -571,17 +577,20 @@
                         .then((response) => response.json())
                         .then((data) => {
                             if (data && data.success) {
-                                showStatus('Todo #' + todoId + ' moved to ' + newStatus + '.', false);
+                                showStatus(
+                                    text.movedTo.replace('%id%', todoId).replace('%status%', newStatus),
+                                    false
+                                );
                                 return;
                             }
                             oldZone.appendChild(draggedCard);
                             updateCounts();
-                            showStatus('Unable to update todo status.', true);
+                            showStatus(text.unable, true);
                         })
                         .catch(() => {
                             oldZone.appendChild(draggedCard);
                             updateCounts();
-                            showStatus('Request failed while updating todo.', true);
+                            showStatus(text.failed, true);
                         });
                 });
             });

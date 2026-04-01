@@ -262,6 +262,47 @@
                 background: linear-gradient(135deg, rgba(255, 250, 240, 1), rgba(254, 245, 230, 1));
             }
 
+            .global-action-language {
+                align-items: flex-start;
+                text-align: left;
+                padding: 12px 14px;
+                gap: 8px;
+                flex-direction: column;
+            }
+
+            .global-language-title {
+                font-size: 12px;
+                font-weight: 800;
+                color: #1e456e;
+                display: block;
+                margin-bottom: 8px;
+            }
+
+            .global-language-select {
+                width: 100%;
+                padding: 8px 10px;
+                font-size: 12px;
+                font-weight: 700;
+                color: #1e456e;
+                border: 1px solid rgba(152, 189, 216, 0.7);
+                border-radius: 8px;
+                background: rgba(255, 255, 255, 0.95);
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+
+            .global-language-select:hover {
+                border-color: rgba(11, 164, 161, 0.85);
+                background: rgba(255, 255, 255, 1);
+            }
+
+            .global-language-select:focus {
+                outline: none;
+                border-color: rgba(11, 164, 161, 0.85);
+                background: rgba(11, 164, 161, 0.08);
+                box-shadow: 0 0 0 2px rgba(11, 164, 161, 0.2);
+            }
+
             .global-action-coin {
                 align-items: flex-start;
                 text-align: left;
@@ -397,6 +438,42 @@
                 background: rgba(70, 60, 30, 0.9);
             }
 
+            html.dark-mode .global-action-language {
+                background: rgba(20, 33, 48, 0.92);
+            }
+
+            html.dark-mode .global-language-title {
+                color: #d0e0f0;
+            }
+
+            html.dark-mode .global-language-select {
+                border-color: rgba(66, 95, 125, 0.75);
+                background: rgba(11, 20, 31, 0.9);
+                color: #d0e0f0;
+            }
+
+            html.dark-mode .global-language-select:hover {
+                border-color: rgba(94, 234, 212, 0.5);
+                background: rgba(11, 20, 31, 1);
+            }
+
+            html.dark-mode .global-language-select:focus {
+                border-color: rgba(94, 234, 212, 0.7);
+                background: rgba(11, 20, 31, 0.95);
+                box-shadow: 0 0 0 2px rgba(94, 234, 212, 0.2);
+            }
+
+            html.dark-mode .global-language-select option {
+                background: #1a2a3a;
+                color: #d0e0f0;
+            }
+
+            html.dark-mode .global-language-option.active {
+                border-color: rgba(45, 212, 191, 0.65);
+                background: rgba(45, 212, 191, 0.14);
+                color: #7de2d6;
+            }
+
             html.dark-mode .global-action-coin {
                 background: rgba(20, 33, 48, 0.92);
             }
@@ -470,41 +547,49 @@
             }
         </style>
     </head>
+    {% set currentLocale = app.request.locale|default('en') %}
     <body>
-        <button id="globalQuickToggle" class="global-quick-toggle" type="button" aria-label="Slide down to open panel">⌄ Slide me ⌄<span id="globalQuickBadge" class="global-quick-badge">!</span></button>
+        <button id="globalQuickToggle" class="global-quick-toggle" type="button" aria-label="{{ 'panel.slide_me'|trans }}">⌄ {{ 'panel.slide_me'|trans }} ⌄<span id="globalQuickBadge" class="global-quick-badge">!</span></button>
         <div id="globalGlassOverlay" class="global-glass-overlay" aria-hidden="true"></div>
         <aside id="globalGlassPanel" class="global-glass-panel" aria-hidden="true">
             <div class="global-glass-head">
-                <div class="global-glass-brand">Rehletna Control</div>
-                <button id="globalGlassClose" class="global-glass-close" type="button" aria-label="Close panel">x</button>
+                <div class="global-glass-brand">{{ 'panel.control_title'|trans }}</div>
+                <button id="globalGlassClose" class="global-glass-close" type="button" aria-label="{{ 'panel.close'|trans }}">x</button>
             </div>
             <div class="global-glass-actions">
-                <button id="globalThemeButton" class="global-action-btn" type="button" aria-label="Toggle dark mode">
+                <button id="globalThemeButton" class="global-action-btn" type="button" aria-label="{{ 'panel.dark_mode'|trans }}">
                     <span id="globalThemeIcon" class="global-action-icon">🌙</span>
-                    <span id="globalThemeLabel">Dark mode</span>
+                    <span id="globalThemeLabel">{{ 'panel.dark_mode'|trans }}</span>
                 </button>
-                <button id="globalCollectCoinBtn" class="global-action-btn global-action-coin" type="button" aria-label="Collect coins" disabled>
+                <button id="globalCollectCoinBtn" class="global-action-btn global-action-coin" type="button" aria-label="{{ 'panel.collect'|trans }}" disabled>
                     <div class="global-coin-head">
                         <span class="global-action-icon">💎</span>
                         <span id="globalCoinCount" class="global-coin-count">0</span>
                     </div>
                     <div id="globalCoinTier" class="global-coin-tier">standard • +1</div>
-                    <div id="globalCoinTimer" class="global-coin-timer">Ready to collect</div>
-                    <span id="globalCoinBtnLabel">Collect</span>
+                    <div id="globalCoinTimer" class="global-coin-timer">{{ 'panel.ready_to_collect'|trans }}</div>
+                    <span id="globalCoinBtnLabel">{{ 'panel.collect'|trans }}</span>
                 </button>
-                <a id="globalUpgradeBtn" class="global-action-link upgrade" href="{{ path('app_premium') }}" aria-label="Upgrade to Premium" style="display: none;">
+                <a id="globalUpgradeBtn" class="global-action-link upgrade" href="{{ path('app_premium') }}" aria-label="{{ 'panel.upgrade_plan'|trans }}" style="display: none;">
                     <span class="global-action-icon">⭐</span>
-                    <span>Upgrade Plan</span>
+                    <span>{{ 'panel.upgrade_plan'|trans }}</span>
                 </a>
-                <a class="global-action-link power" href="{{ path('app_logout') }}" aria-label="Logout">
+                <div class="global-action-btn global-action-language">
+                    <label for="languageSelect" class="global-language-title">🌍 {{ 'panel.language'|trans }}</label>
+                    <select id="languageSelect" name="locale" class="global-language-select" onchange="window.location.href='/language/' + this.value;">
+                        <option value="en" {% if currentLocale == 'en' %}selected{% endif %}>🇬🇧 {{ 'panel.language_en'|trans }}</option>
+                        <option value="fr" {% if currentLocale == 'fr' %}selected{% endif %}>🇫🇷 {{ 'panel.language_fr'|trans }}</option>
+                    </select>
+                </div>
+                <a class="global-action-link power" href="{{ path('app_logout') }}" aria-label="{{ 'panel.logout'|trans }}">
                     <span class="global-action-icon">⏻</span>
-                    <span>Logout</span>
+                    <span>{{ 'panel.logout'|trans }}</span>
                 </a>
             </div>
         </aside>
         <div id="globalLoader" class="global-loader" aria-hidden="true">
             <img class="global-loader-logo" src="{{ asset('images/logo.png') }}" alt="Rehletna logo">
-            <div id="globalLoaderText" class="global-loader-text">Loading your page...</div>
+            <div id="globalLoaderText" class="global-loader-text">{{ 'panel.loading_page'|trans }}</div>
             <div class="global-loader-dots" aria-label="Loading">
                 <span></span>
                 <span></span>
@@ -530,6 +615,16 @@
                 const globalCoinTier = document.getElementById('globalCoinTier');
                 const globalCoinTimer = document.getElementById('globalCoinTimer');
                 const globalCoinBtnLabel = document.getElementById('globalCoinBtnLabel');
+                const panelText = {
+                    darkMode: '{{ 'panel.dark_mode'|trans|e('js') }}',
+                    lightMode: '{{ 'panel.light_mode'|trans|e('js') }}',
+                    collectNow: '{{ 'panel.collect_now'|trans|e('js') }}',
+                    collectingSoon: '{{ 'panel.collecting_soon'|trans|e('js') }}',
+                    collecting: '{{ 'panel.collecting'|trans|e('js') }}',
+                    readyToCollect: '{{ 'panel.ready_to_collect'|trans|e('js') }}',
+                    availableIn: '{{ 'panel.available_in'|trans({'%seconds%': '__SECONDS__'})|e('js') }}',
+                    returningMain: '{{ 'panel.returning_main'|trans|e('js') }}'
+                };
                 let dragStartY = 0;
                 let dragDistance = 0;
                 let isDraggingToggle = false;
@@ -559,7 +654,7 @@
                     }
                     const isDark = document.documentElement.classList.contains('dark-mode') || document.body.classList.contains('dark-mode');
                     globalThemeIcon.textContent = isDark ? '☀️' : '🌙';
-                    globalThemeLabel.textContent = isDark ? 'Light mode' : 'Dark mode';
+                    globalThemeLabel.textContent = isDark ? panelText.lightMode : panelText.darkMode;
                 };
 
                 const syncCoinNotification = () => {
@@ -580,8 +675,10 @@
 
                     const isReady = coinCooldownRemaining <= 0;
                     globalCollectCoinBtn.disabled = !isReady;
-                    globalCoinBtnLabel.textContent = isReady ? 'Collect now' : 'Collecting soon';
-                    globalCoinTimer.textContent = isReady ? 'Ready to collect' : 'Available in ' + coinCooldownRemaining + 's';
+                    globalCoinBtnLabel.textContent = isReady ? panelText.collectNow : panelText.collectingSoon;
+                    globalCoinTimer.textContent = isReady
+                        ? panelText.readyToCollect
+                        : panelText.availableIn.replace('__SECONDS__', String(coinCooldownRemaining));
                     const progress = Math.max(0, Math.min(100, ((30 - coinCooldownRemaining) / 30) * 100));
                     
                     // Update collect coin button progress line only
@@ -678,7 +775,7 @@
                     }
 
                     globalCollectCoinBtn.disabled = true;
-                    globalCoinBtnLabel.textContent = 'Collecting...';
+                    globalCoinBtnLabel.textContent = panelText.collecting;
 
                     fetch('{{ path('app_collect_coin') }}', {
                         method: 'POST',
@@ -830,7 +927,7 @@
                     }
 
                     event.preventDefault();
-                    showLoader('Returning to main page...');
+                    showLoader(panelText.returningMain);
                     window.location.assign(href);
                 });
 

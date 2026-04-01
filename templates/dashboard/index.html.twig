@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Admin Dashboard - Rehletna.tn{% endblock %}
+{% block title %}{{ 'dashboard.title'|trans }} - Rehletna.tn{% endblock %}
 
 {% block stylesheets %}
     {{ parent() }}
@@ -12,28 +12,47 @@
             color: #213142;
         }
 
-        .dashboard-top {
-            height: 86px;
-            background: #ffffff;
-            border-bottom: 1px solid #e6ebf0;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 28px;
-            position: sticky;
-            top: 0;
-            z-index: 20;
+        .sidebar-nav {
+            display: grid;
+            gap: 0;
         }
 
-        .back-main-btn {
-            border: 2px solid #0BA4A1;
-            color: #0BA4A1;
-            background: #f4fffe;
-            border-radius: 999px;
-            padding: 10px 18px;
-            font-weight: 700;
+        .sidebar-actions {
+            margin-top: auto;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            padding-top: 18px;
+        }
+
+        .sidebar-action-btn {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            border: 1px solid rgba(168, 192, 214, 0.25);
+            display: grid;
+            place-items: center;
             text-decoration: none;
-            box-shadow: 0 4px 10px rgba(11, 164, 161, 0.18);
+            font-size: 22px;
+            background: rgba(19, 38, 58, 0.55);
+            color: #d9e4ef;
+            transition: transform 0.18s ease, box-shadow 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+        }
+
+        .sidebar-action-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .sidebar-action-btn.home-action:hover {
+            color: #86f5ff;
+            border-color: rgba(100, 235, 255, 0.8);
+            box-shadow: 0 0 12px rgba(100, 235, 255, 0.7), 0 0 26px rgba(100, 235, 255, 0.38);
+        }
+
+        .sidebar-action-btn.logout-action:hover {
+            color: #ff9ca2;
+            border-color: rgba(255, 105, 120, 0.8);
+            box-shadow: 0 0 12px rgba(255, 105, 120, 0.7), 0 0 26px rgba(255, 105, 120, 0.38);
         }
 
         .top-logo {
@@ -53,13 +72,19 @@
         .dashboard-layout {
             display: grid;
             grid-template-columns: 260px minmax(0, 1fr);
-            min-height: calc(100vh - 86px);
+            min-height: 100vh;
         }
 
         .dash-sidebar {
             background: #2f445a;
             color: #fff;
             padding: 28px 14px;
+            min-height: 100vh;
+            position: sticky;
+            top: 0;
+            align-self: start;
+            display: flex;
+            flex-direction: column;
         }
 
         .admin-avatar {
@@ -112,11 +137,6 @@
             background: #d8f4f2;
             color: #0BA4A1;
             font-weight: 700;
-        }
-
-        .sidebar-link.logout {
-            margin-top: 36px;
-            color: #ff9aa5;
         }
 
         .dash-content {
@@ -332,20 +352,14 @@
             color: #d8e2ef;
         }
 
-        body.dark-mode .dashboard-top {
-            background: #182232;
-            border-bottom-color: #283448;
-        }
-
-        body.dark-mode .back-main-btn {
-            background: #132431;
-            color: #5bd8d6;
-            border-color: #2caeab;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
-        }
-
         body.dark-mode .dash-sidebar {
             background: #131c2a;
+        }
+
+        body.dark-mode .sidebar-action-btn {
+            background: rgba(13, 24, 38, 0.85);
+            border-color: rgba(70, 98, 126, 0.75);
+            color: #b5c5d7;
         }
 
         body.dark-mode .sidebar-link {
@@ -436,14 +450,7 @@
 
 {% block body %}
     <div class="dashboard-page">
-        <div class="dashboard-top">
-            <a class="back-main-btn" href="{{ path('app_mainpage') }}">← Back to Main Page</a>
-            <div class="top-logo">
-                <img src="{{ asset('images/logo.png') }}" alt="Rehletna.tn" title="Rehletna.tn" />
-            </div>
-        </div>
-
-        <div class="dashboard-layout">
+        <div class="dashboard-layout" id="dashboardLayout">
             <aside class="dash-sidebar">
                 <div class="admin-avatar">
                     {% if adminImageUrl is defined and adminImageUrl %}
@@ -453,22 +460,26 @@
                     {% endif %}
                 </div>
                 <div class="admin-name">{{ app.user.username }}</div>
-                <div class="admin-role">ADMIN</div>
+                <div class="admin-role">{{ 'dashboard.admin_role'|trans }}</div>
 
-                <a href="{{ path('app_dashboard') }}" class="sidebar-link active">Dashboard</a>
-                <a href="{{ path('app_users') }}" class="sidebar-link">Users</a>
-                <a href="{{ path('app_todos') }}" class="sidebar-link">Todo List</a>
-                <a href="{{ path('app_admin_stats') }}" class="sidebar-link">Stats</a>
-                <a href="{{ path('app_admin_shop') }}" class="sidebar-link">Shop</a>
-                <a href="#" class="sidebar-link">Message Stats</a>
-                <a href="#" class="sidebar-link">Service</a>
-                <a href="{{ path('app_logout') }}" class="sidebar-link logout">Logout</a>
+                <nav class="sidebar-nav" aria-label="{{ 'dashboard.title'|trans }}">
+                    <a href="{{ path('app_dashboard') }}" class="sidebar-link js-dashboard-module active" data-content-selector=".dash-content" data-no-loader="true">{{ 'dashboard.sidebar.dashboard'|trans }}</a>
+                    <a href="{{ path('app_users') }}" class="sidebar-link js-dashboard-module" data-content-selector=".admin-content" data-no-loader="true">{{ 'dashboard.sidebar.users'|trans }}</a>
+                    <a href="{{ path('app_todos') }}" class="sidebar-link js-dashboard-module" data-content-selector=".admin-content" data-no-loader="true">{{ 'dashboard.sidebar.todo_list'|trans }}</a>
+                    <a href="{{ path('app_admin_stats') }}" class="sidebar-link js-dashboard-module" data-content-selector=".shell" data-no-loader="true">{{ 'dashboard.sidebar.statistics'|trans }}</a>
+                    <a href="{{ path('app_admin_shop') }}" class="sidebar-link js-dashboard-module" data-content-selector=".admin-content" data-no-loader="true">{{ 'dashboard.sidebar.shop'|trans }}</a>
+                </nav>
+
+                <div class="sidebar-actions">
+                    <a href="{{ path('app_mainpage') }}" class="sidebar-action-btn home-action" data-no-loader="true" data-turbo="false" title="{{ 'dashboard.back_main'|trans }}" aria-label="{{ 'dashboard.back_main'|trans }}">⌂</a>
+                    <a href="{{ path('app_logout') }}" class="sidebar-action-btn logout-action" id="sidebarLogoutBtn" title="{{ 'dashboard.sidebar.logout'|trans }}" aria-label="{{ 'dashboard.sidebar.logout'|trans }}">⏻</a>
+                </div>
             </aside>
 
-            <main class="dash-content">
+            <main class="dash-content" id="dashboardContent">
                 <section class="welcome-strip">
                     <div>
-                        <div>Welcome back,</div>
+                        <div>{{ 'dashboard.welcome_back'|trans }}</div>
                         <h2>{{ app.user.username }}!</h2>
                     </div>
                     <div class="timer-ring" id="dashboardClock">00:00:00</div>
@@ -476,33 +487,33 @@
 
                 <section class="stats-grid">
                     <article class="stat-card">
-                        <h4>Total Users</h4>
+                        <h4>{{ 'dashboard.stats.total_users'|trans }}</h4>
                         <div class="stat-value total">{{ stats.totalUsers }}</div>
                     </article>
                     <article class="stat-card">
-                        <h4>Admins</h4>
+                        <h4>{{ 'dashboard.stats.admins'|trans }}</h4>
                         <div class="stat-value admin">{{ stats.admins }}</div>
                     </article>
                     <article class="stat-card">
-                        <h4>Guiders</h4>
+                        <h4>{{ 'dashboard.stats.guiders'|trans }}</h4>
                         <div class="stat-value guider">{{ stats.guiders }}</div>
                     </article>
                     <article class="stat-card">
-                        <h4>Regular Users</h4>
+                        <h4>{{ 'dashboard.stats.regular_users'|trans }}</h4>
                         <div class="stat-value user">{{ stats.regularUsers }}</div>
                     </article>
                 </section>
 
                 <section class="dashboard-grid">
                     <article class="panel">
-                        <h3>Recent Users</h3>
+                        <h3>{{ 'dashboard.recent_users'|trans }}</h3>
                         <table class="users-table">
                             <thead>
                                 <tr>
-                                    <th>Avatar</th>
-                                    <th>Username</th>
-                                    <th>Email</th>
-                                    <th>Role</th>
+                                    <th>{{ 'dashboard.table.avatar'|trans }}</th>
+                                    <th>{{ 'dashboard.table.username'|trans }}</th>
+                                    <th>{{ 'dashboard.table.email'|trans }}</th>
+                                    <th>{{ 'dashboard.table.role'|trans }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -517,7 +528,7 @@
                                     </tr>
                                 {% else %}
                                     <tr>
-                                        <td colspan="4">No users found.</td>
+                                        <td colspan="4">{{ 'dashboard.table.no_users'|trans }}</td>
                                     </tr>
                                 {% endfor %}
                             </tbody>
@@ -525,20 +536,20 @@
                     </article>
 
                     <article class="panel">
-                        <h3>User Status</h3>
+                        <h3>{{ 'dashboard.user_status'|trans }}</h3>
                         <div class="status-grid">
                             <div class="status-item">
-                                <div><span class="status-dot online"></span>Online</div>
+                                <div><span class="status-dot online"></span>{{ 'dashboard.status.online'|trans }}</div>
                                 <strong style="color:#2fc56f;">{{ stats.online }}</strong>
                             </div>
                             <div class="status-item">
-                                <div><span class="status-dot offline"></span>Offline</div>
+                                <div><span class="status-dot offline"></span>{{ 'dashboard.status.offline'|trans }}</div>
                                 <strong style="color:#9ca9b5;">{{ stats.offline }}</strong>
                             </div>
                         </div>
 
                         <div>
-                            <div style="font-weight:700;color:#2aa35f;">Online Users</div>
+                            <div style="font-weight:700;color:#2aa35f;">{{ 'dashboard.online_users'|trans }}</div>
                             <div class="user-list">
                                 {% for user in onlineUsers %}
                                     <div class="user-row">
@@ -552,13 +563,13 @@
                                         <span class="status-dot online"></span>
                                     </div>
                                 {% else %}
-                                    <div class="user-row">No online users</div>
+                                    <div class="user-row">{{ 'dashboard.no_online_users'|trans }}</div>
                                 {% endfor %}
                             </div>
                         </div>
 
                         <div style="margin-top:10px;">
-                            <div style="font-weight:700;color:#6f7f90;">Offline Users</div>
+                            <div style="font-weight:700;color:#6f7f90;">{{ 'dashboard.offline_users'|trans }}</div>
                             <div class="user-list">
                                 {% for user in offlineUsers %}
                                     <div class="user-row">
@@ -572,7 +583,7 @@
                                         <span class="status-dot offline"></span>
                                     </div>
                                 {% else %}
-                                    <div class="user-row">No offline users</div>
+                                    <div class="user-row">{{ 'dashboard.no_offline_users'|trans }}</div>
                                 {% endfor %}
                             </div>
                         </div>
@@ -585,20 +596,315 @@
     <script>
         (function () {
             const clock = document.getElementById('dashboardClock');
-            if (!clock) {
-                return;
-            }
-
-            const tick = () => {
-                const now = new Date();
-                const h = String(now.getHours()).padStart(2, '0');
-                const m = String(now.getMinutes()).padStart(2, '0');
-                const s = String(now.getSeconds()).padStart(2, '0');
-                clock.textContent = `${h}:${m}:${s}`;
+            const dashboardContent = document.getElementById('dashboardContent');
+            const moduleLinks = Array.from(document.querySelectorAll('.js-dashboard-module'));
+            const dynamicStylesId = 'dashboardDynamicModuleStyles';
+            const sidebarLockStylesId = 'dashboardSidebarLockStyles';
+            const moduleText = {
+                loading: '{{ 'dashboard.module.loading'|trans|e('js') }}',
+                error: '{{ 'dashboard.module.error'|trans|e('js') }}',
+                timeout: '{{ 'dashboard.module.timeout'|trans|e('js') }}'
+            };
+            const logoutText = {
+                confirm: '{{ 'dashboard.logout_confirm'|trans|e('js') }}'
             };
 
-            tick();
-            setInterval(tick, 1000);
+            function startClock() {
+                if (!clock) {
+                    return;
+                }
+
+                const tick = () => {
+                    const now = new Date();
+                    const h = String(now.getHours()).padStart(2, '0');
+                    const m = String(now.getMinutes()).padStart(2, '0');
+                    const s = String(now.getSeconds()).padStart(2, '0');
+                    clock.textContent = `${h}:${m}:${s}`;
+                };
+
+                tick();
+                setInterval(tick, 1000);
+            }
+
+            function applyModuleStyles(sourceDoc) {
+                const styleBlocks = Array.from(sourceDoc.querySelectorAll('style'));
+                let styleEl = document.getElementById(dynamicStylesId);
+
+                if (!styleEl) {
+                    styleEl = document.createElement('style');
+                    styleEl.id = dynamicStylesId;
+                    document.head.appendChild(styleEl);
+                }
+
+                styleEl.textContent = styleBlocks.map((node) => node.textContent || '').join('\n\n');
+            }
+
+            function runModuleScripts(sourceDoc) {
+                const scripts = Array.from(sourceDoc.querySelectorAll('body script'));
+
+                scripts.forEach((sourceScript) => {
+                    const code = (sourceScript.textContent || '').trim();
+
+                    // Skip global base layout scripts to avoid duplicate global handlers.
+                    if (
+                        code.includes("const loader = document.getElementById('globalLoader')") ||
+                        code.includes('window.showGlobalLoader = showLoader')
+                    ) {
+                        return;
+                    }
+
+                    if (sourceScript.src) {
+                        const newScript = document.createElement('script');
+                        newScript.src = sourceScript.src;
+                        newScript.async = false;
+                        document.body.appendChild(newScript);
+                        return;
+                    }
+
+                    if (code === '') {
+                        return;
+                    }
+
+                    const inlineScript = document.createElement('script');
+                    inlineScript.textContent = code;
+                    document.body.appendChild(inlineScript);
+                });
+            }
+
+            function syncStoredTheme() {
+                if (window.getStoredTheme && window.applyTheme) {
+                    window.applyTheme(window.getStoredTheme());
+                }
+            }
+
+            function lockSidebarStyles() {
+                let styleEl = document.getElementById(sidebarLockStylesId);
+                if (!styleEl) {
+                    styleEl = document.createElement('style');
+                    styleEl.id = sidebarLockStylesId;
+                    document.head.appendChild(styleEl);
+                }
+
+                styleEl.textContent = `
+                    #dashboardLayout {
+                        grid-template-columns: 260px minmax(0, 1fr) !important;
+                        min-height: 100vh !important;
+                    }
+
+                    #dashboardLayout > .dash-sidebar {
+                        background: #2f445a !important;
+                        color: #ffffff !important;
+                        padding: 28px 14px !important;
+                        min-height: 100vh !important;
+                        position: sticky !important;
+                        top: 0 !important;
+                        align-self: start !important;
+                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+                        display: flex !important;
+                        flex-direction: column !important;
+                    }
+
+                    #dashboardLayout .sidebar-nav {
+                        display: grid !important;
+                        gap: 0 !important;
+                    }
+
+                    #dashboardLayout .admin-name {
+                        font-size: 32px !important;
+                        color: #ffffff !important;
+                    }
+
+                    #dashboardLayout .admin-role {
+                        color: #FCBE31 !important;
+                        font-weight: 800 !important;
+                    }
+
+                    #dashboardLayout .sidebar-link {
+                        display: block !important;
+                        color: #d9e4ef !important;
+                        border-radius: 10px !important;
+                        padding: 10px 12px !important;
+                        margin-bottom: 8px !important;
+                        font-size: 14px !important;
+                        text-decoration: none !important;
+                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+                    }
+
+                    #dashboardLayout .sidebar-link.active {
+                        background: #d8f4f2 !important;
+                        color: #0BA4A1 !important;
+                        font-weight: 700 !important;
+                    }
+
+                    #dashboardLayout .sidebar-actions {
+                        margin-top: auto !important;
+                        display: flex !important;
+                        justify-content: center !important;
+                        gap: 12px !important;
+                        padding-top: 18px !important;
+                    }
+
+                    #dashboardLayout .sidebar-action-btn {
+                        width: 46px !important;
+                        height: 46px !important;
+                        border-radius: 14px !important;
+                        border: 1px solid rgba(168, 192, 214, 0.25) !important;
+                        display: grid !important;
+                        place-items: center !important;
+                        text-decoration: none !important;
+                        font-size: 22px !important;
+                        background: rgba(19, 38, 58, 0.55) !important;
+                        color: #d9e4ef !important;
+                        transition: transform 0.18s ease, box-shadow 0.2s ease, border-color 0.2s ease, color 0.2s ease !important;
+                    }
+
+                    #dashboardLayout .sidebar-action-btn:hover {
+                        transform: translateY(-2px) !important;
+                    }
+
+                    #dashboardLayout .sidebar-action-btn.home-action:hover {
+                        color: #86f5ff !important;
+                        border-color: rgba(100, 235, 255, 0.8) !important;
+                        box-shadow: 0 0 12px rgba(100, 235, 255, 0.7), 0 0 26px rgba(100, 235, 255, 0.38) !important;
+                    }
+
+                    #dashboardLayout .sidebar-action-btn.logout-action:hover {
+                        color: #ff9ca2 !important;
+                        border-color: rgba(255, 105, 120, 0.8) !important;
+                        box-shadow: 0 0 12px rgba(255, 105, 120, 0.7), 0 0 26px rgba(255, 105, 120, 0.38) !important;
+                    }
+
+                    body.dark-mode #dashboardLayout > .dash-sidebar {
+                        background: #131c2a !important;
+                    }
+
+                    body.dark-mode #dashboardLayout .sidebar-link {
+                        color: #b5c5d7 !important;
+                    }
+
+                    body.dark-mode #dashboardLayout .sidebar-link.active {
+                        background: #1d3346 !important;
+                        color: #66d8d5 !important;
+                    }
+
+                    body.dark-mode #dashboardLayout .sidebar-action-btn {
+                        background: rgba(13, 24, 38, 0.85) !important;
+                        border-color: rgba(70, 98, 126, 0.75) !important;
+                        color: #b5c5d7 !important;
+                    }
+                `;
+            }
+
+            async function loadModule(link) {
+                if (!dashboardContent) {
+                    return;
+                }
+
+                if (window.hideGlobalLoader) {
+                    window.hideGlobalLoader();
+                }
+
+                const url = link.getAttribute('href');
+                const selector = link.getAttribute('data-content-selector') || '.admin-content';
+                if (!url) {
+                    return;
+                }
+
+                dashboardContent.innerHTML = '<div style="padding:20px;font-weight:700;color:#194575;">' + moduleText.loading + '</div>';
+
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(function () {
+                        controller.abort();
+                    }, 10000);
+
+                    const response = await fetch(url, {
+                        credentials: 'same-origin',
+                        redirect: 'follow',
+                        signal: controller.signal
+                    });
+                    clearTimeout(timeoutId);
+
+                    if (!response.ok) {
+                        throw new Error('Failed to load module');
+                    }
+
+                    // If server redirected (e.g. auth/role), follow full navigation.
+                    if (response.url && response.url !== window.location.href && !response.url.endsWith(url)) {
+                        window.location.href = response.url;
+                        return;
+                    }
+
+                    const html = await response.text();
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const moduleRoot = doc.querySelector(selector)
+                        || doc.querySelector('.admin-content')
+                        || doc.querySelector('.dash-content')
+                        || doc.querySelector('main');
+
+                    if (!moduleRoot) {
+                        throw new Error('Module content not found');
+                    }
+
+                    applyModuleStyles(doc);
+                    dashboardContent.innerHTML = moduleRoot.innerHTML;
+                    runModuleScripts(doc);
+                    syncStoredTheme();
+                    lockSidebarStyles();
+
+                    moduleLinks.forEach((item) => item.classList.remove('active'));
+                    link.classList.add('active');
+                    window.history.pushState({}, '', url);
+                } catch (error) {
+                    const isTimeout = error && error.name === 'AbortError';
+                    dashboardContent.innerHTML = '<div style="padding:20px;color:#c43d3d;font-weight:700;">' + (isTimeout ? moduleText.timeout : moduleText.error) + '</div>';
+
+                    // Fallback to a full page navigation so the user is never blocked on loading.
+                    setTimeout(function () {
+                        window.location.href = url;
+                    }, 300);
+                }
+            }
+
+            moduleLinks.forEach((link) => {
+                link.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    loadModule(link);
+                });
+            });
+
+            document.addEventListener('click', function (event) {
+                const homeBtn = event.target.closest('.home-action');
+                if (homeBtn) {
+                    event.preventDefault();
+                    const href = homeBtn.getAttribute('href');
+                    if (href) {
+                        window.location.assign(href);
+                    }
+                    return;
+                }
+
+                const logoutBtn = event.target.closest('#sidebarLogoutBtn');
+                if (!logoutBtn) {
+                    return;
+                }
+
+                event.preventDefault();
+                const href = logoutBtn.getAttribute('href');
+                if (!href) {
+                    return;
+                }
+
+                if (window.confirm(logoutText.confirm)) {
+                    window.location.href = href;
+                }
+            });
+
+            startClock();
+            syncStoredTheme();
+            lockSidebarStyles();
         })();
     </script>
 {% endblock %}

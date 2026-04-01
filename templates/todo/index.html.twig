@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}My Todos{% endblock %}
+{% block title %}{{ 'todo.page_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
     {{ parent() }}
@@ -269,12 +269,12 @@
     <div class="todo-shell">
         <div class="todo-top">
             <div class="todo-title">
-                <h1>My Todo Board</h1>
-                <p>Drag cards between Active and Done just like a lightweight GitHub project board.</p>
+                <h1>{{ 'todo.board_title'|trans }}</h1>
+                <p>{{ 'todo.board_subtitle'|trans }}</p>
             </div>
             <div class="top-actions">
-                <a href="{{ path('app_mainpage') }}" class="btn-pill btn-back">Back to Main Page</a>
-                <a href="{{ path('app_todo_new') }}" class="btn-pill btn-add">Add Todo</a>
+                <a href="{{ path('app_mainpage') }}" class="btn-pill btn-back">{{ 'todo.back_main'|trans }}</a>
+                <a href="{{ path('app_todo_new') }}" class="btn-pill btn-add">{{ 'todo.add_todo'|trans }}</a>
             </div>
         </div>
 
@@ -283,19 +283,19 @@
 
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-label">Total Tasks</div>
+                <div class="stat-label">{{ 'todo.stats.total_tasks'|trans }}</div>
                 <div class="stat-value" id="totalTasksStat">{{ total }}</div>
             </div>
             <div class="stat-card">
-                <div class="stat-label">Active</div>
+                <div class="stat-label">{{ 'todo.stats.active'|trans }}</div>
                 <div class="stat-value" id="activeTasksStat">{{ todos|length }}</div>
             </div>
             <div class="stat-card">
-                <div class="stat-label">Done</div>
+                <div class="stat-label">{{ 'todo.stats.done'|trans }}</div>
                 <div class="stat-value" id="doneTasksStat">{{ completed_todos|length }}</div>
             </div>
             <div class="stat-card">
-                <div class="stat-label">Completion</div>
+                <div class="stat-label">{{ 'todo.stats.completion'|trans }}</div>
                 <div class="stat-value" id="completionRateStat">{{ completionRate }}%</div>
             </div>
         </div>
@@ -303,7 +303,7 @@
         <div class="board">
             <section class="column">
                 <div class="column-header">
-                    <span class="column-title">Active</span>
+                    <span class="column-title">{{ 'todo.column.active'|trans }}</span>
                     <span class="count" id="activeCount">{{ todos|length }}</span>
                 </div>
                 <div class="column-body dropzone" data-state="active">
@@ -315,36 +315,36 @@
                             {% endif %}
                             <div class="todo-meta">
                                 {% if todo.dueDate %}
-                                    <span>Due: {{ todo.dueDate|date('Y-m-d H:i') }}</span>
+                                    <span>{{ 'todo.due'|trans }}: {{ todo.dueDate|date('Y-m-d H:i') }}</span>
                                 {% else %}
-                                    <span>No deadline</span>
+                                    <span>{{ 'todo.no_deadline'|trans }}</span>
                                 {% endif %}
                                 {% if todo.priority == 2 %}
-                                    <span class="priority high">High</span>
+                                    <span class="priority high">{{ 'todo.priority.high'|trans }}</span>
                                 {% elseif todo.priority == 1 %}
-                                    <span class="priority medium">Medium</span>
+                                    <span class="priority medium">{{ 'todo.priority.medium'|trans }}</span>
                                 {% else %}
-                                    <span class="priority low">Low</span>
+                                    <span class="priority low">{{ 'todo.priority.low'|trans }}</span>
                                 {% endif %}
                             </div>
                             <div class="todo-actions">
                                 <form method="post" action="{{ path('app_todo_complete', {'id': todo.id}) }}">
-                                    <button type="submit" class="mini-btn">Complete</button>
+                                    <button type="submit" class="mini-btn">{{ 'todo.complete'|trans }}</button>
                                 </form>
-                                <form method="post" action="{{ path('app_todo_delete', {'id': todo.id}) }}" onsubmit="return confirm('Delete this todo?');">
-                                    <button type="submit" class="mini-btn delete">Delete</button>
+                                <form method="post" action="{{ path('app_todo_delete', {'id': todo.id}) }}" onsubmit="return confirm('{{ 'todo.delete_confirm'|trans|e('js') }}');">
+                                    <button type="submit" class="mini-btn delete">{{ 'todo.delete'|trans }}</button>
                                 </form>
                             </div>
                         </article>
                     {% else %}
-                        <div class="todo-empty">No active tasks. Drag items here when re-opened.</div>
+                        <div class="todo-empty">{{ 'todo.empty.active'|trans }}</div>
                     {% endfor %}
                 </div>
             </section>
 
             <section class="column">
                 <div class="column-header">
-                    <span class="column-title">Done</span>
+                    <span class="column-title">{{ 'todo.column.done'|trans }}</span>
                     <span class="count" id="doneCount">{{ completed_todos|length }}</span>
                 </div>
                 <div class="column-body dropzone" data-state="done">
@@ -352,17 +352,17 @@
                         <article class="todo-card" draggable="true" data-todo-id="{{ todo.id }}" data-url="{{ path('app_todo_state_update', {'id': todo.id}) }}" data-token="{{ csrf_token('todo-state-' ~ todo.id) }}">
                             <div class="todo-main">{{ todo.title }}</div>
                             <div class="todo-meta">
-                                <span>Completed: {{ todo.completedAt|date('Y-m-d H:i') }}</span>
-                                <span class="priority low">Done</span>
+                                <span>{{ 'todo.completed'|trans }}: {{ todo.completedAt|date('Y-m-d H:i') }}</span>
+                                <span class="priority low">{{ 'todo.column.done'|trans }}</span>
                             </div>
                             <div class="todo-actions">
-                                <form method="post" action="{{ path('app_todo_delete', {'id': todo.id}) }}" onsubmit="return confirm('Delete this todo?');">
-                                    <button type="submit" class="mini-btn delete">Delete</button>
+                                <form method="post" action="{{ path('app_todo_delete', {'id': todo.id}) }}" onsubmit="return confirm('{{ 'todo.delete_confirm'|trans|e('js') }}');">
+                                    <button type="submit" class="mini-btn delete">{{ 'todo.delete'|trans }}</button>
                                 </form>
                             </div>
                         </article>
                     {% else %}
-                        <div class="todo-empty">Nothing completed yet. Drop completed items here.</div>
+                        <div class="todo-empty">{{ 'todo.empty.done'|trans }}</div>
                     {% endfor %}
                 </div>
             </section>
@@ -379,6 +379,13 @@
         (function () {
             const zones = Array.from(document.querySelectorAll('.dropzone'));
             const statusEl = document.getElementById('boardStatus');
+            const text = {
+                updating: '{{ 'todo.status.updating'|trans|e('js') }}',
+                movedDone: '{{ 'todo.status.moved_done'|trans|e('js') }}',
+                movedActive: '{{ 'todo.status.moved_active'|trans|e('js') }}',
+                couldNotMove: '{{ 'todo.status.could_not_move'|trans|e('js') }}',
+                networkError: '{{ 'todo.status.network_error'|trans|e('js') }}'
+            };
             let draggedCard = null;
 
             function showStatus(message, isError) {
@@ -457,7 +464,7 @@
 
                     zone.appendChild(draggedCard);
                     updateStats();
-                    showStatus('Updating task #' + todoId + '...', false);
+                    showStatus(text.updating.replace('%id%', todoId), false);
 
                     const body = new URLSearchParams();
                     body.set('state', newState);
@@ -475,7 +482,9 @@
                         })
                         .then(function (data) {
                             if (data && data.success) {
-                                showStatus('Task #' + todoId + ' moved to ' + (newState === 'done' ? 'Done' : 'Active') + '.', false);
+                                showStatus(newState === 'done'
+                                    ? text.movedDone.replace('%id%', todoId)
+                                    : text.movedActive.replace('%id%', todoId), false);
                                 return;
                             }
 
@@ -483,14 +492,14 @@
                                 oldZone.appendChild(draggedCard);
                             }
                             updateStats();
-                            showStatus('Could not move task #' + todoId + '.', true);
+                            showStatus(text.couldNotMove.replace('%id%', todoId), true);
                         })
                         .catch(function () {
                             if (oldZone) {
                                 oldZone.appendChild(draggedCard);
                             }
                             updateStats();
-                            showStatus('Network error while moving task #' + todoId + '.', true);
+                            showStatus(text.networkError.replace('%id%', todoId), true);
                         });
                 });
             });

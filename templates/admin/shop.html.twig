@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Shop Management - Admin Dashboard{% endblock %}
+{% block title %}{{ 'admin.shop.title'|trans }} - {{ 'dashboard.title'|trans }}{% endblock %}
 
 {% block stylesheets %}
     {{ parent() }}
@@ -624,7 +624,7 @@
 {% block body %}
     <div class="dashboard-page">
         <div class="dashboard-top">
-            <a class="back-main-btn" href="{{ path('app_mainpage') }}">← Back to Main Page</a>
+            <a class="back-main-btn" href="{{ path('app_dashboard') }}">← {{ 'admin.back_dashboard'|trans }}</a>
             <div class="top-logo">
                 <img src="{{ asset('images/logo.png') }}" alt="Rehletna.tn" title="Rehletna.tn" />
             </div>
@@ -640,14 +640,14 @@
                     {% endif %}
                 </div>
                 <div class="admin-name">{{ app.user.username }}</div>
-                <div class="admin-role">ADMIN</div>
+                <div class="admin-role">{{ 'dashboard.admin_role'|trans }}</div>
 
-                <a href="{{ path('app_dashboard') }}" class="sidebar-link">Dashboard</a>
-                <a href="{{ path('app_users') }}" class="sidebar-link">Users</a>
-                <a href="{{ path('app_todos') }}" class="sidebar-link">Todo List</a>
-                <a href="{{ path('app_admin_stats') }}" class="sidebar-link">Statistics</a>
-                <a href="{{ path('app_admin_shop') }}" class="sidebar-link active">Shop</a>
-                <a href="{{ path('app_logout') }}" class="sidebar-link" style="color: #ff9aa5; margin-top: 30px;">Logout</a>
+                <a href="{{ path('app_dashboard') }}" class="sidebar-link">{{ 'dashboard.sidebar.dashboard'|trans }}</a>
+                <a href="{{ path('app_users') }}" class="sidebar-link">{{ 'dashboard.sidebar.users'|trans }}</a>
+                <a href="{{ path('app_todos') }}" class="sidebar-link">{{ 'dashboard.sidebar.todo_list'|trans }}</a>
+                <a href="{{ path('app_admin_stats') }}" class="sidebar-link">{{ 'dashboard.sidebar.statistics'|trans }}</a>
+                <a href="{{ path('app_admin_shop') }}" class="sidebar-link active">{{ 'dashboard.sidebar.shop'|trans }}</a>
+                <a href="{{ path('app_logout') }}" class="sidebar-link" style="color: #ff9aa5; margin-top: 30px;">{{ 'dashboard.sidebar.logout'|trans }}</a>
             </aside>
 
             <main class="admin-content">
@@ -659,16 +659,16 @@
 
                 <section class="hero">
                     <div>
-                        <h1>Shop Management</h1>
-                        <p>Create products and manage your catalog in one place.</p>
+                        <h1>{{ 'admin.shop.title'|trans }}</h1>
+                        <p>{{ 'admin.shop.subtitle'|trans }}</p>
                     </div>
                     <div class="hero-stats">
                         <div class="hero-chip">
-                            <small>Products</small>
+                            <small>{{ 'admin.shop.products'|trans }}</small>
                             <strong>{{ productCount }}</strong>
                         </div>
                         <div class="hero-chip">
-                            <small>Total Stock</small>
+                            <small>{{ 'admin.shop.total_stock'|trans }}</small>
                             <strong>{{ stockCount }}</strong>
                         </div>
                     </div>
@@ -683,8 +683,8 @@
                 <section id="addProductView" class="view-section active">
                     <section class="panel add-product-card single-view-panel">
                         <div class="form-card-head">
-                            <h2>Add Product</h2>
-                            <p>Create a new shop item with details, stock, and image.</p>
+                            <h2>{{ 'admin.shop.add_product'|trans }}</h2>
+                            <p>{{ 'admin.shop.add_product_subtitle'|trans }}</p>
                         </div>
                         <form method="post" enctype="multipart/form-data" class="shop-form">
                             <input type="hidden" name="_token" value="{{ csrf_token('shop-product-create') }}">
@@ -692,40 +692,40 @@
                             <div class="form-surface">
                                 <div class="shop-form-grid">
                                     <div class="field full">
-                                        <label for="name">Name</label>
+                                        <label for="name">{{ 'admin.shop.field_name'|trans }}</label>
                                         <input id="name" type="text" name="name" required>
                                     </div>
 
                                     <div class="field full">
-                                        <label for="description">Description</label>
+                                        <label for="description">{{ 'admin.shop.field_description'|trans }}</label>
                                         <textarea id="description" name="description" rows="4"></textarea>
                                     </div>
 
                                     <div class="field">
-                                        <label for="price_coins">Price (Coins)</label>
+                                        <label for="price_coins">{{ 'admin.shop.field_price'|trans }}</label>
                                         <input id="price_coins" type="number" min="0" name="price_coins" value="0" required>
                                     </div>
                                     <div class="field">
-                                        <label for="quantity">Quantity</label>
+                                        <label for="quantity">{{ 'admin.shop.field_quantity'|trans }}</label>
                                         <input id="quantity" type="number" min="0" name="quantity" value="0" required>
                                     </div>
 
                                     <div class="field full">
-                                        <label for="category">Category</label>
-                                        <input id="category" type="text" name="category" placeholder="Optional">
+                                        <label for="category">{{ 'admin.shop.field_category'|trans }}</label>
+                                        <input id="category" type="text" name="category" placeholder="{{ 'admin.shop.optional'|trans }}">
                                     </div>
 
                                     <div class="field full">
-                                        <label for="image">Image</label>
+                                        <label for="image">{{ 'admin.shop.field_image'|trans }}</label>
                                         <input id="image" type="file" name="image" accept="image/*">
                                     </div>
                                 </div>
                             </div>
 
-                            <button type="submit" class="submit-btn">Add Product</button>
+                            <button type="submit" class="submit-btn">{{ 'admin.shop.add_product'|trans }}</button>
                         </form>
                         <div class="view-actions">
-                            <button id="openProductsBtn" type="button" class="switch-btn">See Products</button>
+                            <button id="openProductsBtn" type="button" class="switch-btn">{{ 'admin.shop.see_products'|trans }}</button>
                         </div>
                     </section>
                 </section>
@@ -733,12 +733,12 @@
                 <section id="productsView" class="view-section">
                     <section class="panel products-card single-view-panel">
                         <div class="products-header">
-                            <h2>Products</h2>
+                            <h2>{{ 'admin.shop.products'|trans }}</h2>
                         </div>
-                        <div class="products-note">Latest items appear first.</div>
+                        <div class="products-note">{{ 'admin.shop.products_note'|trans }}</div>
 
                         {% if products is empty %}
-                            <div class="empty">No products yet. Add your first one from the form.</div>
+                            <div class="empty">{{ 'admin.shop.empty'|trans }}</div>
                         {% else %}
                             <div class="products-grid">
                                 {% for product in products %}
@@ -753,11 +753,11 @@
                                             {% endif %}
 
                                             <div class="meta-row">
-                                                <span class="chip">{{ product.category|default('Uncategorized') }}</span>
-                                                <span class="price">{{ product.price_coins }} coins</span>
+                                                <span class="chip">{{ product.category|default('admin.shop.uncategorized'|trans) }}</span>
+                                                <span class="price">{{ product.price_coins }} {{ 'admin.shop.coins'|trans }}</span>
                                             </div>
                                             <div class="meta-row">
-                                                <span class="qty">Qty: {{ product.quantity }}</span>
+                                                <span class="qty">{{ 'admin.shop.qty'|trans }}: {{ product.quantity }}</span>
                                                 <span class="product-id">#{{ product.id }}</span>
                                             </div>
                                         </div>
@@ -766,7 +766,7 @@
                             </div>
                         {% endif %}
                         <div class="view-actions">
-                            <button id="backToAddBtn" type="button" class="switch-btn">Back To Add Product</button>
+                            <button id="backToAddBtn" type="button" class="switch-btn">{{ 'admin.shop.back_add_product'|trans }}</button>
                         </div>
                     </section>
                 </section>

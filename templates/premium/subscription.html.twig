@@ -1,0 +1,488 @@
+{# templates/premium/subscription.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block title %}Premium Subscription - Rehletna.tn{% endblock %}
+
+{% block body %}
+<div class="premium-container">
+    <div class="premium-header">
+        <h1>
+            <span class="premium-star">⭐</span>
+            Premium Subscription
+        </h1>
+        <a href="{{ path('app_mainpage') }}" class="back-main-btn">← Back to Main</a>
+    </div>
+
+    <div class="premium-user-info">
+        <div class="user-row">
+            <div class="info-label">User</div>
+            <div class="info-value">{{ user.username }}</div>
+        </div>
+        <div class="user-row">
+            <div class="info-label">Email</div>
+            <div class="info-value">{{ user.email }}</div>
+        </div>
+        <div class="user-row">
+            <div class="info-label">Current Plan</div>
+            <div class="info-value">{{ profile.member_premium|default('Standard') | capitalize }} Member</div>
+        </div>
+        <div class="user-row">
+            <div class="info-label coins-info">
+                <span class="coin-icon">💛</span>
+                <span>Your Coins:</span>
+            </div>
+            <div class="info-value coin-count">0</div>
+        </div>
+    </div>
+
+    <div class="plans-grid">
+        <!-- PREMIUM Plan -->
+        <div class="plan-card">
+            <div class="plan-header">
+                <span class="plan-star">⭐</span>
+                <h2>PREMIUM</h2>
+            </div>
+            <div class="plan-price">
+                <span class="amount">29</span><span class="currency">DT</span>
+                <span class="period">/month</span>
+            </div>
+            <div class="plan-divider"></div>
+            <ul class="plan-features">
+                <li><span class="checkmark">✓</span> Change username anytime</li>
+                <li><span class="checkmark">✓</span> Get 1 coin every 30 seconds</li>
+                <li><span class="checkmark">✓</span> 10 bonus coins on signup</li>
+                <li><span class="checkmark">✓</span> Priority customer support</li>
+            </ul>
+            <button class="plan-btn primary-btn" onclick="selectPlan('premium', 29)">GET PLAN</button>
+        </div>
+
+        <!-- VIP Plan (BEST VALUE) -->
+        <div class="plan-card best-value">
+            <div class="plan-badge">💎 BEST VALUE</div>
+            <div class="plan-header">
+                <span class="plan-crown">👑</span>
+                <h2>VIP</h2>
+            </div>
+            <div class="plan-price">
+                <span class="amount">59</span><span class="currency">DT</span>
+                <span class="period">/month</span>
+            </div>
+            <div class="plan-divider"></div>
+            <ul class="plan-features">
+                <li><span class="checkmark">✓</span> Change username anytime</li>
+                <li><span class="checkmark">✓</span> Get 5 coins every 30 seconds</li>
+                <li><span class="checkmark">✓</span> 20 bonus coins on signup</li>
+                <li><span class="checkmark">✓</span> 2% discount on all bookings</li>
+                <li><span class="checkmark">✓</span> Priority customer support</li>
+            </ul>
+            <button class="plan-btn vip-btn" onclick="selectPlan('vip', 59)">GET PLAN</button>
+        </div>
+
+        <!-- VIP+ Plan -->
+        <div class="plan-card">
+            <div class="plan-header">
+                <span class="plan-crown-plus">💠</span>
+                <h2>VIP+</h2>
+            </div>
+            <div class="plan-price">
+                <span class="amount">99</span><span class="currency">DT</span>
+                <span class="period">/month</span>
+            </div>
+            <div class="plan-divider"></div>
+            <ul class="plan-features">
+                <li><span class="checkmark">✓</span> Change username anytime</li>
+                <li><span class="checkmark">✓</span> Get 5 coins every 30 seconds</li>
+                <li><span class="checkmark">✓</span> 25 bonus coins on signup</li>
+                <li><span class="checkmark">✓</span> 3% discount on all bookings</li>
+                <li><span class="checkmark">✓</span> Create groups without admin confirmation</li>
+                <li><span class="checkmark">✓</span> Priority customer support</li>
+            </ul>
+            <button class="plan-btn premium-plus-btn" onclick="selectPlan('vip+', 99)">GET PLAN</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .premium-container {
+        min-height: 100vh;
+        padding: 40px 20px;
+        background:
+            radial-gradient(1400px 500px at 10% -20%, rgba(10, 160, 159, 0.15), transparent 60%),
+            radial-gradient(1000px 500px at 100% 0%, rgba(252, 186, 48, 0.12), transparent 55%),
+            linear-gradient(180deg, #f4f9ff 0%, #eff6fb 100%);
+    }
+
+    html.dark-mode .premium-container {
+        background:
+            radial-gradient(1400px 500px at 10% -20%, rgba(45, 212, 191, 0.08), transparent 60%),
+            radial-gradient(1000px 500px at 100% 0%, rgba(252, 186, 48, 0.06), transparent 55%),
+            linear-gradient(180deg, #121a27 0%, #1a2a3a 100%);
+    }
+
+    .premium-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        max-width: 1200px;
+        margin: 0 auto 40px;
+        gap: 20px;
+    }
+
+    .premium-header h1 {
+        font-size: 32px;
+        font-weight: 800;
+        margin: 0;
+        color: #1e456e;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    html.dark-mode .premium-header h1 {
+        color: #e2e8f0;
+    }
+
+    .premium-star {
+        font-size: 28px;
+    }
+
+    .back-main-btn {
+        padding: 10px 20px;
+        background: rgba(30, 69, 110, 0.1);
+        border: 1px solid rgba(30, 69, 110, 0.3);
+        border-radius: 8px;
+        color: #1e456e;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+    }
+
+    .back-main-btn:hover {
+        background: rgba(30, 69, 110, 0.2);
+        transform: translateY(-2px);
+    }
+
+    html.dark-mode .back-main-btn {
+        background: rgba(94, 234, 212, 0.1);
+        border-color: rgba(94, 234, 212, 0.3);
+        color: #5ee4d4;
+    }
+
+    html.dark-mode .back-main-btn:hover {
+        background: rgba(94, 234, 212, 0.15);
+    }
+
+    .premium-user-info {
+        max-width: 1200px;
+        margin: 0 auto 50px;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 16px;
+        padding: 24px;
+        border: 1px solid rgba(152, 189, 216, 0.3);
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+    }
+
+    html.dark-mode .premium-user-info {
+        background: rgba(20, 33, 48, 0.8);
+        border-color: rgba(72, 105, 138, 0.4);
+    }
+
+    .user-row {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .info-label {
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #5b7894;
+        letter-spacing: 0.5px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    html.dark-mode .info-label {
+        color: #b7cadf;
+    }
+
+    .info-value {
+        font-size: 16px;
+        font-weight: 600;
+        color: #1e456e;
+    }
+
+    html.dark-mode .info-value {
+        color: #e2e8f0;
+    }
+
+    .coin-icon {
+        font-size: 14px;
+    }
+
+    .coin-count {
+        font-size: 24px;
+        font-weight: 800;
+        color: #f5a623;
+    }
+
+    .plans-grid {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 30px;
+    }
+
+    .plan-card {
+        background: rgba(255, 255, 255, 0.92);
+        border: 1px solid rgba(152, 189, 216, 0.4);
+        border-radius: 16px;
+        padding: 32px 24px;
+        transition: all 0.3s ease;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .plan-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 16px 32px rgba(13, 50, 86, 0.15);
+    }
+
+    html.dark-mode .plan-card {
+        background: rgba(20, 33, 48, 0.92);
+        border-color: rgba(72, 105, 138, 0.4);
+    }
+
+    .plan-badge {
+        position: absolute;
+        top: -12px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: linear-gradient(135deg, #f5a623, #ffc107);
+        color: #ffffff;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+        box-shadow: 0 4px 12px rgba(245, 166, 35, 0.3);
+    }
+
+    .best-value {
+        border: 2px solid #f5a623;
+        transform: scale(1.05);
+    }
+
+    .plan-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+
+    .plan-header h2 {
+        font-size: 20px;
+        font-weight: 800;
+        margin: 0;
+        color: #1e456e;
+    }
+
+    html.dark-mode .plan-header h2 {
+        color: #e2e8f0;
+    }
+
+    .plan-star,
+    .plan-crown,
+    .plan-crown-plus {
+        font-size: 24px;
+    }
+
+    .plan-price {
+        display: flex;
+        align-items: baseline;
+        gap: 4px;
+        margin-bottom: 20px;
+    }
+
+    .amount {
+        font-size: 32px;
+        font-weight: 800;
+        color: #0fa5a2;
+    }
+
+    .best-value .amount {
+        color: #f5a623;
+    }
+
+    .currency {
+        font-size: 18px;
+        font-weight: 700;
+        color: #0fa5a2;
+    }
+
+    .best-value .currency {
+        color: #f5a623;
+    }
+
+    .period {
+        font-size: 12px;
+        color: #5b7894;
+        margin-left: 4px;
+    }
+
+    html.dark-mode .period {
+        color: #b7cadf;
+    }
+
+    .plan-divider {
+        height: 1px;
+        background: rgba(152, 189, 216, 0.2);
+        margin: 20px 0;
+    }
+
+    html.dark-mode .plan-divider {
+        background: rgba(72, 105, 138, 0.3);
+    }
+
+    .plan-features {
+        list-style: none;
+        margin: 0 0 24px;
+        padding: 0;
+        flex-grow: 1;
+    }
+
+    .plan-features li {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        font-size: 13px;
+        color: #5b7894;
+        margin-bottom: 10px;
+        line-height: 1.5;
+    }
+
+    html.dark-mode .plan-features li {
+        color: #b7cadf;
+    }
+
+    .checkmark {
+        color: #0fa5a2;
+        font-weight: 800;
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+
+    .best-value .checkmark {
+        color: #f5a623;
+    }
+
+    .plan-btn {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 10px;
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        width: 100%;
+        letter-spacing: 0.5px;
+    }
+
+    .primary-btn {
+        background: linear-gradient(135deg, #0fa5a2, #1788b6);
+        color: #ffffff;
+    }
+
+    .primary-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(15, 165, 162, 0.3);
+    }
+
+    .vip-btn {
+        background: linear-gradient(135deg, #f5a623, #ffc107);
+        color: #ffffff;
+        font-weight: 900;
+    }
+
+    .vip-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(245, 166, 35, 0.4);
+    }
+
+    .premium-plus-btn {
+        background: linear-gradient(135deg, #8b5cf6, #a855f7);
+        color: #ffffff;
+    }
+
+    .premium-plus-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(139, 92, 246, 0.3);
+    }
+
+    @media (max-width: 768px) {
+        .premium-header {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .premium-header h1 {
+            font-size: 24px;
+            justify-content: center;
+        }
+
+        .back-main-btn {
+            width: 100%;
+            text-align: center;
+        }
+
+        .premium-user-info {
+            grid-template-columns: 1fr;
+        }
+
+        .plans-grid {
+            gap: 20px;
+        }
+
+        .best-value {
+            transform: scale(1);
+        }
+    }
+
+    html.dark-mode .plan-card:hover {
+        box-shadow: 0 16px 32px rgba(45, 212, 191, 0.1);
+    }
+</style>
+
+<script>
+    function selectPlan(planType, price) {
+        // Show a message or redirect to checkout/payment
+        alert('You selected ' + planType.toUpperCase() + ' plan for ' + price + 'DT/month.\n\nPayment integration coming soon!');
+    }
+
+    // Update coin count from the global state
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('{{ path('app_collect_coin_status') }}', {
+            credentials: 'same-origin',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.coins) {
+                    document.querySelector('.coin-count').textContent = data.coins;
+                }
+            })
+            .catch(() => {
+                // Silently fail if endpoint not available
+            });
+    });
+</script>
+{% endblock %}

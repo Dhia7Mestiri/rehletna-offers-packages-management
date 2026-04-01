@@ -4,6 +4,36 @@
         <meta charset="UTF-8">
         <title>{% block title %}Welcome!{% endblock %}</title>
         <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
+        <script>
+            (function () {
+                function getStoredTheme() {
+                    return localStorage.getItem('theme') === 'dark' ? 'dark' : 'light';
+                }
+
+                function applyTheme(theme) {
+                    var isDark = theme === 'dark';
+                    document.documentElement.classList.toggle('dark-mode', isDark);
+                    if (document.body) {
+                        document.body.classList.toggle('dark-mode', isDark);
+                    }
+                }
+
+                window.getStoredTheme = getStoredTheme;
+                window.applyTheme = applyTheme;
+                window.toggleTheme = function () {
+                    var next = getStoredTheme() === 'dark' ? 'light' : 'dark';
+                    localStorage.setItem('theme', next);
+                    applyTheme(next);
+                    window.dispatchEvent(new CustomEvent('themechange', { detail: { theme: next } }));
+                    return next;
+                };
+
+                applyTheme(getStoredTheme());
+                document.addEventListener('DOMContentLoaded', function () {
+                    applyTheme(getStoredTheme());
+                });
+            })();
+        </script>
         {% block stylesheets %}
         {% endblock %}
 
@@ -22,6 +52,19 @@
                 overflow-x: hidden;
             }
 
+            html.dark-mode,
+            html.dark-mode body {
+                background: #121a27;
+                color: #e8eef5;
+            }
+
+            html.dark-mode input,
+            html.dark-mode textarea,
+            html.dark-mode select,
+            html.dark-mode button {
+                color-scheme: dark;
+            }
+
             .global-loader {
                 position: fixed;
                 inset: 0;
@@ -38,6 +81,344 @@
 
             .global-loader.active {
                 display: flex;
+            }
+
+            .global-quick-toggle {
+                position: fixed;
+                top: 6px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 156px;
+                height: 34px;
+                border-radius: 999px;
+                border: 1px solid rgba(11, 164, 161, 0.4);
+                background: rgba(255, 255, 255, 0.86);
+                color: #1f3f5f;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 13px;
+                font-weight: 800;
+                letter-spacing: 0.2px;
+                white-space: nowrap;
+                cursor: pointer;
+                box-shadow: 0 8px 18px rgba(10, 46, 88, 0.18);
+                z-index: 10003;
+                transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease, top 0.2s ease;
+                backdrop-filter: blur(8px);
+                user-select: none;
+                touch-action: none;
+            }
+
+            .global-quick-toggle:hover {
+                transform: translateX(-50%);
+                background: #ffffff;
+            }
+
+            .global-quick-toggle.dragging {
+                transition: none;
+            }
+
+            .global-quick-badge {
+                position: absolute;
+                top: -5px;
+                right: -7px;
+                min-width: 16px;
+                height: 16px;
+                border-radius: 999px;
+                background: #ff5e62;
+                color: #fff;
+                font-size: 10px;
+                font-weight: 800;
+                display: none;
+                align-items: center;
+                justify-content: center;
+                padding: 0 4px;
+                box-shadow: 0 4px 10px rgba(217, 74, 90, 0.4);
+            }
+
+            .global-quick-badge.show {
+                display: inline-flex;
+            }
+
+            .global-glass-overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(255, 255, 255, 0.16);
+                backdrop-filter: blur(1px);
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.25s ease;
+                z-index: 10001;
+            }
+
+            .global-glass-overlay.open {
+                opacity: 1;
+                pointer-events: auto;
+            }
+
+            .global-glass-panel {
+                position: fixed;
+                inset: 0;
+                width: 100vw;
+                height: 100vh;
+                border-radius: 0;
+                border: 1px solid rgba(163, 208, 232, 0.55);
+                background:
+                    linear-gradient(140deg, rgba(255, 255, 255, 0.62), rgba(238, 248, 255, 0.46)),
+                    radial-gradient(420px 220px at 10% -10%, rgba(11, 164, 161, 0.12), transparent 72%);
+                box-shadow: 0 10px 24px rgba(8, 35, 66, 0.14);
+                backdrop-filter: blur(6px);
+                transform: translateY(-105%);
+                opacity: 0;
+                transition: transform 0.28s ease, opacity 0.22s ease;
+                z-index: 10002;
+                overflow: auto;
+            }
+
+            .global-glass-panel.open {
+                transform: translateY(0);
+                opacity: 1;
+            }
+
+            .global-glass-head {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 22px 22px 16px;
+                border-bottom: 1px solid rgba(167, 202, 228, 0.5);
+            }
+
+            .global-glass-brand {
+                font-weight: 800;
+                color: #194575;
+                letter-spacing: -0.3px;
+                font-size: 16px;
+            }
+
+            .global-glass-close {
+                border: 0;
+                width: 30px;
+                height: 30px;
+                border-radius: 999px;
+                background: rgba(25, 69, 117, 0.1);
+                color: #194575;
+                cursor: pointer;
+                font-size: 16px;
+            }
+
+            .global-glass-actions {
+                padding: 22px;
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                gap: 14px;
+                max-width: 760px;
+            }
+
+            .global-action-btn,
+            .global-action-link {
+                border: 1px solid rgba(152, 189, 216, 0.6);
+                background: rgba(255, 255, 255, 0.88);
+                color: #1e456e;
+                border-radius: 12px;
+                min-height: 72px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                gap: 6px;
+                text-decoration: none;
+                font-weight: 700;
+                font-size: 12px;
+                cursor: pointer;
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
+            }
+
+            .global-action-btn:hover,
+            .global-action-link:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 10px 18px rgba(13, 50, 86, 0.16);
+            }
+
+            .global-action-icon {
+                font-size: 20px;
+                line-height: 1;
+            }
+
+            .global-action-link.power {
+                border-color: rgba(220, 109, 109, 0.45);
+                color: #b84848;
+                background: rgba(255, 242, 242, 0.9);
+            }
+
+            .global-action-link.upgrade {
+                border-color: rgba(212, 175, 55, 0.45);
+                color: #c19a3f;
+                background: rgba(255, 248, 235, 0.95);
+                background: linear-gradient(135deg, rgba(255, 248, 235, 0.95), rgba(254, 242, 220, 0.9));
+            }
+
+            .global-action-link.upgrade:hover {
+                background: linear-gradient(135deg, rgba(255, 250, 240, 1), rgba(254, 245, 230, 1));
+            }
+
+            .global-action-coin {
+                align-items: flex-start;
+                text-align: left;
+                padding: 12px 14px;
+            }
+
+            .global-coin-head {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                width: 100%;
+                margin-bottom: 6px;
+            }
+
+            .global-coin-count {
+                font-size: 26px;
+                font-weight: 800;
+                color: #0d5e8a;
+                line-height: 1;
+            }
+
+            .global-coin-tier {
+                font-size: 11px;
+                color: #5b7894;
+                font-weight: 700;
+                text-transform: uppercase;
+            }
+
+            .global-coin-timer {
+                font-size: 12px;
+                color: #516b84;
+                margin-bottom: 8px;
+            }
+
+            /* Collect coin button loading line */
+            #globalCollectCoinBtn {
+                position: relative;
+                overflow: hidden;
+                --coin-button-progress: 0%;
+            }
+
+            #globalCollectCoinBtn::before {
+                content: '';
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                height: 3px;
+                width: var(--coin-button-progress, 0%);
+                background: linear-gradient(90deg, #ff6b6b, #ff9f44);
+                transition: width 1s linear;
+                border-radius: 999px;
+            }
+
+            .global-coin-btn {
+                border: 0;
+                border-radius: 10px;
+                padding: 8px 12px;
+                font-size: 12px;
+                font-weight: 800;
+                color: #ffffff;
+                background: linear-gradient(135deg, #0fa5a2, #1788b6);
+                cursor: pointer;
+            }
+
+            .global-coin-btn:disabled {
+                cursor: not-allowed;
+                opacity: 0.65;
+            }
+
+            /* Ready state for coin collection button */
+            #globalCollectCoinBtn:not(:disabled)::before {
+                width: 100%;
+                background: linear-gradient(90deg, #51cf66, #37b24d);
+            }
+
+            #globalCollectCoinBtn:disabled {
+                background: rgba(255, 255, 255, 0.65);
+            }
+
+            #globalCollectCoinBtn:not(:disabled) {
+                background: rgba(255, 255, 255, 1);
+                box-shadow: 0 6px 16px rgba(49, 245, 196, 0.25);
+            }
+
+            html.dark-mode .global-quick-toggle {
+                background: rgba(30, 41, 59, 0.95);
+                border-color: rgba(94, 234, 212, 0.45);
+                color: #e2e8f0;
+                box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
+            }
+
+            html.dark-mode .global-glass-panel {
+                border-color: rgba(72, 105, 138, 0.55);
+                background:
+                    linear-gradient(140deg, rgba(22, 33, 50, 0.6), rgba(18, 28, 43, 0.5)),
+                    radial-gradient(300px 140px at 10% -20%, rgba(45, 212, 191, 0.1), transparent 70%);
+                box-shadow: 0 14px 28px rgba(0, 0, 0, 0.28);
+            }
+
+            html.dark-mode .global-glass-head {
+                border-bottom-color: rgba(72, 105, 138, 0.55);
+            }
+
+            html.dark-mode .global-glass-brand,
+            html.dark-mode .global-glass-close {
+                color: #dbe8f6;
+            }
+
+            html.dark-mode .global-glass-close {
+                background: rgba(157, 196, 230, 0.12);
+            }
+
+            html.dark-mode .global-action-btn,
+            html.dark-mode .global-action-link {
+                border-color: rgba(66, 95, 125, 0.75);
+                background: rgba(20, 33, 48, 0.86);
+                color: #d0e0f0;
+            }
+
+            html.dark-mode .global-action-link.power {
+                border-color: rgba(194, 92, 92, 0.55);
+                background: rgba(60, 24, 24, 0.74);
+                color: #ffb6b6;
+            }
+
+            html.dark-mode .global-action-link.upgrade {
+                border-color: rgba(158, 117, 39, 0.55);
+                background: rgba(60, 50, 24, 0.74);
+                color: #ffd699;
+            }
+
+            html.dark-mode .global-action-link.upgrade:hover {
+                background: rgba(70, 60, 30, 0.9);
+            }
+
+            html.dark-mode .global-action-coin {
+                background: rgba(20, 33, 48, 0.92);
+            }
+
+            html.dark-mode .global-coin-count {
+                color: #7dd3fc;
+            }
+
+            html.dark-mode .global-coin-tier,
+            html.dark-mode .global-coin-timer {
+                color: #b7cadf;
+            }
+
+            html.dark-mode #globalCollectCoinBtn:disabled {
+                background: rgba(30, 41, 59, 0.65);
+                color: #7dd3fc;
+            }
+
+            html.dark-mode #globalCollectCoinBtn:not(:disabled) {
+                background: rgba(40, 60, 80, 1);
+                color: #2dd4bf;
+                box-shadow: 0 6px 16px rgba(45, 212, 191, 0.2);
             }
 
             .global-loader-logo {
@@ -90,6 +471,37 @@
         </style>
     </head>
     <body>
+        <button id="globalQuickToggle" class="global-quick-toggle" type="button" aria-label="Slide down to open panel">⌄ Slide me ⌄<span id="globalQuickBadge" class="global-quick-badge">!</span></button>
+        <div id="globalGlassOverlay" class="global-glass-overlay" aria-hidden="true"></div>
+        <aside id="globalGlassPanel" class="global-glass-panel" aria-hidden="true">
+            <div class="global-glass-head">
+                <div class="global-glass-brand">Rehletna Control</div>
+                <button id="globalGlassClose" class="global-glass-close" type="button" aria-label="Close panel">x</button>
+            </div>
+            <div class="global-glass-actions">
+                <button id="globalThemeButton" class="global-action-btn" type="button" aria-label="Toggle dark mode">
+                    <span id="globalThemeIcon" class="global-action-icon">🌙</span>
+                    <span id="globalThemeLabel">Dark mode</span>
+                </button>
+                <button id="globalCollectCoinBtn" class="global-action-btn global-action-coin" type="button" aria-label="Collect coins" disabled>
+                    <div class="global-coin-head">
+                        <span class="global-action-icon">💎</span>
+                        <span id="globalCoinCount" class="global-coin-count">0</span>
+                    </div>
+                    <div id="globalCoinTier" class="global-coin-tier">standard • +1</div>
+                    <div id="globalCoinTimer" class="global-coin-timer">Ready to collect</div>
+                    <span id="globalCoinBtnLabel">Collect</span>
+                </button>
+                <a id="globalUpgradeBtn" class="global-action-link upgrade" href="{{ path('app_premium') }}" aria-label="Upgrade to Premium" style="display: none;">
+                    <span class="global-action-icon">⭐</span>
+                    <span>Upgrade Plan</span>
+                </a>
+                <a class="global-action-link power" href="{{ path('app_logout') }}" aria-label="Logout">
+                    <span class="global-action-icon">⏻</span>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
         <div id="globalLoader" class="global-loader" aria-hidden="true">
             <img class="global-loader-logo" src="{{ asset('images/logo.png') }}" alt="Rehletna logo">
             <div id="globalLoaderText" class="global-loader-text">Loading your page...</div>
@@ -104,6 +516,25 @@
             (function () {
                 const loader = document.getElementById('globalLoader');
                 const loaderText = document.getElementById('globalLoaderText');
+                const globalQuickToggle = document.getElementById('globalQuickToggle');
+                const globalGlassOverlay = document.getElementById('globalGlassOverlay');
+                const globalGlassPanel = document.getElementById('globalGlassPanel');
+                const globalGlassClose = document.getElementById('globalGlassClose');
+                const globalThemeButton = document.getElementById('globalThemeButton');
+                const globalThemeIcon = document.getElementById('globalThemeIcon');
+                const globalThemeLabel = document.getElementById('globalThemeLabel');
+                const globalQuickBadge = document.getElementById('globalQuickBadge');
+                const globalCollectCoinBtn = document.getElementById('globalCollectCoinBtn');
+                const globalUpgradeBtn = document.getElementById('globalUpgradeBtn');
+                const globalCoinCount = document.getElementById('globalCoinCount');
+                const globalCoinTier = document.getElementById('globalCoinTier');
+                const globalCoinTimer = document.getElementById('globalCoinTimer');
+                const globalCoinBtnLabel = document.getElementById('globalCoinBtnLabel');
+                let dragStartY = 0;
+                let dragDistance = 0;
+                let isDraggingToggle = false;
+                let coinCooldownRemaining = 0;
+                let coinCountdownInterval = null;
 
                 if (!loader) {
                     return;
@@ -117,7 +548,291 @@
                     loader.setAttribute('aria-hidden', 'false');
                 };
 
+                const hideLoader = () => {
+                    loader.classList.remove('active');
+                    loader.setAttribute('aria-hidden', 'true');
+                };
+
+                const syncThemeIcon = () => {
+                    if (!globalThemeIcon || !globalThemeLabel) {
+                        return;
+                    }
+                    const isDark = document.documentElement.classList.contains('dark-mode') || document.body.classList.contains('dark-mode');
+                    globalThemeIcon.textContent = isDark ? '☀️' : '🌙';
+                    globalThemeLabel.textContent = isDark ? 'Light mode' : 'Dark mode';
+                };
+
+                const syncCoinNotification = () => {
+                    if (!globalQuickBadge) {
+                        return;
+                    }
+                    if (coinCooldownRemaining <= 0) {
+                        globalQuickBadge.classList.add('show');
+                    } else {
+                        globalQuickBadge.classList.remove('show');
+                    }
+                };
+
+                const updateCoinUi = () => {
+                    if (!globalCollectCoinBtn || !globalCoinTimer || !globalCoinBtnLabel) {
+                        return;
+                    }
+
+                    const isReady = coinCooldownRemaining <= 0;
+                    globalCollectCoinBtn.disabled = !isReady;
+                    globalCoinBtnLabel.textContent = isReady ? 'Collect now' : 'Collecting soon';
+                    globalCoinTimer.textContent = isReady ? 'Ready to collect' : 'Available in ' + coinCooldownRemaining + 's';
+                    const progress = Math.max(0, Math.min(100, ((30 - coinCooldownRemaining) / 30) * 100));
+                    
+                    // Update collect coin button progress line only
+                    globalCollectCoinBtn.style.setProperty('--coin-button-progress', progress + '%');
+                    
+                    syncCoinNotification();
+                };
+
+                const startCoinCountdown = (seconds) => {
+                    coinCooldownRemaining = Math.max(0, parseInt(seconds || 0, 10));
+                    updateCoinUi();
+
+                    if (coinCountdownInterval) {
+                        clearInterval(coinCountdownInterval);
+                    }
+
+                    if (coinCooldownRemaining <= 0) {
+                        return;
+                    }
+
+                    coinCountdownInterval = window.setInterval(() => {
+                        coinCooldownRemaining = Math.max(0, coinCooldownRemaining - 1);
+                        updateCoinUi();
+                        if (coinCooldownRemaining <= 0) {
+                            clearInterval(coinCountdownInterval);
+                            coinCountdownInterval = null;
+                        }
+                    }, 1000);
+                };
+
+                const loadCoinStatus = () => {
+                    if (!globalCollectCoinBtn) {
+                        return;
+                    }
+
+                    fetch('{{ path('app_collect_coin_status') }}', {
+                        credentials: 'same-origin',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    })
+                        .then((response) => {
+                            if (!response.ok) {
+                                throw new Error('coin-status-failed');
+                            }
+                            return response.json();
+                        })
+                        .then((payload) => {
+                            if (!payload || !payload.success) {
+                                return;
+                            }
+
+                            if (globalCoinCount) {
+                                globalCoinCount.textContent = String(payload.coins || 0);
+                            }
+                            if (globalCoinTier) {
+                                const tierLabel = String(payload.tier || 'standard').toLowerCase();
+                                globalCoinTier.textContent = tierLabel + ' • +' + String(payload.reward || 1);
+                            }
+                            startCoinCountdown(payload.cooldownRemaining || 0);
+                        })
+                        .catch(() => {
+                            // Keep panel usable even if status endpoint is not available for this page.
+                        });
+                };
+
+                const checkUpgradeButton = () => {
+                    if (!globalUpgradeBtn) {
+                        return;
+                    }
+
+                    fetch('{{ path('app_collect_coin_status') }}', {
+                        credentials: 'same-origin',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    })
+                        .then((response) => response.json())
+                        .then((payload) => {
+                            if (payload && payload.tier) {
+                                const tier = String(payload.tier).toLowerCase();
+                                if (tier === 'standard') {
+                                    globalUpgradeBtn.style.display = 'flex';
+                                } else {
+                                    globalUpgradeBtn.style.display = 'none';
+                                }
+                            }
+                        })
+                        .catch(() => {
+                            // Don't show button if we can't determine tier
+                            globalUpgradeBtn.style.display = 'none';
+                        });
+                };
+
+                const collectCoins = () => {
+                    if (!globalCollectCoinBtn || globalCollectCoinBtn.disabled) {
+                        return;
+                    }
+
+                    globalCollectCoinBtn.disabled = true;
+                    globalCoinBtnLabel.textContent = 'Collecting...';
+
+                    fetch('{{ path('app_collect_coin') }}', {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: ''
+                    })
+                        .then((response) => response.json())
+                        .then((payload) => {
+                            if (!payload || !payload.success) {
+                                startCoinCountdown(payload && payload.cooldownRemaining ? payload.cooldownRemaining : 0);
+                                return;
+                            }
+
+                            if (globalCoinCount) {
+                                globalCoinCount.textContent = String(payload.coins || 0);
+                            }
+                            if (globalCoinTier) {
+                                const tierLabel = String(payload.tier || 'standard').toLowerCase();
+                                globalCoinTier.textContent = tierLabel + ' • +' + String(payload.awarded || 1);
+                            }
+                            startCoinCountdown(payload.cooldownRemaining || 30);
+                        })
+                        .catch(() => {
+                            loadCoinStatus();
+                        });
+                };
+
+                const openGlassPanel = () => {
+                    if (!globalGlassPanel || !globalGlassOverlay) {
+                        return;
+                    }
+                    globalGlassPanel.classList.add('open');
+                    globalGlassOverlay.classList.add('open');
+                    globalGlassPanel.setAttribute('aria-hidden', 'false');
+                    globalGlassOverlay.setAttribute('aria-hidden', 'false');
+                };
+
+                const closeGlassPanel = () => {
+                    if (!globalGlassPanel || !globalGlassOverlay) {
+                        return;
+                    }
+                    globalGlassPanel.classList.remove('open');
+                    globalGlassOverlay.classList.remove('open');
+                    globalGlassPanel.setAttribute('aria-hidden', 'true');
+                    globalGlassOverlay.setAttribute('aria-hidden', 'true');
+                };
+
                 window.showGlobalLoader = showLoader;
+                window.hideGlobalLoader = hideLoader;
+
+                syncThemeIcon();
+
+                if (globalQuickToggle) {
+                    const resetTogglePosition = function () {
+                        globalQuickToggle.classList.remove('dragging');
+                        globalQuickToggle.style.top = '6px';
+                        dragDistance = 0;
+                        isDraggingToggle = false;
+                    };
+
+                    globalQuickToggle.addEventListener('pointerdown', function (event) {
+                        dragStartY = event.clientY;
+                        dragDistance = 0;
+                        isDraggingToggle = true;
+                        globalQuickToggle.classList.add('dragging');
+                        globalQuickToggle.setPointerCapture(event.pointerId);
+                    });
+
+                    globalQuickToggle.addEventListener('pointermove', function (event) {
+                        if (!isDraggingToggle) {
+                            return;
+                        }
+                        dragDistance = Math.max(0, Math.min(70, event.clientY - dragStartY));
+                        globalQuickToggle.style.top = (6 + dragDistance) + 'px';
+                    });
+
+                    globalQuickToggle.addEventListener('pointerup', function (event) {
+                        if (!isDraggingToggle) {
+                            return;
+                        }
+                        if (dragDistance >= 38) {
+                            if (globalGlassPanel && globalGlassPanel.classList.contains('open')) {
+                                closeGlassPanel();
+                            } else {
+                                openGlassPanel();
+                            }
+                        }
+                        resetTogglePosition();
+                        globalQuickToggle.releasePointerCapture(event.pointerId);
+                    });
+
+                    globalQuickToggle.addEventListener('pointercancel', function () {
+                        resetTogglePosition();
+                    });
+                }
+
+                if (globalGlassOverlay) {
+                    globalGlassOverlay.addEventListener('click', closeGlassPanel);
+                }
+
+                if (globalGlassClose) {
+                    globalGlassClose.addEventListener('click', closeGlassPanel);
+                }
+
+                if (globalThemeButton) {
+                    globalThemeButton.addEventListener('click', function () {
+                        if (window.toggleTheme) {
+                            window.toggleTheme();
+                        }
+                        syncThemeIcon();
+                    });
+                }
+
+                if (globalCollectCoinBtn) {
+                    globalCollectCoinBtn.addEventListener('click', collectCoins);
+                }
+
+                loadCoinStatus();
+                checkUpgradeButton();
+
+                window.addEventListener('themechange', syncThemeIcon);
+                window.addEventListener('pageshow', hideLoader);
+                window.addEventListener('load', hideLoader);
+                document.addEventListener('visibilitychange', function () {
+                    if (document.visibilityState === 'visible') {
+                        hideLoader();
+                    }
+                });
+
+                document.addEventListener('keydown', function (event) {
+                    if (event.key === 'Escape') {
+                        closeGlassPanel();
+                    }
+                });
+
+                document.addEventListener('click', function (event) {
+                    const backMainButton = event.target.closest('.back-main-btn');
+                    if (!backMainButton) {
+                        return;
+                    }
+
+                    const href = backMainButton.getAttribute('href');
+                    if (!href) {
+                        return;
+                    }
+
+                    event.preventDefault();
+                    showLoader('Returning to main page...');
+                    window.location.assign(href);
+                });
 
                 document.addEventListener('click', (event) => {
                     const link = event.target.closest('a[href]');

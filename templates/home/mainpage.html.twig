@@ -265,6 +265,157 @@
             border: 2px solid white;
         }
 
+        /* Theme Toggle Button */
+        .theme-toggle {
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(10, 160, 159, 0.2);
+            border-radius: 999px;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 20px;
+            margin: 0 12px;
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.9);
+            border-color: rgba(10, 160, 159, 0.4);
+            box-shadow: 0 6px 16px rgba(10, 160, 159, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .theme-toggle:active {
+            transform: translateY(0);
+        }
+
+        /* Dark Mode Styles */
+        body.dark-mode {
+            background: #1a1a2e !important;
+        }
+
+        body.dark-mode .main-container {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%) !important;
+        }
+
+        body.dark-mode .top-bar {
+            background: rgba(30, 30, 50, 0.95) !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+        }
+
+        body.dark-mode .menu-toggle span {
+            background: #e8f0f6 !important;
+        }
+
+        body.dark-mode .nav-tab {
+            background: rgba(255, 255, 255, 0.05) !important;
+            color: #b8d4f1 !important;
+            border-color: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        body.dark-mode .nav-tab:hover {
+            background: rgba(10, 160, 159, 0.2) !important;
+            color: #0FA5A2 !important;
+        }
+
+        body.dark-mode .nav-tab.active {
+            background: rgba(10, 160, 159, 0.3) !important;
+            color: #0FA5A2 !important;
+        }
+
+        body.dark-mode .profile-section {
+            background: rgba(255, 255, 255, 0.08) !important;
+            border-color: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        body.dark-mode .profile-name {
+            color: #e8f0f6 !important;
+        }
+
+        body.dark-mode .profile-role {
+            color: #ffd89b !important;
+        }
+
+        body.dark-mode .theme-toggle {
+            background: rgba(255, 255, 255, 0.1) !important;
+            border-color: rgba(10, 160, 159, 0.3) !important;
+        }
+
+        body.dark-mode .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.15) !important;
+            border-color: rgba(10, 160, 159, 0.5) !important;
+        }
+
+        body.dark-mode .side-menu {
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%) !important;
+            border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
+        }
+
+        body.dark-mode .side-menu-btn {
+            color: #a8c5e0 !important;
+        }
+
+        body.dark-mode .side-menu-btn:hover {
+            background: rgba(10, 160, 159, 0.2) !important;
+            border-color: rgba(10, 160, 159, 0.3) !important;
+            color: #0FA5A2 !important;
+        }
+
+        body.dark-mode .user-name {
+            color: #e8f0f6 !important;
+        }
+
+        body.dark-mode .user-role {
+            color: #ffd89b !important;
+        }
+
+        /* Dark mode content styles */
+        body.dark-mode .content-area {
+            background: transparent !important;
+        }
+
+        body.dark-mode .welcome-section {
+            background: linear-gradient(135deg, rgba(30, 30, 50, 0.9) 0%, rgba(22, 33, 62, 0.9) 100%) !important;
+            box-shadow: 0 16px 34px rgba(0, 0, 0, 0.4) !important;
+        }
+
+        body.dark-mode .welcome-title {
+            color: #d4e4f0 !important;
+        }
+
+        body.dark-mode .welcome-subtitle {
+            color: #a8c5e0 !important;
+        }
+
+        body.dark-mode .feature-card {
+            background: linear-gradient(155deg, rgba(30, 30, 50, 0.8), rgba(22, 33, 62, 0.8)) !important;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3) !important;
+        }
+
+        body.dark-mode .feature-card:hover {
+            box-shadow: 0 16px 28px rgba(0, 0, 0, 0.5) !important;
+        }
+
+        body.dark-mode .feature-title {
+            color: #d4e4f0 !important;
+        }
+
+        body.dark-mode .feature-text {
+            color: #9cb3d4 !important;
+        }
+
+        body.dark-mode .chat-modal {
+            background: rgba(30, 30, 50, 0.98) !important;
+            box-shadow: 0 22px 46px rgba(0, 0, 0, 0.5) !important;
+        }
+
+        body.dark-mode .menu-overlay {
+            background: rgba(0, 0, 0, 0.6) !important;
+        }
+
         .nav-tabs {
             background: transparent;
             padding: 10px 28px 0;
@@ -377,65 +528,6 @@
         .feature-text {
             font-size: 12px;
             color: #5c7087;
-        }
-
-        .coin-widget {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            background: rgba(255, 255, 255, 0.95);
-            border: none;
-            padding: 10px 20px;
-            border-radius: 30px;
-            box-shadow: 0 10px 24px rgba(6, 44, 82, 0.15);
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            z-index: 100;
-        }
-
-        .coin-count {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 16px;
-            font-weight: bold;
-        }
-
-        .coin-count span:first-child {
-            font-size: 20px;
-        }
-
-        .coin-timer {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .timer-label {
-            font-size: 14px;
-            color: #666;
-        }
-
-        .collect-btn {
-            background: linear-gradient(135deg, #0FA5A2, #1788b6);
-            color: white;
-            border: none;
-            width: 30px;
-            height: 30px;
-            border-radius: 15px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s ease;
-        }
-
-        .collect-btn:disabled {
-            background: #e0e0e0;
-            cursor: not-allowed;
-        }
-
-        .collect-btn:not(:disabled):hover {
-            transform: scale(1.05);
         }
 
         /* Chat Button */
@@ -752,49 +844,6 @@
                 });
             }
             
-            // Coin collection simulation
-            let lastCoinTime = new Date();
-            let coinRate = 0.1;
-            let userCoins = {{ app.user.coins|default(0) }};
-            
-            function updateCoinTimer() {
-                const now = new Date();
-                const secondsElapsed = Math.floor((now - lastCoinTime) / 1000);
-                const secondsRemaining = 30 - secondsElapsed;
-                
-                if (secondsRemaining <= 0) {
-                    $('#collectCoinBtn').prop('disabled', false);
-                    $('#nextCoinTimer').text('Ready!').css('color', '#2ecc71');
-                } else {
-                    $('#collectCoinBtn').prop('disabled', true);
-                    $('#nextCoinTimer').text(secondsRemaining + 's').css('color', '#666');
-                }
-            }
-            
-            $('#collectCoinBtn').click(function() {
-                const coinsToAdd = Math.round(coinRate);
-                userCoins += coinsToAdd;
-                $('#coinCount').text(userCoins);
-                lastCoinTime = new Date();
-                $('#collectCoinBtn').prop('disabled', true);
-                $('#collectCoinBtn').text('✓');
-                setTimeout(() => {
-                    $('#collectCoinBtn').text('⚡');
-                }, 1000);
-                
-                // Save to database via AJAX
-                $.ajax({
-                    url: '{{ path('app_collect_coin') }}',
-                    type: 'POST',
-                    data: { coins: userCoins },
-                    success: function(response) {
-                        console.log('Coins saved');
-                    }
-                });
-            });
-            
-            setInterval(updateCoinTimer, 1000);
-            
             // Refresh unread badge periodically
             function refreshBadge() {
                 $.ajax({
@@ -1022,22 +1071,24 @@
                     </div>
                 </div>
                 
-                <div class="profile-section">
-                    <div class="profile-info">
-                        <p class="profile-name">{{ app.user.fullName|default(app.user.username) }}</p>
-                        <p class="profile-role">
-                            {% if 'ROLE_ADMIN' in app.user.roles %}
-                                Administrator
-                            {% elseif 'ROLE_GUIDE' in app.user.roles %}
-                                Guide
-                            {% else %}
-                                Member
-                            {% endif %}
-                        </p>
-                    </div>
-                    <div class="profile-avatar">
-                        <img src="{{ profile.image_url|default(asset('images/default_image.png')) }}" alt="Profile" class="profile-img" />
-                        <div class="online-status"></div>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div class="profile-section">
+                        <div class="profile-info">
+                            <p class="profile-name">{{ app.user.fullName|default(app.user.username) }}</p>
+                            <p class="profile-role">
+                                {% if 'ROLE_ADMIN' in app.user.roles %}
+                                    Administrator
+                                {% elseif 'ROLE_GUIDE' in app.user.roles %}
+                                    Guide
+                                {% else %}
+                                    Member
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="profile-avatar">
+                            <img src="{{ profile.image_url|default(asset('images/default_image.png')) }}" alt="Profile" class="profile-img" />
+                            <div class="online-status"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1094,21 +1145,6 @@
                     </a>
                 </div>
             </div>
-        </div>
-    </div>
-    
-    <!-- Coin Collection Widget -->
-    <div class="coin-widget">
-        <div class="coin-count">
-            <span>💎</span>
-            <span id="coinCount">{{ profile.coins|default(0) }}</span>
-        </div>
-        <div class="coin-timer">
-            <div class="progress">
-                <div class="progress-bar" style="width: 0%"></div>
-            </div>
-            <span id="nextCoinTimer" class="timer-label">30s</span>
-            <button id="collectCoinBtn" class="collect-btn" disabled>⚡</button>
         </div>
     </div>
     

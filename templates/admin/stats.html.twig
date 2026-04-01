@@ -387,6 +387,50 @@
             letter-spacing: 0.3px;
         }
 
+        body.dark-mode .stats-page {
+            background:
+                radial-gradient(900px 420px at 5% -10%, rgba(45, 212, 191, 0.16), transparent 62%),
+                radial-gradient(960px 460px at 95% 0%, rgba(56, 189, 248, 0.14), transparent 64%),
+                linear-gradient(180deg, #0f1724 0%, #131d2d 100%);
+            color: #d8e2ef;
+        }
+
+        body.dark-mode .topbar,
+        body.dark-mode .hero,
+        body.dark-mode .summary-card,
+        body.dark-mode .panel,
+        body.dark-mode .age-chart-wrap,
+        body.dark-mode .age-pill,
+        body.dark-mode .hero-total,
+        body.dark-mode .tier-grid {
+            background: #182232;
+            border-color: #2a374b;
+            color: #c6d4e3;
+        }
+
+        body.dark-mode .hero h1,
+        body.dark-mode .panel h2,
+        body.dark-mode .summary-card strong,
+        body.dark-mode .hero-total strong,
+        body.dark-mode .age-pill strong {
+            color: #dbe8f6;
+        }
+
+        body.dark-mode .hero p,
+        body.dark-mode .panel-subtitle,
+        body.dark-mode .summary-card small,
+        body.dark-mode .hero-total small,
+        body.dark-mode .age-pill small,
+        body.dark-mode .age-x-axis span {
+            color: #9fb2c7;
+        }
+
+        body.dark-mode .top-actions a {
+            background: #132431;
+            border-color: #2a3b51;
+            color: #66d8d5;
+        }
+
         @media (max-width: 900px) {
             .summary-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));

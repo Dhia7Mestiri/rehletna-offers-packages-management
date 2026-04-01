@@ -7,7 +7,6 @@ use App\Entity\User;
 use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\ParameterType;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -148,21 +147,154 @@ class HomeController extends AbstractController
         }
     }
 
-    #[Route('/collect-coin', name: 'app_collect_coin', methods: ['POST'])]
-    #[IsGranted('ROLE_USER')]
-    public function collectCoin(Request $request, EntityManagerInterface $em): JsonResponse
+    #[Route('/collect-coin/status', name: 'app_collect_coin_status', methods: ['GET'])]
+    #[IsGranted('IS_AUTHENTICATED_FULLY')]
+    public function collectCoinStatus(Request $request, Connection $connection): JsonResponse
     {
         $user = $this->getUser();
-        $coins = $request->request->get('coins');
-        
-        if ($user) {
-            $user->setCoins($coins);
-            $em->flush();
-            
-            return $this->json(['success' => true, 'coins' => $coins]);
+        if (!$user instanceof User) {
+            return $this->json(['success' => false], 401);
         }
-        
-        return $this->json(['success' => false], 400);
+
+        $profile = $this->fetchOrCreateProfileRow($connection, (int) $user->getId());
+        if (!$profile) {
+            return $this->json(['success' => false, 'error' => 'Profile not found'], 404);
+        }
+
+        $tier = (string) ($profile['member_premium'] ?? 'standard');
+        $nextAllowedAt = (int) $request->getSession()->get('coin_collect_next_ts', 0);
+        $remaining = max(0, $nextAllowedAt - time());
+
+        return $this->json([
+            'success' => true,
+            'coins' => (int) ($profile['coins'] ?? 0),
+            'tier' => $tier,
+            'reward' => $this->coinRewardForTier($tier),
+            'cooldownRemaining' => $remaining,
+        ]);
+    }
+
+    #[Route('/collect-coin', name: 'app_collect_coin', methods: ['POST'])]
+    #[IsGranted('IS_AUTHENTICATED_FULLY')]
+    public function collectCoin(Request $request, Connection $connection): JsonResponse
+    {
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            return $this->json(['success' => false], 401);
+        }
+
+        $nextAllowedAt = (int) $request->getSession()->get('coin_collect_next_ts', 0);
+        $remaining = max(0, $nextAllowedAt - time());
+        if ($remaining > 0) {
+            return $this->json([
+                'success' => false,
+                'error' => 'Cooldown active',
+                'cooldownRemaining' => $remaining,
+            ], 429);
+        }
+
+        $profile = $this->fetchOrCreateProfileRow($connection, (int) $user->getId());
+        if (!$profile || !isset($profile['id'])) {
+            return $this->json(['success' => false, 'error' => 'Profile not found'], 404);
+        }
+
+        $tier = (string) ($profile['member_premium'] ?? 'standard');
+        $reward = $this->coinRewardForTier($tier);
+
+        $connection->executeStatement(
+            'UPDATE profile SET coins = COALESCE(coins, 0) + ? WHERE id = ?',
+            [$reward, (int) $profile['id']],
+            [ParameterType::INTEGER, ParameterType::INTEGER]
+        );
+
+        $newCoins = (int) $connection->fetchOne(
+            'SELECT coins FROM profile WHERE id = ? LIMIT 1',
+            [(int) $profile['id']],
+            [ParameterType::INTEGER]
+        );
+
+        $request->getSession()->set('coin_collect_next_ts', time() + 30);
+
+        return $this->json([
+            'success' => true,
+            'coins' => $newCoins,
+            'awarded' => $reward,
+            'tier' => $tier,
+            'cooldownRemaining' => 30,
+        ]);
+    }
+
+    private function fetchOrCreateProfileRow(Connection $connection, int $userId): ?array
+    {
+        $row = $connection->executeQuery(
+            'SELECT id, member_premium, coins FROM profile WHERE id_user = ? ORDER BY id DESC LIMIT 1',
+            [$userId],
+            [ParameterType::INTEGER]
+        )->fetchAssociative();
+
+        if ($row) {
+            return $row;
+        }
+
+        $connection->executeStatement(
+            'INSERT INTO profile (image, member_premium, language, id_user, coins) VALUES (?, ?, ?, ?, ?)',
+            [null, 'standard', 'English', $userId, 0],
+            [ParameterType::LARGE_OBJECT, ParameterType::STRING, ParameterType::STRING, ParameterType::INTEGER, ParameterType::INTEGER]
+        );
+
+        return $connection->executeQuery(
+            'SELECT id, member_premium, coins FROM profile WHERE id_user = ? ORDER BY id DESC LIMIT 1',
+            [$userId],
+            [ParameterType::INTEGER]
+        )->fetchAssociative() ?: null;
+    }
+
+    private function coinRewardForTier(string $tier): int
+    {
+        $normalized = strtolower(trim($tier));
+
+        if (in_array($normalized, ['vip+', 'vip plus', 'vip_plus'], true)) {
+            return 25;
+        }
+
+        if ($normalized === 'vip') {
+            return 20;
+        }
+
+        if (in_array($normalized, ['premium', 'premuim'], true)) {
+            return 5;
+        }
+
+        return 1;
+    }
+
+    #[Route('/premium', name: 'app_premium')]
+    #[IsGranted('ROLE_USER')]
+    public function premium(Connection $connection): Response
+    {
+        $user = $this->getUser();
+        $profile = null;
+
+        if ($user) {
+            $result = $connection->executeQuery(
+                'SELECT id, member_premium FROM profile WHERE id_user = ? LIMIT 1',
+                [$user->getId()]
+            );
+            $profile = $result->fetchAssociative();
+
+            if (!$profile) {
+                $connection->executeStatement(
+                    'INSERT INTO profile (image, member_premium, language, id_user, coins) VALUES (?, ?, ?, ?, ?)',
+                    [null, 'standard', 'English', $user->getId(), 0],
+                    [ParameterType::LARGE_OBJECT, ParameterType::STRING, ParameterType::STRING, ParameterType::INTEGER, ParameterType::INTEGER]
+                );
+            }
+        }
+
+        return $this->render('premium/subscription.html.twig', [
+            'user' => $user,
+            'profile' => $profile,
+        ]);
     }
 
     #[Route('/unread-count', name: 'app_unread_count', methods: ['GET'])]

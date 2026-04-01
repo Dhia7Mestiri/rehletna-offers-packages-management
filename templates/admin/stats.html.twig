@@ -5,19 +5,22 @@
 {% block stylesheets %}
     {{ parent() }}
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap');
+
         .stats-page {
             min-height: 100vh;
             background:
-                radial-gradient(900px 420px at 5% -10%, rgba(11, 164, 161, 0.12), transparent 62%),
-                radial-gradient(900px 420px at 95% 0%, rgba(15, 122, 176, 0.10), transparent 60%),
-                #edf3f8;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                radial-gradient(900px 420px at 5% -10%, rgba(11, 164, 161, 0.2), transparent 62%),
+                radial-gradient(960px 460px at 95% 0%, rgba(15, 122, 176, 0.17), transparent 64%),
+                linear-gradient(180deg, #eef4fa 0%, #e7eff7 100%);
+            font-family: 'Sora', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: #213142;
         }
 
         .topbar {
             height: 86px;
-            background: #ffffff;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(10px);
             border-bottom: 1px solid #e2e9f0;
             display: flex;
             align-items: center;
@@ -37,28 +40,36 @@
         }
 
         .top-actions a {
-            border: 1px solid #d4dce6;
-            color: #0BA4A1;
-            background: #f4fffe;
+            border: 1px solid #c9d9e8;
+            color: #146291;
+            background: #eef7ff;
             border-radius: 999px;
             padding: 9px 15px;
             font-weight: 700;
             text-decoration: none;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+        }
+
+        .top-actions a:hover {
+            transform: translateY(-1px);
+            background: #dff0ff;
+            box-shadow: 0 8px 16px rgba(20, 81, 123, 0.14);
         }
 
         .shell {
-            max-width: 1120px;
+            max-width: 1160px;
             margin: 24px auto;
             padding: 0 16px 24px;
         }
 
         .hero {
-            background: linear-gradient(140deg, #ffffff 0%, #f4fbff 100%);
-            border: 1px solid #e7edf2;
-            border-radius: 16px;
-            padding: 22px;
+            background:
+                linear-gradient(120deg, rgba(255, 255, 255, 0.96) 0%, rgba(243, 250, 255, 0.96) 100%);
+            border: 1px solid #d6e4ef;
+            border-radius: 18px;
+            padding: 20px 22px;
             margin-bottom: 18px;
-            box-shadow: 0 8px 24px rgba(15, 45, 76, 0.06);
+            box-shadow: 0 14px 28px rgba(15, 45, 76, 0.1);
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -69,20 +80,29 @@
         .hero h1 {
             margin: 0;
             color: #173f69;
-            font-size: 32px;
+            font-size: 36px;
+            letter-spacing: -0.6px;
         }
 
         .hero p {
-            margin: 8px 0 0;
-            color: #6e8093;
+            margin: 7px 0 0;
+            color: #63819d;
+            font-size: 13px;
+        }
+
+        .hero-total-wrap {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
         }
 
         .hero-total {
             border-radius: 12px;
-            background: #eff8ff;
+            background: #ffffff;
             border: 1px solid #d7e8f5;
             padding: 10px 14px;
             text-align: right;
+            min-width: 140px;
         }
 
         .hero-total small {
@@ -99,6 +119,41 @@
             line-height: 1;
         }
 
+        .hero-total.accent strong {
+            color: #0a7e8b;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .summary-card {
+            border-radius: 14px;
+            border: 1px solid #d8e6f1;
+            background: linear-gradient(150deg, #ffffff 0%, #f3f8fd 100%);
+            padding: 12px 14px;
+            box-shadow: 0 8px 16px rgba(15, 45, 76, 0.06);
+        }
+
+        .summary-card small {
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 10px;
+            color: #627f99;
+            font-weight: 700;
+        }
+
+        .summary-card strong {
+            display: block;
+            margin-top: 6px;
+            font-size: 28px;
+            line-height: 1;
+            color: #184b78;
+        }
+
         .grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -106,16 +161,18 @@
         }
 
         .panel {
-            background: #ffffff;
-            border: 1px solid #e7edf2;
-            border-radius: 14px;
+            background: linear-gradient(150deg, rgba(255, 255, 255, 0.96) 0%, rgba(244, 250, 255, 0.96) 100%);
+            border: 1px solid #d8e5f0;
+            border-radius: 16px;
             padding: 18px;
+            box-shadow: 0 10px 20px rgba(15, 45, 76, 0.08);
         }
 
         .panel h2 {
             margin: 0 0 14px;
             color: #194575;
-            font-size: 21px;
+            font-size: 24px;
+            letter-spacing: -0.4px;
         }
 
         .panel-subtitle {
@@ -124,96 +181,259 @@
             font-size: 13px;
         }
 
-        .bar-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+        .age-chart-wrap {
+            border: 1px solid #d8e5f0;
+            border-radius: 14px;
+            background: linear-gradient(180deg, #f7fbff 0%, #f2f8fd 100%);
+            padding: 14px;
         }
 
-        .bar-row {
+        .age-chart {
+            width: 100%;
+            height: 230px;
+            border-radius: 12px;
+            background:
+                repeating-linear-gradient(
+                    to top,
+                    rgba(83, 110, 135, 0.09) 0,
+                    rgba(83, 110, 135, 0.09) 1px,
+                    transparent 1px,
+                    transparent 25%
+                );
+            border: 1px solid #d9e6f1;
+        }
+
+        .age-curve-area {
+            fill: rgba(11, 164, 161, 0.2);
+        }
+
+        .age-curve-line {
+            fill: none;
+            stroke: #0f7ab0;
+            stroke-width: 4;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            filter: drop-shadow(0 4px 6px rgba(15, 122, 176, 0.25));
+        }
+
+        .age-curve-dots circle {
+            fill: #0BA4A1;
+            stroke: #ffffff;
+            stroke-width: 3;
+        }
+
+        .age-x-axis {
+            margin-top: 10px;
             display: grid;
-            grid-template-columns: 86px minmax(0, 1fr) 44px;
-            align-items: center;
+            grid-template-columns: repeat(6, minmax(0, 1fr));
             gap: 8px;
         }
 
-        .bar-label {
-            font-size: 12px;
-            font-weight: 700;
-            color: #4d6279;
-        }
-
-        .bar-track {
-            background: #edf3f9;
-            border-radius: 999px;
-            overflow: hidden;
-            height: 12px;
-        }
-
-        .bar-fill {
-            height: 100%;
-            border-radius: 999px;
-            background: linear-gradient(90deg, #0BA4A1, #0f7ab0);
-        }
-
-        .bar-value {
-            text-align: right;
-            font-weight: 800;
-            color: #173f69;
-            font-size: 13px;
-        }
-
-        .bar-percent {
+        .age-x-axis span {
+            text-align: center;
             font-size: 11px;
-            color: #658097;
-            margin-left: 4px;
             font-weight: 700;
+            color: #5c7690;
         }
 
-        .tier-grid {
+        .age-breakdown {
+            margin-top: 12px;
             display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
+            grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 10px;
         }
 
-        .tier-card {
-            border-radius: 12px;
-            border: 1px solid #dce7f1;
-            background: #f8fbff;
-            padding: 12px;
+        .age-pill {
+            border-radius: 10px;
+            border: 1px solid #d6e4ef;
+            background: #ffffff;
+            padding: 8px 10px;
             text-align: center;
         }
 
-        .tier-label {
-            font-size: 12px;
+        .age-pill small {
+            font-size: 10px;
             text-transform: uppercase;
-            letter-spacing: 0.4px;
-            color: #5a7087;
+            letter-spacing: 0.5px;
+            color: #67829d;
             font-weight: 700;
+        }
+
+        .age-pill strong {
+            display: block;
+            margin-top: 4px;
+            font-size: 18px;
+            color: #174a76;
+        }
+
+        .tier-grid {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            gap: 20px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            border-radius: 18px;
+            padding: 40px 24px 24px;
+            min-height: 300px;
+            box-shadow: 0 15px 35px rgba(15, 45, 76, 0.3);
+            position: relative;
+        }
+
+        .tier-grid::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 30%);
+            border-radius: 18px;
+            pointer-events: none;
+        }
+
+        .tier-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            flex: 1;
+            height: 100%;
+            min-height: 200px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .tier-card::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(180deg, #f4d26b 0%, #e8c539 50%, #dab930 100%);
+            border-radius: 8px 8px 0 0;
+            width: 100%;
+            height: var(--bar-height);
+            box-shadow: 
+                0 -8px 20px rgba(244, 210, 107, 0.3),
+                inset 0 2px 4px rgba(255, 255, 255, 0.4),
+                inset 0 -2px 4px rgba(139, 110, 0, 0.2);
+            transition: all 0.3s ease;
+            z-index: -1;
+        }
+
+        .tier-card:hover::before {
+            height: calc(var(--bar-height) * 1.05);
+            box-shadow: 
+                0 -12px 28px rgba(244, 210, 107, 0.4),
+                inset 0 2px 6px rgba(255, 255, 255, 0.5),
+                inset 0 -2px 6px rgba(139, 110, 0, 0.3);
+            filter: brightness(1.1);
+        }
+
+        .tier-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #b8d4f1;
+            font-weight: 700;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 2;
         }
 
         .tier-value {
-            margin-top: 8px;
-            font-size: 30px;
+            margin-bottom: 6px;
+            font-size: 32px;
             line-height: 1;
-            font-weight: 800;
-            color: #0a5f8f;
+            font-weight: 900;
+            color: #fef5e7;
+            position: relative;
+            z-index: 2;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+        }
+
+        .tier-count {
+            margin-bottom: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #e8c539;
+            position: relative;
+            z-index: 2;
+        }
+
+        .tier-card:nth-child(1)::before {
+            --bar-height: 60%;
+        }
+
+        .tier-card:nth-child(2)::before {
+            --bar-height: 75%;
+        }
+
+        .tier-card:nth-child(3)::before {
+            --bar-height: 85%;
+        }
+
+        .tier-card:nth-child(4)::before {
+            --bar-height: 100%;
         }
 
         .tier-hint {
-            margin-top: 6px;
-            color: #70879d;
-            font-size: 11px;
+            margin-bottom: 8px;
+            color: #9cb3d4;
+            font-size: 10px;
             font-weight: 700;
+            position: relative;
+            z-index: 2;
+            letter-spacing: 0.3px;
         }
 
         @media (max-width: 900px) {
+            .summary-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
             .grid {
                 grid-template-columns: 1fr;
             }
 
-            .bar-row {
-                grid-template-columns: 70px minmax(0, 1fr) 40px;
+            .age-chart {
+                height: 200px;
+            }
+
+            .hero h1 {
+                font-size: 30px;
+            }
+
+            .hero-total strong {
+                font-size: 24px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .topbar {
+                padding: 0 14px;
+            }
+
+            .top-actions {
+                gap: 6px;
+            }
+
+            .top-actions a {
+                padding: 7px 10px;
+                font-size: 12px;
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .age-x-axis {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                row-gap: 6px;
+            }
+
+            .age-breakdown {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -243,29 +463,86 @@
             <section class="hero">
                 <div>
                     <h1>User Statistics</h1>
-                    <p>Distribution by age range and membership tier.</p>
+                    <p>Distribution overview by age range and membership tier.</p>
                 </div>
-                <div class="hero-total">
-                    <small>Total Profiles</small>
-                    <strong>{{ tierTotal }}</strong>
+                <div class="hero-total-wrap">
+                    <div class="hero-total">
+                        <small>Total Profiles</small>
+                        <strong>{{ tierTotal }}</strong>
+                    </div>
+                    <div class="hero-total accent">
+                        <small>Age Entries</small>
+                        <strong>{{ ageTotal }}</strong>
+                    </div>
                 </div>
+            </section>
+
+            <section class="summary-grid">
+                <article class="summary-card">
+                    <small>13-24 Users</small>
+                    <strong>{{ (ageRanges['13-17']|default(0)) + (ageRanges['18-24']|default(0)) }}</strong>
+                </article>
+                <article class="summary-card">
+                    <small>25-44 Users</small>
+                    <strong>{{ (ageRanges['25-34']|default(0)) + (ageRanges['35-44']|default(0)) }}</strong>
+                </article>
+                <article class="summary-card">
+                    <small>45+ Users</small>
+                    <strong>{{ (ageRanges['45-54']|default(0)) + (ageRanges['55+']|default(0)) }}</strong>
+                </article>
+                <article class="summary-card">
+                    <small>VIP + VIP+</small>
+                    <strong>{{ (membershipTiers.vip|default(0)) + (membershipTiers['vip+']|default(0)) }}</strong>
+                </article>
             </section>
 
             <div class="grid">
                 <section class="panel">
                     <h2>Age Ranges</h2>
                     <p class="panel-subtitle">Based on users birth date values.</p>
-                    <div class="bar-list">
-                        {% for label, count in ageRanges %}
-                            {% set pct = ageTotal > 0 ? (count * 100 / ageTotal) : 0 %}
-                            <div class="bar-row">
-                                <div class="bar-label">{{ label }}</div>
-                                <div class="bar-track">
-                                    <div class="bar-fill" style="width: {{ pct|number_format(0, '.', '') }}%;"></div>
-                                </div>
-                                <div class="bar-value">{{ count }} <span class="bar-percent">{{ pct|number_format(0) }}%</span></div>
+                    {% set age13 = ageRanges['13-17']|default(0) %}
+                    {% set age18 = ageRanges['18-24']|default(0) %}
+                    {% set age25 = ageRanges['25-34']|default(0) %}
+                    {% set age35 = ageRanges['35-44']|default(0) %}
+                    {% set age45 = ageRanges['45-54']|default(0) %}
+                    {% set age55 = ageRanges['55+']|default(0) %}
+
+                    <div class="age-chart-wrap">
+                        <svg
+                            id="ageCurveChart"
+                            class="age-chart"
+                            viewBox="0 0 1000 260"
+                            preserveAspectRatio="none"
+                            data-values="{{ age13 }},{{ age18 }},{{ age25 }},{{ age35 }},{{ age45 }},{{ age55 }}"
+                        >
+                            <path id="ageCurveArea" class="age-curve-area" d=""></path>
+                            <path id="ageCurvePath" class="age-curve-line" d=""></path>
+                            <g id="ageCurveDots" class="age-curve-dots"></g>
+                        </svg>
+
+                        <div class="age-x-axis">
+                            <span>13-17</span>
+                            <span>18-24</span>
+                            <span>25-34</span>
+                            <span>35-44</span>
+                            <span>45-54</span>
+                            <span>55+</span>
+                        </div>
+
+                        <div class="age-breakdown">
+                            <div class="age-pill">
+                                <small>Largest Segment</small>
+                                <strong>{% set maxAge = ageRanges|reduce((carry, v) => v > carry ? v : carry, 0) %}{{ maxAge }}</strong>
                             </div>
-                        {% endfor %}
+                            <div class="age-pill">
+                                <small>Total Counted</small>
+                                <strong>{{ ageTotal }}</strong>
+                            </div>
+                            <div class="age-pill">
+                                <small>Average Segment</small>
+                                <strong>{{ (ageTotal / 6)|number_format(1) }}</strong>
+                            </div>
+                        </div>
                     </div>
                 </section>
 
@@ -276,21 +553,25 @@
                         <article class="tier-card">
                             <div class="tier-label">Standard</div>
                             <div class="tier-value">{{ membershipTiers.standard|default(0) }}</div>
+                            <div class="tier-count">{{ membershipTiers.standard|default(0) }} users</div>
                             <div class="tier-hint">{{ tierTotal > 0 ? ((membershipTiers.standard|default(0) * 100 / tierTotal)|number_format(0)) : 0 }}%</div>
                         </article>
                         <article class="tier-card">
                             <div class="tier-label">Premium</div>
                             <div class="tier-value">{{ membershipTiers.premium|default(0) }}</div>
+                            <div class="tier-count">{{ membershipTiers.premium|default(0) }} users</div>
                             <div class="tier-hint">{{ tierTotal > 0 ? ((membershipTiers.premium|default(0) * 100 / tierTotal)|number_format(0)) : 0 }}%</div>
                         </article>
                         <article class="tier-card">
                             <div class="tier-label">VIP</div>
                             <div class="tier-value">{{ membershipTiers.vip|default(0) }}</div>
+                            <div class="tier-count">{{ membershipTiers.vip|default(0) }} users</div>
                             <div class="tier-hint">{{ tierTotal > 0 ? ((membershipTiers.vip|default(0) * 100 / tierTotal)|number_format(0)) : 0 }}%</div>
                         </article>
                         <article class="tier-card">
                             <div class="tier-label">VIP+</div>
                             <div class="tier-value">{{ membershipTiers['vip+']|default(0) }}</div>
+                            <div class="tier-count">{{ membershipTiers['vip+']|default(0) }} users</div>
                             <div class="tier-hint">{{ tierTotal > 0 ? ((membershipTiers['vip+']|default(0) * 100 / tierTotal)|number_format(0)) : 0 }}%</div>
                         </article>
                     </div>
@@ -298,4 +579,79 @@
             </div>
         </main>
     </div>
+
+    <script>
+        (function () {
+            const svg = document.getElementById('ageCurveChart');
+            const linePath = document.getElementById('ageCurvePath');
+            const areaPath = document.getElementById('ageCurveArea');
+            const dotsGroup = document.getElementById('ageCurveDots');
+
+            if (!svg || !linePath || !areaPath || !dotsGroup) {
+                return;
+            }
+
+            const values = (svg.getAttribute('data-values') || '')
+                .split(',')
+                .map(function (v) { return Number(v.trim()); })
+                .filter(function (v) { return Number.isFinite(v); });
+
+            if (values.length < 2) {
+                return;
+            }
+
+            const width = 1000;
+            const height = 260;
+            const leftPad = 36;
+            const rightPad = 36;
+            const topPad = 20;
+            const bottomPad = 34;
+            const usableW = width - leftPad - rightPad;
+            const usableH = height - topPad - bottomPad;
+
+            const maxVal = Math.max.apply(null, values.concat([1]));
+            const stepX = usableW / (values.length - 1);
+
+            const points = values.map(function (v, i) {
+                const x = leftPad + (i * stepX);
+                const y = topPad + (usableH - ((v / maxVal) * usableH));
+                return { x: x, y: y, v: v };
+            });
+
+            function makeSmoothPath(pts) {
+                if (pts.length === 2) {
+                    return 'M ' + pts[0].x + ' ' + pts[0].y + ' L ' + pts[1].x + ' ' + pts[1].y;
+                }
+
+                let d = 'M ' + pts[0].x + ' ' + pts[0].y;
+                for (let i = 0; i < pts.length - 1; i++) {
+                    const p0 = pts[i === 0 ? i : i - 1];
+                    const p1 = pts[i];
+                    const p2 = pts[i + 1];
+                    const p3 = pts[i + 2 < pts.length ? i + 2 : i + 1];
+
+                    const cp1x = p1.x + (p2.x - p0.x) / 6;
+                    const cp1y = p1.y + (p2.y - p0.y) / 6;
+                    const cp2x = p2.x - (p3.x - p1.x) / 6;
+                    const cp2y = p2.y - (p3.y - p1.y) / 6;
+
+                    d += ' C ' + cp1x + ' ' + cp1y + ', ' + cp2x + ' ' + cp2y + ', ' + p2.x + ' ' + p2.y;
+                }
+                return d;
+            }
+
+            const lineD = makeSmoothPath(points);
+            linePath.setAttribute('d', lineD);
+
+            const first = points[0];
+            const last = points[points.length - 1];
+            const baselineY = height - bottomPad;
+            const areaD = lineD + ' L ' + last.x + ' ' + baselineY + ' L ' + first.x + ' ' + baselineY + ' Z';
+            areaPath.setAttribute('d', areaD);
+
+            dotsGroup.innerHTML = points
+                .map(function (p) { return '<circle cx="' + p.x + '" cy="' + p.y + '" r="7"></circle>'; })
+                .join('');
+        })();
+    </script>
 {% endblock %}

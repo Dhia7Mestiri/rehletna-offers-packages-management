@@ -113,6 +113,9 @@
             .global-quick-toggle:hover {
                 transform: translateX(-50%);
                 background: #ffffff;
+                color: #0b8e8b;
+                border-color: rgba(11, 164, 161, 0.82);
+                box-shadow: 0 0 12px rgba(45, 212, 191, 0.55), 0 0 26px rgba(56, 189, 248, 0.28);
             }
 
             .global-quick-toggle.dragging {
@@ -231,13 +234,16 @@
                 font-weight: 700;
                 font-size: 12px;
                 cursor: pointer;
-                transition: transform 0.2s ease, box-shadow 0.2s ease;
+                transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
             }
 
             .global-action-btn:hover,
             .global-action-link:hover {
                 transform: translateY(-1px);
-                box-shadow: 0 10px 18px rgba(13, 50, 86, 0.16);
+                background: linear-gradient(135deg, rgba(242, 248, 255, 0.98), rgba(231, 243, 255, 0.96));
+                color: #0b8e8b;
+                border-color: rgba(88, 154, 209, 0.45);
+                box-shadow: 0 0 12px rgba(45, 212, 191, 0.48), 0 0 24px rgba(56, 189, 248, 0.24);
             }
 
             .global-action-icon {
@@ -260,6 +266,19 @@
 
             .global-action-link.upgrade:hover {
                 background: linear-gradient(135deg, rgba(255, 250, 240, 1), rgba(254, 245, 230, 1));
+            }
+
+            .global-action-link.settings {
+                border-color: rgba(152, 189, 216, 0.6);
+                background: rgba(255, 255, 255, 0.88);
+                color: #1e456e;
+            }
+
+            .global-action-link.settings:hover {
+                background: linear-gradient(135deg, rgba(242, 248, 255, 0.98), rgba(231, 243, 255, 0.96));
+                color: #0b8e8b;
+                border-color: rgba(88, 154, 209, 0.45);
+                box-shadow: 0 0 12px rgba(45, 212, 191, 0.48), 0 0 24px rgba(56, 189, 248, 0.24);
             }
 
             .global-action-language {
@@ -394,6 +413,12 @@
                 box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
             }
 
+            html.dark-mode .global-quick-toggle:hover {
+                color: #7ff0ff;
+                border-color: rgba(94, 234, 212, 0.85);
+                box-shadow: 0 0 12px rgba(94, 234, 212, 0.58), 0 0 26px rgba(56, 189, 248, 0.28);
+            }
+
             html.dark-mode .global-glass-panel {
                 border-color: rgba(72, 105, 138, 0.55);
                 background:
@@ -420,6 +445,14 @@
                 border-color: rgba(66, 95, 125, 0.75);
                 background: rgba(20, 33, 48, 0.86);
                 color: #d0e0f0;
+            }
+
+            html.dark-mode .global-action-btn:hover,
+            html.dark-mode .global-action-link:hover {
+                background: linear-gradient(135deg, rgba(24, 37, 56, 0.96), rgba(17, 28, 43, 0.96));
+                color: #7fe8f8;
+                border-color: rgba(94, 234, 212, 0.8);
+                box-shadow: 0 0 12px rgba(94, 234, 212, 0.44), 0 0 24px rgba(56, 189, 248, 0.2);
             }
 
             html.dark-mode .global-action-link.power {
@@ -574,10 +607,14 @@
                     <span class="global-action-icon">⭐</span>
                     <span>{{ 'panel.upgrade_plan'|trans }}</span>
                 </a>
+                <a class="global-action-link settings" href="{{ path('app_settings') }}" data-no-loader="true" data-turbo="false" aria-label="{{ 'panel.settings'|trans }}">
+                    <span class="global-action-icon">⚙</span>
+                    <span>{{ 'panel.settings'|trans }}</span>
+                </a>
                 <div class="global-action-btn global-action-language">
                     <label for="languageSelect" class="global-language-title">🌍 {{ 'panel.language'|trans }}</label>
                     <select id="languageSelect" name="locale" class="global-language-select" onchange="window.location.href='/language/' + this.value;">
-                        <option value="en" {% if currentLocale == 'en' %}selected{% endif %}>🇬🇧 {{ 'panel.language_en'|trans }}</option>
+                        <option value="en" {% if currentLocale == 'en' %}selected{% endif %}>🇺🇸 {{ 'panel.language_en'|trans }}</option>
                         <option value="fr" {% if currentLocale == 'fr' %}selected{% endif %}>🇫🇷 {{ 'panel.language_fr'|trans }}</option>
                     </select>
                 </div>
@@ -928,6 +965,21 @@
 
                     event.preventDefault();
                     showLoader(panelText.returningMain);
+                    window.location.assign(href);
+                });
+
+                document.addEventListener('click', function (event) {
+                    const settingsLink = event.target.closest('.global-action-link.settings');
+                    if (!settingsLink) {
+                        return;
+                    }
+
+                    const href = settingsLink.getAttribute('href');
+                    if (!href) {
+                        return;
+                    }
+
+                    event.preventDefault();
                     window.location.assign(href);
                 });
 

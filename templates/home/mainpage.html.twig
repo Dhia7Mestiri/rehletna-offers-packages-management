@@ -5,6 +5,7 @@
 
 {% block stylesheets %}
     {{ parent() }}
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap');
 
@@ -795,6 +796,7 @@
 {% block javascripts %}
     {{ parent() }}
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
     <script>
         $(document).ready(function() {
             // Menu toggle
@@ -859,11 +861,149 @@
                     data: { view: view },
                     success: function(response) {
                         $('.content-area').html(response);
+                        if (view === 'shop') {
+                            initializeShopModule();
+                        }
                     },
                     error: function() {
                         console.error('Failed to load content');
                     }
                 });
+            }
+
+            function loadModuleFromUrl() {
+                const params = new URLSearchParams(window.location.search);
+                const moduleView = params.get('module');
+                if (!moduleView) {
+                    return;
+                }
+
+                const $targetTab = $('.nav-tab[data-view="' + moduleView + '"]');
+                if ($targetTab.length) {
+                    $('.nav-tab').removeClass('active');
+                    $targetTab.addClass('active');
+                }
+
+                loadContentView(moduleView);
+            }
+
+            loadModuleFromUrl();
+
+            window.loadMainpageModule = loadContentView;
+
+            function initializeShopModule() {
+                const $module = $('.shop-module');
+                if (!$module.length) {
+                    return;
+                }
+
+                const availableCoins = Number($module.data('availableCoins') || 0);
+                const mapboxToken = String($module.data('mapboxToken') || '');
+                const $overlay = $module.find('.shop-order-modal');
+                const $productId = $module.find('.js-product-id');
+                const $productName = $module.find('.js-product-name');
+                const $productPrice = $module.find('.js-product-price');
+                const $totalCoins = $module.find('.js-total-coins');
+                const $locationText = $module.find('.js-location-text');
+                const $locationLat = $module.find('.js-location-lat');
+                const $locationLng = $module.find('.js-location-lng');
+                const mapContainer = $module.find('.js-order-map')[0];
+                const $submitButton = $module.find('.btn-submit');
+                let currentPrice = 0;
+                let currentStock = 1;
+                let map = null;
+                let marker = null;
+
+                function updateTotal() {
+                    const total = currentPrice;
+                    $totalCoins.text(String(total));
+                    $submitButton.prop('disabled', total > availableCoins || currentStock <= 0);
+                }
+
+                function closeModal() {
+                    $overlay.removeClass('show').attr('aria-hidden', 'true');
+                }
+
+                function openModal() {
+                    $overlay.addClass('show').attr('aria-hidden', 'false');
+                    if (map && typeof map.resize === 'function') {
+                        setTimeout(function () {
+                            map.resize();
+                        }, 120);
+                    }
+                }
+
+                function initMap() {
+                    if (map || !mapContainer || !mapboxToken || typeof window.mapboxgl === 'undefined') {
+                        return;
+                    }
+
+                    window.mapboxgl.accessToken = mapboxToken;
+                    map = new window.mapboxgl.Map({
+                        container: mapContainer,
+                        style: 'mapbox://styles/mapbox/streets-v12',
+                        center: [10.1815, 36.8065],
+                        zoom: 10,
+                    });
+
+                    map.on('click', function (event) {
+                        const lng = event.lngLat.lng;
+                        const lat = event.lngLat.lat;
+
+                        if (!marker) {
+                            marker = new window.mapboxgl.Marker({ color: '#0fa5a2' }).setLngLat([lng, lat]).addTo(map);
+                        } else {
+                            marker.setLngLat([lng, lat]);
+                        }
+
+                        $locationLat.val(lat.toFixed(6));
+                        $locationLng.val(lng.toFixed(6));
+
+                        fetch('https://api.mapbox.com/geocoding/v5/mapbox.places/' + lng + ',' + lat + '.json?access_token=' + mapboxToken)
+                            .then((response) => response.ok ? response.json() : null)
+                            .then((payload) => {
+                                const place = payload && payload.features && payload.features[0] ? payload.features[0].place_name : '';
+                                $locationText.val(place || (lat.toFixed(6) + ', ' + lng.toFixed(6)));
+                            })
+                            .catch(() => {
+                                $locationText.val(lat.toFixed(6) + ', ' + lng.toFixed(6));
+                            });
+                    });
+                }
+
+                $(document).off('click.shopModule').on('click.shopModule', '.shop-module .order-btn', function () {
+                    const $button = $(this);
+                    currentPrice = Number($button.data('productPrice') || 0);
+                    currentStock = Math.max(1, Number($button.data('productStock') || 1));
+
+                    $productId.val(String($button.data('productId') || ''));
+                    $productName.text(String($button.data('productName') || 'Product'));
+                    $productPrice.text(String(currentPrice));
+                    $locationLat.val('');
+                    $locationLng.val('');
+                    $locationText.val('');
+                    updateTotal();
+                    openModal();
+                    initMap();
+                });
+
+                $(document).off('click.shopModuleClose').on('click.shopModuleClose', '.shop-module .order-close', function () {
+                    closeModal();
+                });
+
+                $(document).off('click.shopModuleOverlay').on('click.shopModuleOverlay', '.shop-module .shop-order-modal', function (event) {
+                    if (event.target === this) {
+                        closeModal();
+                    }
+                });
+
+                $(document).off('input.shopModule').on('input.shopModule', '.shop-module .js-location-text', function () {
+                    $locationText.val($(this).val());
+                });
+
+                if (!mapboxToken) {
+                    $module.find('.map-hint').text('Mapbox token is missing. Set MAPBOX_PUBLIC_TOKEN in your environment to enable map picking.');
+                }
             }
             
             // Refresh unread badge periodically
@@ -1020,6 +1160,8 @@
                     window.location.href = '{{ path('app_reservations') }}';
                 } else if (action === 'my-reservations') {
                     window.location.href = '{{ path('app_my_reservations') }}';
+                } else if (action === 'my-orders') {
+                    window.location.href = '{{ path('app_my_orders') }}';
                 } else if (action === 'offers-grid') {
                     window.location.href = '{{ path('app_offers_grid') }}';
                 }
@@ -1069,6 +1211,7 @@
             {% endif %}
             
             <button class="side-menu-btn" data-action="my-reservations">👤 {{ 'main.menu.my_reservations'|trans }}</button>
+            <button class="side-menu-btn" data-action="my-orders">🧾 {{ 'main.menu.my_orders'|trans }}</button>
             <button class="side-menu-btn" data-action="reservations">💻 {{ 'main.menu.reservations'|trans }}</button>
             <button class="side-menu-btn" data-action="reservation-details">📋 {{ 'main.menu.reservation_details'|trans }}</button>
             
@@ -1146,7 +1289,7 @@
                         <div class="feature-title">{{ 'main.feature.activities.title'|trans }}</div>
                         <div class="feature-text">{{ 'main.feature.activities.text'|trans }}</div>
                     </a>
-                    <a href="{{ path('app_shop') }}" class="feature-card">
+                    <a href="#" class="feature-card" onclick="window.loadMainpageModule('shop'); return false;">
                         <div class="feature-icon">🛒</div>
                         <div class="feature-title">{{ 'main.feature.shop.title'|trans }}</div>
                         <div class="feature-text">{{ 'main.feature.shop.text'|trans }}</div>

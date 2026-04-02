@@ -1,0 +1,199 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'main.menu.my_orders'|trans }} - Rehletna.tn{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .orders-page {
+            min-height: 100vh;
+            padding: 24px;
+            background:
+                radial-gradient(820px 360px at 0% 0%, rgba(12, 158, 184, 0.12), transparent 62%),
+                radial-gradient(820px 360px at 100% 0%, rgba(19, 180, 138, 0.1), transparent 64%),
+                linear-gradient(180deg, #f7fbff 0%, #edf4fa 100%);
+            color: #16324b;
+        }
+
+        .orders-shell {
+            max-width: 1120px;
+            margin: 0 auto;
+        }
+
+        .orders-head {
+            border-radius: 20px;
+            padding: 18px 20px;
+            background: linear-gradient(135deg, rgba(8, 97, 123, 0.96), rgba(14, 136, 161, 0.93));
+            color: #fff;
+            box-shadow: 0 16px 32px rgba(10, 52, 90, 0.18);
+            margin-bottom: 14px;
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .orders-head h1 {
+            margin: 0;
+            font-size: clamp(26px, 3vw, 36px);
+        }
+
+        .orders-head a {
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.32);
+            border-radius: 999px;
+            padding: 8px 14px;
+            text-decoration: none;
+            font-weight: 700;
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .orders-table-wrap {
+            border: 1px solid rgba(137, 156, 174, 0.3);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.96);
+            overflow: auto;
+            box-shadow: 0 12px 24px rgba(10, 34, 62, 0.08);
+        }
+
+        .orders-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 760px;
+        }
+
+        .orders-table th,
+        .orders-table td {
+            text-align: left;
+            padding: 12px 14px;
+            border-bottom: 1px solid #e7edf4;
+            font-size: 13px;
+            vertical-align: top;
+        }
+
+        .orders-table th {
+            color: #5f7690;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            font-weight: 800;
+            background: rgba(242, 248, 255, 0.9);
+        }
+
+        .status {
+            display: inline-block;
+            border-radius: 999px;
+            padding: 4px 10px;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 1px solid transparent;
+        }
+
+        .status.pending {
+            background: rgba(251, 191, 36, 0.16);
+            color: #a46a02;
+            border-color: rgba(251, 191, 36, 0.28);
+        }
+
+        .status.confirmed {
+            background: rgba(16, 185, 129, 0.14);
+            color: #0f8f66;
+            border-color: rgba(16, 185, 129, 0.26);
+        }
+
+        .status.cancelled {
+            background: rgba(239, 68, 68, 0.13);
+            color: #bd3e3e;
+            border-color: rgba(239, 68, 68, 0.22);
+        }
+
+        .status.delivered {
+            background: rgba(59, 130, 246, 0.13);
+            color: #1d65b8;
+            border-color: rgba(59, 130, 246, 0.26);
+        }
+
+        .empty-orders {
+            border: 1px dashed rgba(137, 156, 174, 0.44);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 24px;
+            text-align: center;
+            color: #56708a;
+        }
+
+        body.dark-mode .orders-page {
+            background:
+                radial-gradient(900px 420px at 0% 0%, rgba(45, 212, 191, 0.11), transparent 60%),
+                radial-gradient(760px 360px at 100% 0%, rgba(56, 189, 248, 0.1), transparent 64%),
+                linear-gradient(180deg, #0c1420 0%, #111b2a 100%);
+            color: #d9e5f0;
+        }
+
+        body.dark-mode .orders-table-wrap,
+        body.dark-mode .empty-orders {
+            background: rgba(16, 24, 37, 0.98);
+            border-color: rgba(74, 96, 121, 0.44);
+            color: #d9e5f0;
+        }
+
+        body.dark-mode .orders-table th,
+        body.dark-mode .orders-table td {
+            border-bottom-color: #2a374b;
+            color: #c6d4e3;
+        }
+
+        body.dark-mode .orders-table th {
+            background: rgba(13, 22, 35, 0.86);
+            color: #9bb1c8;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="orders-page">
+        <div class="orders-shell">
+            <div class="orders-head">
+                <h1>{{ 'main.menu.my_orders'|trans }}</h1>
+                <a href="{{ path('app_mainpage') }}" data-no-loader="true" data-turbo="false">Back to Main</a>
+            </div>
+
+            {% if orders is empty %}
+                <div class="empty-orders">No orders found yet.</div>
+            {% else %}
+                <div class="orders-table-wrap">
+                    <table class="orders-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Product</th>
+                                <th>Quantity</th>
+                                <th>Total Coins</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Address</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in orders %}
+                                {% set status = (order.status|default('pending')|lower) %}
+                                <tr>
+                                    <td>#{{ order.id }}</td>
+                                    <td>{{ order.product_name|default('Shop item #' ~ order.shop_id) }}</td>
+                                    <td>{{ order.quantity }}</td>
+                                    <td>{{ order.total_coins }}</td>
+                                    <td><span class="status {{ status }}">{{ status }}</span></td>
+                                    <td>{{ order.purchase_date }}</td>
+                                    <td>{{ order.buyer_address|default('')|nl2br }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

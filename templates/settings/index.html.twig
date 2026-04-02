@@ -1,0 +1,787 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'settings.title'|trans }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .settings-page {
+            min-height: 100vh;
+            padding: 28px;
+            --settings-bg:
+                radial-gradient(900px 420px at 0% 0%, rgba(12, 158, 184, 0.13), transparent 60%),
+                radial-gradient(760px 360px at 100% 0%, rgba(19, 180, 138, 0.1), transparent 64%),
+                linear-gradient(180deg, #f7fafc 0%, #edf3f8 100%);
+            --settings-card-bg: rgba(255, 255, 255, 0.92);
+            --settings-card-border: rgba(139, 159, 178, 0.24);
+            --settings-text: #16324b;
+            --settings-muted: #66788c;
+            --settings-accent: #0c9eb8;
+            --settings-accent-2: #13b48a;
+            --settings-field-bg: linear-gradient(180deg, #ffffff 0%, #f4f9fd 100%);
+            --settings-field-border: rgba(137, 156, 174, 0.34);
+            --settings-shadow: 0 18px 36px rgba(15, 45, 76, 0.08);
+            background: var(--settings-bg);
+            color: var(--settings-text);
+        }
+
+        body.dark-mode .settings-page {
+            --settings-bg:
+                radial-gradient(900px 420px at 0% 0%, rgba(45, 212, 191, 0.11), transparent 60%),
+                radial-gradient(760px 360px at 100% 0%, rgba(56, 189, 248, 0.1), transparent 64%),
+                linear-gradient(180deg, #0c1420 0%, #111b2a 100%);
+            --settings-card-bg: rgba(17, 25, 39, 0.92);
+            --settings-card-border: rgba(72, 93, 118, 0.42);
+            --settings-text: #d9e5f0;
+            --settings-muted: #93a7bb;
+            --settings-accent: #31d3c2;
+            --settings-accent-2: #42a7ff;
+            --settings-field-bg: linear-gradient(180deg, #121c2b 0%, #0f1724 100%);
+            --settings-field-border: rgba(73, 96, 123, 0.52);
+            --settings-shadow: 0 20px 40px rgba(0, 0, 0, 0.26);
+            color: var(--settings-text);
+        }
+
+        .settings-shell {
+            max-width: 1160px;
+            margin: 0 auto;
+        }
+
+        .settings-page *,
+        .settings-page *::before,
+        .settings-page *::after {
+            box-sizing: border-box;
+        }
+
+        .settings-hero {
+            border-radius: 28px;
+            padding: 26px 28px;
+            background: linear-gradient(135deg, rgba(8, 97, 123, 0.96), rgba(14, 136, 161, 0.93));
+            color: #ffffff;
+            box-shadow: 0 20px 42px rgba(11, 80, 122, 0.2);
+            margin-bottom: 18px;
+            display: grid;
+            grid-template-columns: minmax(0, 1.35fr) auto;
+            gap: 18px;
+            align-items: center;
+        }
+
+        .settings-hero h1 {
+            margin: 0;
+            font-size: clamp(34px, 4vw, 54px);
+            line-height: 1;
+        }
+
+        .settings-hero p {
+            margin: 10px 0 0;
+            max-width: 58ch;
+            color: rgba(255, 255, 255, 0.88);
+            font-size: 15px;
+            line-height: 1.55;
+        }
+
+        .settings-hero-actions {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .settings-home-btn {
+            width: 54px;
+            height: 54px;
+            border-radius: 18px;
+            display: grid;
+            place-items: center;
+            text-decoration: none;
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.24);
+            background: rgba(255, 255, 255, 0.12);
+            font-size: 24px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+            backdrop-filter: blur(8px);
+        }
+
+        .settings-home-btn:hover {
+            transform: translateY(-2px);
+            color: #8bf1ff;
+            border-color: rgba(111, 236, 255, 0.85);
+            box-shadow: 0 0 12px rgba(111, 236, 255, 0.78), 0 0 28px rgba(111, 236, 255, 0.42);
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 18px;
+        }
+
+        .settings-card {
+            background: var(--settings-card-bg);
+            border: 1px solid var(--settings-card-border);
+            border-radius: 28px;
+            box-shadow: var(--settings-shadow);
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .settings-card-head {
+            padding: 22px 24px 14px;
+        }
+
+        .settings-card-head h2 {
+            margin: 0;
+            font-size: 24px;
+            color: var(--settings-text);
+        }
+
+        .settings-card-head p {
+            margin: 6px 0 0;
+            color: var(--settings-muted);
+        }
+
+        .settings-body {
+            padding: 0 24px 24px;
+        }
+
+        .settings-flash {
+            border-radius: 14px;
+            padding: 12px 14px;
+            margin-bottom: 14px;
+            font-weight: 700;
+            font-size: 13px;
+        }
+
+        .settings-flash.success {
+            background: rgba(16, 185, 129, 0.14);
+            color: #0d8d63;
+            border: 1px solid rgba(16, 185, 129, 0.22);
+        }
+
+        .settings-flash.error {
+            background: rgba(239, 68, 68, 0.11);
+            color: #b43b3b;
+            border: 1px solid rgba(239, 68, 68, 0.22);
+        }
+
+        .profile-banner {
+            border-radius: 26px;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(12, 158, 184, 0.15), rgba(19, 180, 138, 0.08));
+            border: 1px solid var(--settings-card-border);
+            margin-bottom: 18px;
+            display: grid;
+            grid-template-columns: 108px minmax(0, 1fr);
+            gap: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .profile-banner::after {
+            content: '';
+            position: absolute;
+            inset: auto -48px -72px auto;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.26), transparent 68%);
+            pointer-events: none;
+        }
+
+        .profile-edit-btn {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            border: 1px solid rgba(12, 158, 184, 0.24);
+            background: rgba(255, 255, 255, 0.92);
+            color: #0b8e8b;
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+            box-shadow: 0 8px 18px rgba(11, 80, 122, 0.12);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+            z-index: 2;
+        }
+
+        .profile-edit-btn:hover {
+            transform: translateY(-2px);
+            color: #067e98;
+            border-color: rgba(12, 158, 184, 0.5);
+            box-shadow: 0 0 12px rgba(12, 158, 184, 0.18), 0 0 24px rgba(19, 180, 138, 0.12);
+        }
+
+        .profile-avatar-large {
+            width: 108px;
+            height: 108px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 5px solid rgba(255, 255, 255, 0.95);
+            box-shadow: 0 14px 28px rgba(11, 80, 122, 0.18);
+            flex: 0 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .avatar-wrap {
+            position: relative;
+            width: 108px;
+            height: 108px;
+            z-index: 2;
+        }
+
+        .avatar-plus-btn {
+            position: absolute;
+            right: 2px;
+            bottom: 2px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 1px solid rgba(12, 158, 184, 0.45);
+            background: #ffffff;
+            color: #0b8e8b;
+            display: grid;
+            place-items: center;
+            font-size: 20px;
+            font-weight: 700;
+            line-height: 1;
+            cursor: pointer;
+            box-shadow: 0 8px 16px rgba(11, 80, 122, 0.2);
+            transform: scale(0.86);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .avatar-plus-btn.is-visible {
+            opacity: 1;
+            pointer-events: auto;
+            transform: scale(1);
+        }
+
+        .avatar-plus-btn:hover {
+            color: #067e98;
+            border-color: rgba(12, 158, 184, 0.7);
+        }
+
+        .avatar-file-input {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            margin: -1px;
+            border: 0;
+            padding: 0;
+            overflow: hidden;
+            clip: rect(0 0 0 0);
+            clip-path: inset(50%);
+            white-space: nowrap;
+        }
+
+        .profile-identity {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 9px;
+            min-width: 0;
+        }
+
+        .profile-identity-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .profile-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border-radius: 999px;
+            padding: 7px 12px;
+            background: rgba(255, 255, 255, 0.74);
+            border: 1px solid rgba(255, 255, 255, 0.32);
+            color: #134563;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+        }
+
+        .profile-banner h3 {
+            margin: 0;
+            font-size: clamp(24px, 2.3vw, 30px);
+            color: var(--settings-text);
+        }
+
+        .profile-banner small {
+            display: block;
+            margin-top: 0;
+            color: var(--settings-muted);
+            font-weight: 700;
+            word-break: break-word;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .info-item,
+        .pref-item {
+            border-radius: 18px;
+            border: 1px solid var(--settings-field-border);
+            background: var(--settings-field-bg);
+            padding: 15px;
+            box-shadow: 0 10px 18px rgba(14, 35, 58, 0.04);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .info-item::before {
+            content: '';
+            position: absolute;
+            inset: 0 auto 0 0;
+            width: 3px;
+            background: linear-gradient(180deg, var(--settings-accent), var(--settings-accent-2));
+        }
+
+        .info-item::after {
+            content: '';
+            position: absolute;
+            inset: -18px -36px auto auto;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(12, 158, 184, 0.08), transparent 68%);
+            pointer-events: none;
+        }
+
+        .info-label,
+        .pref-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            font-weight: 800;
+            color: var(--settings-muted);
+        }
+
+        .info-caption {
+            margin-top: 7px;
+            font-size: 12px;
+            color: var(--settings-muted);
+            line-height: 1.35;
+        }
+
+        .info-input,
+        .pref-value {
+            margin-top: 9px;
+            display: block;
+            width: 100%;
+            max-width: 100%;
+            border: 1px solid var(--settings-field-border);
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.72);
+            padding: 13px 14px;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--settings-text);
+            font-family: inherit;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, background 0.2s ease;
+        }
+
+        .info-input[readonly] {
+            background: rgba(255, 255, 255, 0.58);
+            cursor: default;
+            opacity: 1;
+            -webkit-text-fill-color: var(--settings-text);
+        }
+
+        .info-input:disabled {
+            opacity: 0.8;
+            cursor: default;
+        }
+
+        .info-input:focus,
+        .avatar-upload input[type="file"]:focus {
+            outline: none;
+            border-color: rgba(12, 158, 184, 0.58);
+            box-shadow: 0 0 0 4px rgba(12, 158, 184, 0.12), 0 12px 22px rgba(12, 36, 57, 0.08);
+            transform: translateY(-1px);
+        }
+
+        .info-item.is-highlighted .info-input[readonly] {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(244, 249, 253, 0.88));
+        }
+
+        .avatar-upload {
+            grid-column: 1 / -1;
+        }
+
+        .avatar-upload .info-caption {
+            margin-top: 0;
+        }
+
+        .avatar-upload input[type="file"] {
+            width: 100%;
+            border: 1px dashed var(--settings-field-border);
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.68);
+            padding: 11px 12px;
+            font: inherit;
+            color: var(--settings-text);
+            margin-top: 8px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+        }
+
+        .edit-actions {
+            margin-top: 18px;
+            display: none;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .edit-actions.is-visible {
+            display: flex;
+        }
+
+        .edit-save-btn {
+            border: 0;
+            border-radius: 16px;
+            padding: 12px 18px;
+            font-weight: 800;
+            cursor: pointer;
+            background: linear-gradient(135deg, var(--settings-accent), var(--settings-accent-2));
+            color: #ffffff;
+            box-shadow: 0 10px 22px rgba(11, 154, 157, 0.26);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .edit-save-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 26px rgba(11, 154, 157, 0.34);
+        }
+
+        .settings-right-card .pref-value {
+            font-size: 18px;
+            font-weight: 800;
+            margin-top: 8px;
+            display: block;
+            background: rgba(255, 255, 255, 0.84);
+            color: #16324b;
+            -webkit-text-fill-color: #16324b;
+        }
+
+        body.dark-mode .settings-hero {
+            background: linear-gradient(135deg, rgba(7, 16, 28, 0.96), rgba(17, 53, 77, 0.96));
+            box-shadow: 0 24px 44px rgba(0, 0, 0, 0.3);
+        }
+
+        body.dark-mode .settings-flash.success {
+            background: rgba(16, 185, 129, 0.15);
+            color: #80f3c9;
+            border-color: rgba(16, 185, 129, 0.24);
+        }
+
+        body.dark-mode .settings-flash.error {
+            background: rgba(239, 68, 68, 0.13);
+            color: #ffb5b5;
+            border-color: rgba(239, 68, 68, 0.22);
+        }
+
+        body.dark-mode .profile-edit-btn {
+            background: rgba(12, 21, 34, 0.98);
+            border-color: rgba(76, 101, 126, 0.62);
+            color: #c7d7e7;
+        }
+
+        body.dark-mode .profile-banner::after {
+            background: radial-gradient(circle, rgba(49, 211, 194, 0.16), transparent 68%);
+        }
+
+        body.dark-mode .profile-badge {
+            background: rgba(7, 16, 28, 0.55);
+            border-color: rgba(103, 126, 152, 0.28);
+            color: #dbe9f4;
+        }
+
+        body.dark-mode .info-input,
+        body.dark-mode .avatar-upload input[type="file"] {
+            background: rgba(10, 18, 29, 0.86);
+            border-color: rgba(74, 96, 121, 0.52);
+            color: #deebf7;
+            -webkit-text-fill-color: #deebf7;
+        }
+
+        body.dark-mode .info-input[readonly] {
+            background: rgba(13, 22, 35, 0.74);
+            color: #eef6ff;
+            -webkit-text-fill-color: #eef6ff;
+        }
+
+        body.dark-mode .info-item.is-highlighted .info-input[readonly] {
+            background: rgba(12, 22, 35, 0.9);
+            color: #eef6ff;
+            -webkit-text-fill-color: #eef6ff;
+        }
+
+        body.dark-mode .info-item,
+        body.dark-mode .pref-item {
+            background: linear-gradient(180deg, rgba(16, 24, 37, 0.98), rgba(13, 19, 31, 0.98));
+            border-color: rgba(74, 96, 121, 0.44);
+            box-shadow: 0 14px 24px rgba(0, 0, 0, 0.16);
+        }
+
+        body.dark-mode .info-item::after {
+            background: radial-gradient(circle, rgba(49, 211, 194, 0.08), transparent 68%);
+        }
+
+        body.dark-mode .info-caption,
+        body.dark-mode .settings-card-head p,
+        body.dark-mode .profile-banner small,
+        body.dark-mode .info-label,
+        body.dark-mode .pref-label {
+            color: #8ea1b6;
+        }
+
+        body.dark-mode .settings-card-head h2,
+        body.dark-mode .profile-banner h3,
+        body.dark-mode .info-input,
+        body.dark-mode .pref-value,
+        body.dark-mode .settings-page {
+            color: #d9e5f0;
+        }
+
+        body.dark-mode .settings-right-card .pref-value {
+            background: rgba(12, 22, 35, 0.86);
+            border-color: rgba(93, 116, 141, 0.58);
+            color: #eef6ff;
+            -webkit-text-fill-color: #eef6ff;
+        }
+
+        body.dark-mode .avatar-plus-btn {
+            background: #102033;
+            border-color: rgba(82, 114, 145, 0.66);
+            color: #bfe2ff;
+        }
+
+        body.dark-mode .edit-save-btn {
+            background: linear-gradient(135deg, #31d3c2, #42a7ff);
+        }
+
+        @media (max-width: 960px) {
+            .settings-hero,
+            .settings-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .settings-hero-actions {
+                justify-content: flex-start;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-banner {
+                grid-template-columns: 1fr;
+                padding-top: 58px;
+            }
+
+            .profile-avatar-large {
+                width: 96px;
+                height: 96px;
+            }
+
+            .avatar-wrap {
+                width: 96px;
+                height: 96px;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        (function () {
+            function setEditMode(enabled) {
+                const inputs = document.querySelectorAll('#profileEditFields input[type="text"], #profileEditFields input[type="email"]');
+                const fileInput = document.getElementById('editAvatar');
+                const editButton = document.getElementById('profileEditToggle');
+                const avatarPickerButton = document.getElementById('avatarPickerButton');
+                const editActions = document.getElementById('profileEditActions');
+
+                inputs.forEach((input) => {
+                    input.readOnly = !enabled;
+                });
+
+                if (fileInput) {
+                    fileInput.disabled = !enabled;
+                }
+
+                if (avatarPickerButton) {
+                    avatarPickerButton.disabled = !enabled;
+                    avatarPickerButton.classList.toggle('is-visible', enabled);
+                }
+
+                if (editActions) {
+                    editActions.classList.toggle('is-visible', enabled);
+                }
+
+                if (editButton) {
+                    editButton.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+                    editButton.textContent = enabled ? '✓' : '✎';
+                }
+            }
+
+            document.addEventListener('click', function (event) {
+                const homeBtn = event.target.closest('.settings-home-btn');
+                if (homeBtn) {
+                    event.preventDefault();
+                    const href = homeBtn.getAttribute('href');
+                    if (href) {
+                        window.location.href = href;
+                    }
+                    return;
+                }
+
+                const toggleBtn = event.target.closest('#profileEditToggle');
+                if (toggleBtn) {
+                    event.preventDefault();
+                    const currentlyEnabled = toggleBtn.getAttribute('aria-pressed') === 'true';
+                    setEditMode(!currentlyEnabled);
+                    return;
+                }
+
+                const avatarBtn = event.target.closest('#avatarPickerButton');
+                if (avatarBtn) {
+                    event.preventDefault();
+                    const fileInput = document.getElementById('editAvatar');
+                    if (fileInput && !fileInput.disabled) {
+                        fileInput.click();
+                    }
+                }
+            });
+
+            document.addEventListener('change', function (event) {
+                if (event.target && event.target.id === 'editAvatar') {
+                    const [file] = event.target.files || [];
+                    const preview = document.getElementById('profileAvatarPreview');
+                    if (file && preview) {
+                        const reader = new FileReader();
+                        reader.onload = function (loadEvent) {
+                            preview.src = String(loadEvent.target?.result || preview.src);
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                }
+            });
+
+            setEditMode(false);
+        })();
+    </script>
+{% endblock %}
+
+{% block body %}
+    {% set profileData = profile|default({}) %}
+    {% set avatarUrl = profileData.image_url|default('/images/default_avatar.png') %}
+    {% set coinsCount = profileData.coins|default(0) %}
+    {% set profileFormToken = csrf_token('settings-update-' ~ user.id) %}
+
+    <div class="settings-page">
+        <div class="settings-shell">
+            <section class="settings-hero">
+                <div>
+                    <h1>{{ 'settings.title'|trans }}</h1>
+                    <p>{{ 'settings.subtitle'|trans }}</p>
+                </div>
+                <div class="settings-hero-actions">
+                    <a class="settings-home-btn" href="{{ path('app_mainpage') }}" data-no-loader="true" data-turbo="false" title="{{ 'settings.back_main'|trans }}" aria-label="{{ 'settings.back_main'|trans }}">⌂</a>
+                </div>
+            </section>
+
+            {% for label, messages in app.flashes %}
+                {% for message in messages %}
+                    <div class="settings-flash {{ label == 'success' ? 'success' : 'error' }}">{{ message }}</div>
+                {% endfor %}
+            {% endfor %}
+
+            <div class="settings-grid">
+                <section class="settings-card">
+                    <div class="settings-card-head profile-head">
+                        <div>
+                            <h2>{{ 'settings.profile_title'|trans }}</h2>
+                            <p>{{ 'settings.profile_subtitle'|trans }}</p>
+                        </div>
+                    </div>
+                    <div class="settings-body">
+                        <form method="post" action="{{ path('app_settings_update') }}" enctype="multipart/form-data" data-no-loader="true" data-turbo="false">
+                            <input type="hidden" name="_token" value="{{ profileFormToken }}">
+
+                            <div class="profile-banner">
+                                <button type="button" id="profileEditToggle" class="profile-edit-btn" aria-pressed="false" title="{{ 'settings.edit_profile'|trans }}" aria-label="{{ 'settings.edit_profile'|trans }}">✎</button>
+                                <div class="avatar-wrap">
+                                    <img id="profileAvatarPreview" class="profile-avatar-large" src="{{ avatarUrl }}" alt="{{ user.username|default('Profile') }}">
+                                    <button type="button" id="avatarPickerButton" class="avatar-plus-btn" title="{{ 'settings.change_avatar'|trans }}" aria-label="{{ 'settings.change_avatar'|trans }}">+</button>
+                                    <input class="avatar-file-input" id="editAvatar" type="file" name="avatar_image" accept="image/*" disabled>
+                                </div>
+                                <div class="profile-identity">
+                                    <div class="profile-identity-row">
+                                        <h3>{{ user.username|default('User') }}</h3>
+                                        <span class="profile-badge">{{ profileData.member_premium|default('standard')|capitalize }}</span>
+                                    </div>
+                                    <small>{{ user.email|default('') }}</small>
+                                </div>
+                            </div>
+
+                            <div id="profileEditFields" class="info-grid">
+                                <div class="info-item is-highlighted">
+                                    <div class="info-label">{{ 'settings.field_username'|trans }}</div>
+                                    <input class="info-input" id="editUsername" type="text" name="username" value="{{ user.username|default('') }}" readonly required>
+                                </div>
+                                <div class="info-item is-highlighted">
+                                    <div class="info-label">{{ 'settings.field_email'|trans }}</div>
+                                    <input class="info-input" id="editEmail" type="email" name="email" value="{{ user.email|default('') }}" readonly required>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">{{ 'settings.field_name'|trans }}</div>
+                                    <input class="info-input" id="editFirstName" type="text" name="name" value="{{ user.name|default('') }}" readonly required>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">{{ 'settings.field_last_name'|trans }}</div>
+                                    <input class="info-input" id="editLastName" type="text" name="last_name" value="{{ user.lastName|default('') }}" readonly required>
+                                </div>
+                            </div>
+
+                            <div id="profileEditActions" class="edit-actions">
+                                <button type="submit" class="edit-save-btn">{{ 'settings.save'|trans }}</button>
+                            </div>
+                        </form>
+                    </div>
+                </section>
+
+                <section class="settings-card settings-right-card">
+                    <div class="settings-card-head">
+                        <h2>{{ 'settings.preferences_title'|trans }}</h2>
+                        <p>{{ 'settings.preferences_subtitle'|trans }}</p>
+                    </div>
+                    <div class="settings-body">
+                        <div class="info-grid">
+                            <div class="pref-item">
+                                <div class="pref-label">{{ 'settings.membership'|trans }}</div>
+                                <div class="pref-value">{{ profileData.member_premium|default('standard')|capitalize }}</div>
+                            </div>
+                            <div class="pref-item">
+                                <div class="pref-label">{{ 'settings.coins'|trans }}</div>
+                                <div class="pref-value">{{ coinsCount }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+{% endblock %}

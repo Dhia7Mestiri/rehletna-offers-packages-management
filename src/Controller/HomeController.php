@@ -7,6 +7,8 @@ use App\Entity\User;
 use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\ParameterType;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -152,9 +154,101 @@ class HomeController extends AbstractController
         ]);
     }
 
+    #[Route('/settings', name: 'app_settings')]
+    #[IsGranted('ROLE_USER')]
+    public function settings(Connection $connection): Response
+    {
+        $user = $this->getUser();
+        $profile = null;
+
+        if ($user instanceof User) {
+            $profile = $connection->executeQuery(
+                'SELECT id, image, member_premium, language, coins FROM profile WHERE id_user = ? LIMIT 1',
+                [$user->getId()],
+                [ParameterType::INTEGER]
+            )->fetchAssociative();
+
+            if (!$profile || !isset($profile['id'])) {
+                $profile = $this->fetchOrCreateProfileRow($connection, (int) $user->getId());
+            }
+
+            if (is_array($profile)) {
+                $profile['image_url'] = $this->imageToUrl($profile['image'] ?? null);
+            }
+        }
+
+        return $this->render('settings/index.html.twig', [
+            'profile' => $profile,
+            'user' => $user,
+        ]);
+    }
+
+    #[Route('/settings/update', name: 'app_settings_update', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function updateSettings(Request $request, Connection $connection): Response
+    {
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
+
+        if (!$this->isCsrfTokenValid('settings-update-' . $user->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Invalid settings request token.');
+            return $this->redirectToRoute('app_settings');
+        }
+
+        $name = trim((string) $request->request->get('name', ''));
+        $lastName = trim((string) $request->request->get('last_name', ''));
+        $username = trim((string) $request->request->get('username', ''));
+        $email = trim((string) $request->request->get('email', ''));
+
+        if ($name === '' || $lastName === '' || $username === '' || $email === '') {
+            $this->addFlash('error', 'All profile fields are required.');
+            return $this->redirectToRoute('app_settings');
+        }
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $this->addFlash('error', 'Please enter a valid email address.');
+            return $this->redirectToRoute('app_settings');
+        }
+
+        $connection->beginTransaction();
+
+        try {
+            $connection->executeStatement(
+                'UPDATE `user` SET name = ?, last_name = ?, username = ?, email = ? WHERE id = ?',
+                [$name, $lastName, $username, $email, (int) $user->getId()],
+                [ParameterType::STRING, ParameterType::STRING, ParameterType::STRING, ParameterType::STRING, ParameterType::INTEGER]
+            );
+
+            $profile = $this->fetchOrCreateProfileRow($connection, (int) $user->getId());
+            if ($profile && isset($profile['id'])) {
+                $imageFile = $request->files->get('avatar_image');
+                if ($imageFile !== null && $imageFile->isValid()) {
+                    $imageData = @file_get_contents($imageFile->getPathname());
+                    if ($imageData !== false && $imageData !== '') {
+                        $connection->executeStatement(
+                            'UPDATE profile SET image = ? WHERE id = ?',
+                            [$imageData, (int) $profile['id']],
+                            [ParameterType::LARGE_OBJECT, ParameterType::INTEGER]
+                        );
+                    }
+                }
+            }
+
+            $connection->commit();
+            $this->addFlash('success', 'Profile updated successfully.');
+        } catch (\Throwable $e) {
+            $connection->rollBack();
+            $this->addFlash('error', 'Unable to update profile: ' . $e->getMessage());
+        }
+
+        return $this->redirectToRoute('app_settings');
+    }
+
     #[Route('/load-content', name: 'app_load_content', methods: ['POST'])]
     #[IsGranted('ROLE_USER')]
-    public function loadContent(Request $request): Response
+    public function loadContent(Request $request, Connection $connection): Response
     {
         $view = $request->request->get('view');
         
@@ -165,7 +259,9 @@ class HomeController extends AbstractController
             case 'activities':
                 return $this->render('partials/activities.html.twig');
             case 'shop':
-                return $this->render('partials/shop.html.twig');
+                return $this->render('partials/shop.html.twig', [
+                    'shop' => $this->buildShopViewData($connection),
+                ]);
             case 'ai-guide':
                 return $this->render('partials/ai_guide.html.twig');
             case 'offers':
@@ -1078,6 +1174,148 @@ class HomeController extends AbstractController
         ]);
     }
 
+    #[Route('/admin/shop/{id}/delete', name: 'app_admin_shop_delete', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function adminShopDelete(int $id, Request $request, Connection $connection): Response
+    {
+        if (!$this->isCsrfTokenValid('shop-product-delete-' . $id, (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Invalid delete request token.');
+            return $this->redirectToRoute('app_admin_shop');
+        }
+
+        $shopTable = $this->resolveExistingTableName($connection, ['shop', 'shops']);
+        if ($shopTable === null) {
+            $this->addFlash('error', 'Shop table was not found in database.');
+            return $this->redirectToRoute('app_admin_shop');
+        }
+
+        $deleted = $connection->executeStatement(
+            'DELETE FROM ' . $shopTable . ' WHERE id = ?',
+            [$id],
+            [ParameterType::INTEGER]
+        );
+
+        if ($deleted > 0) {
+            $this->addFlash('success', 'Product deleted successfully.');
+        } else {
+            $this->addFlash('error', 'Product not found or already deleted.');
+        }
+
+        return $this->redirectToRoute('app_admin_shop');
+    }
+
+    #[Route('/my-orders', name: 'app_my_orders', methods: ['GET'])]
+    #[IsGranted('ROLE_USER')]
+    public function myOrders(Connection $connection): Response
+    {
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $purchaseTable = $this->resolveExistingTableName($connection, ['purchases', 'purchase']);
+        $shopTable = $this->resolveExistingTableName($connection, ['shop', 'shops']);
+        $orders = [];
+
+        if ($purchaseTable !== null) {
+            $sql = 'SELECT p.id, p.shop_id, p.quantity, p.total_coins, p.buyer_name, p.buyer_email, p.buyer_address, p.status, p.purchase_date';
+            if ($shopTable !== null) {
+                $sql .= ', s.name AS product_name';
+            }
+
+            $sql .= ' FROM ' . $purchaseTable . ' p';
+            if ($shopTable !== null) {
+                $sql .= ' LEFT JOIN ' . $shopTable . ' s ON s.id = p.shop_id';
+            }
+
+            $sql .= ' WHERE p.user_id = ? ORDER BY p.purchase_date DESC, p.id DESC';
+
+            $orders = $connection->executeQuery(
+                $sql,
+                [(int) $user->getId()],
+                [ParameterType::INTEGER]
+            )->fetchAllAssociative();
+        } else {
+            $this->addFlash('error', 'Purchases table was not found in database.');
+        }
+
+        return $this->render('shop/my_orders.html.twig', [
+            'orders' => $orders,
+        ]);
+    }
+
+    #[Route('/admin/orders', name: 'app_admin_orders', methods: ['GET'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function adminOrders(Connection $connection): Response
+    {
+        $adminImageUrl = $this->getCurrentUserProfileImageUrl($connection);
+        $purchaseTable = $this->resolveExistingTableName($connection, ['purchases', 'purchase']);
+        $shopTable = $this->resolveExistingTableName($connection, ['shop', 'shops']);
+        $orders = [];
+
+        if ($purchaseTable !== null) {
+            $sql = 'SELECT p.id, p.user_id, p.shop_id, p.quantity, p.total_coins, p.buyer_name, p.buyer_email, p.buyer_address, p.status, p.purchase_date,
+                           u.username AS username';
+            if ($shopTable !== null) {
+                $sql .= ', s.name AS product_name';
+            }
+
+            $sql .= ' FROM ' . $purchaseTable . ' p
+                      LEFT JOIN `user` u ON u.id = p.user_id';
+            if ($shopTable !== null) {
+                $sql .= ' LEFT JOIN ' . $shopTable . ' s ON s.id = p.shop_id';
+            }
+
+            $sql .= ' ORDER BY p.purchase_date DESC, p.id DESC';
+
+            $orders = $connection->executeQuery($sql)->fetchAllAssociative();
+        } else {
+            $this->addFlash('error', 'Purchases table was not found in database.');
+        }
+
+        return $this->render('admin/orders.html.twig', [
+            'adminImageUrl' => $adminImageUrl,
+            'orders' => $orders,
+        ]);
+    }
+
+    #[Route('/admin/orders/{id}/status', name: 'app_admin_order_status_update', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function adminOrderStatusUpdate(int $id, Request $request, Connection $connection): Response
+    {
+        if (!$this->isCsrfTokenValid('order-status-' . $id, (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Invalid request token.');
+            return $this->redirectToRoute('app_admin_orders');
+        }
+
+        $status = strtolower(trim((string) $request->request->get('status', 'pending')));
+        $allowedStatuses = ['pending', 'confirmed', 'cancelled', 'delivered'];
+        if (!in_array($status, $allowedStatuses, true)) {
+            $this->addFlash('error', 'Invalid status selected.');
+            return $this->redirectToRoute('app_admin_orders');
+        }
+
+        $purchaseTable = $this->resolveExistingTableName($connection, ['purchases', 'purchase']);
+        if ($purchaseTable === null) {
+            $this->addFlash('error', 'Purchases table was not found in database.');
+            return $this->redirectToRoute('app_admin_orders');
+        }
+
+        $updated = $connection->executeStatement(
+            'UPDATE ' . $purchaseTable . ' SET status = ? WHERE id = ?',
+            [$status, $id],
+            [ParameterType::STRING, ParameterType::INTEGER]
+        );
+
+        if ($updated > 0) {
+            $this->addFlash('success', 'Order status updated successfully.');
+        } else {
+            $this->addFlash('error', 'Order not found or unchanged.');
+        }
+
+        return $this->redirectToRoute('app_admin_orders');
+    }
+
     #[Route('/reservations', name: 'app_reservations')]
     #[IsGranted('ROLE_USER')]
     public function reservations(): Response
@@ -1101,9 +1339,172 @@ class HomeController extends AbstractController
 
     #[Route('/shop', name: 'app_shop')]
     #[IsGranted('ROLE_USER')]
-    public function shop(): Response
+    public function shop(Connection $connection): Response
     {
-        return $this->render('shop/index.html.twig');
+        return $this->render('shop/full.html.twig', [
+            'shop' => $this->buildShopViewData($connection),
+        ]);
+    }
+
+    #[Route('/shop/order', name: 'app_shop_order', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function placeShopOrder(Request $request, Connection $connection, MailerInterface $mailer): Response
+    {
+        $redirectToMainpageShop = str_contains((string) $request->headers->get('referer', ''), '/mainpage');
+        $redirectResponse = $redirectToMainpageShop
+            ? $this->redirectToRoute('app_mainpage', ['module' => 'shop'])
+            : $this->redirectToRoute('app_shop');
+
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
+
+        if (!$this->isCsrfTokenValid('shop-order', (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Invalid order request token.');
+            return $redirectResponse;
+        }
+
+        $productId = (int) $request->request->get('product_id', 0);
+        $quantity = max(1, (int) $request->request->get('quantity', 1));
+        $firstName = trim((string) $request->request->get('first_name', ''));
+        $lastName = trim((string) $request->request->get('last_name', ''));
+        $buyerEmail = trim((string) $request->request->get('buyer_email', ''));
+        $buyerPhone = trim((string) $request->request->get('buyer_phone', ''));
+        $buyerAddress = trim((string) $request->request->get('location_text', ''));
+        $locationText = trim((string) $request->request->get('location_text', ''));
+        $locationLat = trim((string) $request->request->get('location_lat', ''));
+        $locationLng = trim((string) $request->request->get('location_lng', ''));
+        $buyerName = trim($firstName . ' ' . $lastName);
+
+        if ($productId <= 0 || $firstName === '' || $lastName === '' || $buyerAddress === '' || $buyerPhone === '' || !filter_var($buyerEmail, FILTER_VALIDATE_EMAIL)) {
+            $this->addFlash('error', 'Please complete all order fields with valid values.');
+            return $redirectResponse;
+        }
+
+        $shopTable = $this->resolveExistingTableName($connection, ['shop', 'shops']);
+        $purchaseTable = $this->resolveExistingTableName($connection, ['purchases', 'purchase']);
+        if ($shopTable === null || $purchaseTable === null) {
+            $this->addFlash('error', 'Shop or purchases table not found in database.');
+            return $redirectResponse;
+        }
+
+        $connection->beginTransaction();
+        $productName = '';
+        $totalCoins = 0;
+
+        try {
+            $product = $connection->executeQuery(
+                'SELECT id, name, price_coins, quantity FROM ' . $shopTable . ' WHERE id = ? LIMIT 1',
+                [$productId],
+                [ParameterType::INTEGER]
+            )->fetchAssociative();
+
+            if (!$product) {
+                throw new \RuntimeException('Selected product does not exist.');
+            }
+
+            $stock = (int) ($product['quantity'] ?? 0);
+            $priceCoins = (int) ($product['price_coins'] ?? 0);
+
+            if ($stock < $quantity) {
+                throw new \RuntimeException('Selected quantity is not available in stock.');
+            }
+
+            $profile = $this->fetchOrCreateProfileRow($connection, (int) $user->getId());
+            if (!$profile || !isset($profile['id'])) {
+                throw new \RuntimeException('Profile not found.');
+            }
+
+            $currentCoins = (int) ($profile['coins'] ?? 0);
+            $totalCoins = $priceCoins * $quantity;
+
+            if ($currentCoins < $totalCoins) {
+                throw new \RuntimeException('Not enough coins for this order.');
+            }
+
+            $addressPayload = $buyerAddress;
+            $addressPayload .= "\nPhone: " . $buyerPhone;
+            if ($locationText !== '') {
+                $addressPayload .= "\nMap: " . $locationText;
+            }
+            if ($locationLat !== '' && $locationLng !== '') {
+                $addressPayload .= "\nCoordinates: " . $locationLat . ', ' . $locationLng;
+            }
+
+            $connection->executeStatement(
+                'INSERT INTO ' . $purchaseTable . ' (user_id, shop_id, quantity, total_coins, buyer_name, buyer_email, buyer_address, status, purchase_date)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())',
+                [
+                    (int) $user->getId(),
+                    $productId,
+                    $quantity,
+                    $totalCoins,
+                    $buyerName,
+                    $buyerEmail,
+                    $addressPayload,
+                    'pending',
+                ],
+                [
+                    ParameterType::INTEGER,
+                    ParameterType::INTEGER,
+                    ParameterType::INTEGER,
+                    ParameterType::INTEGER,
+                    ParameterType::STRING,
+                    ParameterType::STRING,
+                    ParameterType::STRING,
+                    ParameterType::STRING,
+                ]
+            );
+
+            $connection->executeStatement(
+                'UPDATE profile SET coins = GREATEST(0, COALESCE(coins, 0) - ?) WHERE id = ?',
+                [$totalCoins, (int) $profile['id']],
+                [ParameterType::INTEGER, ParameterType::INTEGER]
+            );
+
+            $connection->executeStatement(
+                'UPDATE ' . $shopTable . ' SET quantity = GREATEST(0, quantity - ?) WHERE id = ?',
+                [$quantity, $productId],
+                [ParameterType::INTEGER, ParameterType::INTEGER]
+            );
+
+            $connection->commit();
+
+            $productName = (string) ($product['name'] ?? 'Product');
+        } catch (\Throwable $e) {
+            $connection->rollBack();
+            $this->addFlash('error', 'Order failed: ' . $e->getMessage());
+            return $redirectResponse;
+        }
+
+        try {
+            $email = (new Email())
+                ->from((string) ($_ENV['EMAIL_FROM'] ?? $_SERVER['EMAIL_FROM'] ?? 'noreply@rehletna.tn'))
+                ->to($buyerEmail)
+                ->subject('Order confirmed - Rehletna Shop')
+                ->text(
+                    "Order has been confirmed.\n\n" .
+                    "Product: {$productName}\n" .
+                    "Quantity: {$quantity}\n" .
+                    "Total coins: {$totalCoins}\n" .
+                    "Name: {$buyerName}\n" .
+                    "Email: {$buyerEmail}\n" .
+                    "Phone: {$buyerPhone}\n" .
+                    "Address: {$buyerAddress}\n" .
+                    ($locationText !== '' ? "Map location: {$locationText}\n" : '') .
+                    (($locationLat !== '' && $locationLng !== '') ? "Coordinates: {$locationLat}, {$locationLng}\n" : '') .
+                    "\nThank you for your purchase."
+                );
+
+            $mailer->send($email);
+        } catch (\Throwable $e) {
+            $this->addFlash('error', 'Order saved, but email could not be sent. Check SMTP settings.');
+            return $redirectResponse;
+        }
+
+        $this->addFlash('success', 'Order has been confirmed and saved successfully.');
+        return $redirectResponse;
     }
 
     #[Route('/ai-guide', name: 'app_ai_guide')]
@@ -1205,6 +1606,48 @@ class HomeController extends AbstractController
         }
     }
 
+    private function buildShopViewData(Connection $connection): array
+    {
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $shopTable = $this->resolveExistingTableName($connection, ['shop', 'shops']);
+        $products = [];
+
+        if ($shopTable !== null) {
+            $rows = $connection->executeQuery(
+                'SELECT id, name, description, price_coins, quantity, image, category FROM ' . $shopTable . ' ORDER BY id DESC'
+            )->fetchAllAssociative();
+
+            foreach ($rows as $row) {
+                $products[] = [
+                    'id' => (int) ($row['id'] ?? 0),
+                    'name' => (string) ($row['name'] ?? ''),
+                    'description' => (string) ($row['description'] ?? ''),
+                    'price_coins' => (int) ($row['price_coins'] ?? 0),
+                    'quantity' => (int) ($row['quantity'] ?? 0),
+                    'category' => (string) ($row['category'] ?? ''),
+                    'image_url' => $this->imageToUrl($row['image'] ?? null),
+                ];
+            }
+        }
+
+        $profile = $this->fetchOrCreateProfileRow($connection, (int) $user->getId());
+        $mapboxToken = (string) ($_ENV['MAPBOX_PUBLIC_TOKEN'] ?? $_SERVER['MAPBOX_PUBLIC_TOKEN'] ?? '');
+
+        return [
+            'products' => $products,
+            'availableCoins' => (int) ($profile['coins'] ?? 0),
+            'mapboxToken' => $mapboxToken,
+            'defaultFirstName' => (string) $user->getName(),
+            'defaultLastName' => (string) $user->getLastName(),
+            'defaultBuyerEmail' => (string) $user->getEmail(),
+            'defaultBuyerPhone' => (string) ($user->getStatus() ?? ''),
+        ];
+    }
+
     private function deleteFromIfExists(Connection $connection, string $tableName, string $whereSql, array $params, array $types = []): void
     {
         $schemaManager = $connection->createSchemaManager();
@@ -1217,5 +1660,17 @@ class HomeController extends AbstractController
             $params,
             $types
         );
+    }
+
+    private function resolveExistingTableName(Connection $connection, array $candidates): ?string
+    {
+        $schemaManager = $connection->createSchemaManager();
+        foreach ($candidates as $candidate) {
+            if ($schemaManager->tablesExist([$candidate])) {
+                return $candidate;
+            }
+        }
+
+        return null;
     }
 }

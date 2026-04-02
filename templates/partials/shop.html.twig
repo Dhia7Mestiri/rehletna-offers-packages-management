@@ -1,0 +1,674 @@
+{% set shop = shop|default({}) %}
+{% set products = shop.products|default([]) %}
+{% set availableCoins = shop.availableCoins|default(0) %}
+{% set mapboxToken = shop.mapboxToken|default('') %}
+{% set defaultFirstName = shop.defaultFirstName|default('') %}
+{% set defaultLastName = shop.defaultLastName|default('') %}
+{% set defaultBuyerEmail = shop.defaultBuyerEmail|default('') %}
+{% set defaultBuyerPhone = shop.defaultBuyerPhone|default('') %}
+
+<div class="shop-module" data-mapbox-token="{{ mapboxToken|e('html_attr') }}" data-available-coins="{{ availableCoins }}">
+    <style>
+        .shop-module {
+            min-height: 100%;
+            padding: 0 0 10px;
+            color: #16324b;
+        }
+
+        .shop-module .shop-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 16px;
+            padding: 20px 22px;
+            border-radius: 22px;
+            background: linear-gradient(135deg, rgba(8, 97, 123, 0.96), rgba(14, 136, 161, 0.93));
+            color: #fff;
+            box-shadow: 0 18px 38px rgba(10, 52, 90, 0.2);
+        }
+
+        .shop-module .shop-head h1 {
+            margin: 0;
+            font-size: clamp(28px, 3vw, 42px);
+            line-height: 1.05;
+        }
+
+        .shop-module .shop-head p {
+            margin: 8px 0 0;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+        }
+
+        .shop-module .coins-pill {
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.34);
+            background: rgba(255, 255, 255, 0.14);
+            padding: 8px 14px;
+            font-weight: 800;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .shop-module .shop-flash {
+            border-radius: 12px;
+            padding: 10px 12px;
+            margin-bottom: 12px;
+            font-weight: 700;
+            font-size: 13px;
+        }
+
+        .shop-module .shop-flash.success {
+            border: 1px solid rgba(16, 185, 129, 0.28);
+            background: rgba(16, 185, 129, 0.14);
+            color: #0f8f66;
+        }
+
+        .shop-module .shop-flash.error {
+            border: 1px solid rgba(239, 68, 68, 0.22);
+            background: rgba(239, 68, 68, 0.12);
+            color: #bb3f3f;
+        }
+
+        .shop-module .shop-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 14px;
+        }
+
+        .shop-module .product-card {
+            border: 1px solid rgba(126, 152, 178, 0.28);
+            border-radius: 18px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 12px 24px rgba(10, 34, 62, 0.08);
+            display: flex;
+            flex-direction: column;
+            min-height: 100%;
+        }
+
+        .shop-module .product-image {
+            width: 100%;
+            height: 170px;
+            object-fit: cover;
+            background: #e8f0f8;
+        }
+
+        .shop-module .product-body {
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .shop-module .product-name {
+            margin: 0;
+            font-size: 20px;
+            color: #174a78;
+        }
+
+        .shop-module .product-meta {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .shop-module .tag {
+            border: 1px solid rgba(11, 164, 161, 0.3);
+            background: rgba(11, 164, 161, 0.1);
+            border-radius: 999px;
+            padding: 4px 10px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #0b8e8b;
+        }
+
+        .shop-module .product-desc {
+            color: #5d7590;
+            font-size: 13px;
+            line-height: 1.45;
+            min-height: 56px;
+        }
+
+        .shop-module .product-foot {
+            margin-top: auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .shop-module .price {
+            font-size: 22px;
+            font-weight: 800;
+            color: #0d5e8a;
+        }
+
+        .shop-module .order-btn {
+            border: 0;
+            border-radius: 12px;
+            padding: 10px 12px;
+            cursor: pointer;
+            font-weight: 800;
+            font-size: 13px;
+            color: #fff;
+            background: linear-gradient(135deg, #0fa5a2, #1788b6);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+        }
+
+        .shop-module .order-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 20px rgba(11, 154, 157, 0.28);
+        }
+
+        .shop-module .order-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.55;
+            box-shadow: none;
+        }
+
+        .shop-module .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(4, 16, 30, 0.55);
+            backdrop-filter: blur(2px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            z-index: 2100;
+        }
+
+        .shop-module .modal-overlay.show {
+            display: flex;
+        }
+
+        .shop-module .order-modal {
+            width: min(1140px, 100%);
+            max-height: calc(100vh - 28px);
+            overflow: auto;
+            border-radius: 32px;
+            border: 1px solid rgba(137, 156, 174, 0.24);
+            background:
+                radial-gradient(760px 260px at 100% 0%, rgba(11, 164, 161, 0.12), transparent 60%),
+                linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(246, 250, 253, 0.98));
+            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.26);
+        }
+
+        .shop-module .order-head {
+            padding: 18px 22px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            border-bottom: 1px solid rgba(137, 156, 174, 0.16);
+            background: linear-gradient(135deg, rgba(249, 253, 255, 0.98), rgba(239, 247, 252, 0.98));
+            color: #134563;
+        }
+
+        .shop-module .order-head h2 {
+            margin: 0;
+            color: #134563;
+            font-size: 24px;
+            line-height: 1.1;
+            letter-spacing: -0.4px;
+        }
+
+        .shop-module .order-close {
+            width: 34px;
+            height: 34px;
+            border: 0;
+            border-radius: 10px;
+            background: rgba(11, 164, 161, 0.1);
+            color: #0b8e8b;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .shop-module .order-form {
+            padding: 18px 20px 20px;
+            display: grid;
+            gap: 14px;
+            grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+            align-items: start;
+        }
+
+        .shop-module .checkout-panel {
+            border-radius: 24px;
+            border: 1px solid rgba(137, 156, 174, 0.2);
+            background: rgba(255, 255, 255, 0.92);
+            padding: 16px;
+            box-shadow: 0 10px 22px rgba(10, 34, 62, 0.06);
+        }
+
+        .shop-module .checkout-panel.checkout-main {
+            display: grid;
+            gap: 12px;
+        }
+
+        .shop-module .checkout-panel.checkout-side {
+            display: grid;
+            gap: 12px;
+            background:
+                radial-gradient(320px 160px at 100% 0%, rgba(11, 164, 161, 0.12), transparent 68%),
+                rgba(248, 252, 255, 0.98);
+        }
+
+        .shop-module .panel-title {
+            font-size: 11px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #6d8096;
+        }
+
+        .shop-module .order-info-card {
+            border-radius: 18px;
+            padding: 14px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(245, 250, 255, 0.96));
+            border: 1px solid rgba(137, 156, 174, 0.18);
+            display: grid;
+            gap: 8px;
+        }
+
+        .shop-module .order-info-card strong {
+            font-size: 20px;
+            color: #134563;
+        }
+
+        .shop-module .order-info-card small {
+            color: #6a7f95;
+            font-size: 13px;
+        }
+
+        .shop-module .order-hero {
+            border-radius: 24px;
+            border: 1px solid rgba(137, 156, 174, 0.18);
+            background:
+                radial-gradient(500px 180px at 100% 0%, rgba(12, 158, 184, 0.12), transparent 70%),
+                linear-gradient(135deg, rgba(248, 252, 255, 0.98), rgba(238, 246, 252, 0.98));
+            padding: 18px 18px 16px;
+            display: grid;
+            grid-template-columns: minmax(0, 1.3fr) minmax(220px, 0.7fr);
+            gap: 12px;
+            align-items: center;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+        }
+
+        .shop-module .order-hero-title {
+            display: grid;
+            gap: 4px;
+        }
+
+        .shop-module .order-hero-title strong {
+            font-size: 24px;
+            color: #0f4f7a;
+        }
+
+        .shop-module .order-hero-title span {
+            color: #56708a;
+            font-size: 13px;
+        }
+
+        .shop-module .order-hero-stats {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .shop-module .hero-stat {
+            border-radius: 16px;
+            border: 1px solid rgba(11, 164, 161, 0.16);
+            background: rgba(255, 255, 255, 0.85);
+            padding: 12px;
+        }
+
+        .shop-module .hero-stat small {
+            display: block;
+            font-size: 10px;
+            font-weight: 800;
+            color: #6b7f95;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .shop-module .hero-stat strong {
+            font-size: 18px;
+            color: #0b8e8b;
+        }
+
+        .shop-module .order-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .shop-module .order-grid .field.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .shop-module .field {
+            display: grid;
+            gap: 6px;
+        }
+
+        .shop-module .field label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #5a728b;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .shop-module .field input {
+            width: 100%;
+            border: 1px solid rgba(137, 156, 174, 0.4);
+            border-radius: 12px;
+            background: #fff;
+            padding: 10px 12px;
+            font: inherit;
+            color: #16324b;
+            box-sizing: border-box;
+        }
+
+        .shop-module .field input:focus {
+            outline: none;
+            border-color: rgba(12, 158, 184, 0.55);
+            box-shadow: 0 0 0 4px rgba(12, 158, 184, 0.13);
+        }
+
+        .shop-module #orderMap {
+            width: 100%;
+            height: 340px;
+            border-radius: 14px;
+            border: 1px solid rgba(137, 156, 174, 0.34);
+        }
+
+        .shop-module .map-hint {
+            font-size: 12px;
+            color: #5a728b;
+        }
+
+        .shop-module .order-summary {
+            grid-column: 1 / -1;
+            border: 1px solid rgba(137, 156, 174, 0.22);
+            border-radius: 22px;
+            background:
+                linear-gradient(135deg, rgba(15, 165, 162, 0.08), rgba(23, 136, 182, 0.06)),
+                rgba(244, 251, 255, 0.96);
+            padding: 14px 16px;
+            display: grid;
+            gap: 4px;
+            font-size: 13px;
+            color: #214a73;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+
+        .shop-module .order-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding-top: 4px;
+            grid-column: 1 / -1;
+        }
+
+        .shop-module .btn {
+            border: 0;
+            border-radius: 12px;
+            padding: 10px 14px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .shop-module .btn-cancel {
+            background: rgba(22, 55, 86, 0.1);
+            color: #224a72;
+        }
+
+        .shop-module .btn-submit {
+            color: #fff;
+            background: linear-gradient(135deg, #0fa5a2, #1788b6);
+        }
+
+        .shop-module .btn-submit.primary {
+            min-width: 170px;
+            box-shadow: 0 12px 24px rgba(11, 154, 157, 0.26);
+            background: linear-gradient(135deg, #0b8e8b, #1d4d7c);
+        }
+
+        .shop-module .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .shop-module .empty-state {
+            border: 1px dashed rgba(137, 156, 174, 0.44);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.75);
+            padding: 28px;
+            text-align: center;
+            color: #56708a;
+        }
+
+        body.dark-mode .shop-module {
+            color: #d9e5f0;
+        }
+
+        body.dark-mode .shop-module .product-card,
+        body.dark-mode .shop-module .order-modal {
+            background: rgba(16, 24, 37, 0.98);
+            border-color: rgba(74, 96, 121, 0.44);
+            color: #d9e5f0;
+        }
+
+        body.dark-mode .shop-module .order-head {
+            background:
+                radial-gradient(220px 120px at 100% 0%, rgba(45, 212, 191, 0.1), transparent 70%),
+                linear-gradient(135deg, rgba(7, 16, 28, 0.96), rgba(17, 53, 77, 0.96));
+            color: #dcecfb;
+        }
+
+        body.dark-mode .shop-module .product-name,
+        body.dark-mode .shop-module .order-head h2,
+        body.dark-mode .shop-module .price {
+            color: #dcecfb;
+        }
+
+        body.dark-mode .shop-module .order-hero {
+            background:
+                radial-gradient(460px 180px at 100% 0%, rgba(45, 212, 191, 0.12), transparent 70%),
+                linear-gradient(135deg, rgba(16, 24, 37, 0.98), rgba(13, 22, 35, 0.98));
+            border-color: rgba(74, 96, 121, 0.44);
+        }
+
+        body.dark-mode .shop-module .checkout-panel,
+        body.dark-mode .shop-module .checkout-panel.checkout-main,
+        body.dark-mode .shop-module .checkout-panel.checkout-side,
+        body.dark-mode .shop-module .order-info-card {
+            background: rgba(16, 24, 37, 0.96);
+            border-color: rgba(74, 96, 121, 0.44);
+        }
+
+        body.dark-mode .shop-module .panel-title,
+        body.dark-mode .shop-module .order-info-card small,
+        body.dark-mode .shop-module .order-hero-title span,
+        body.dark-mode .shop-module .hero-stat small,
+        body.dark-mode .shop-module .map-hint {
+            color: #9bb1c8;
+        }
+
+        body.dark-mode .shop-module .order-info-card strong,
+        body.dark-mode .shop-module .order-hero-title strong,
+        body.dark-mode .shop-module .hero-stat strong {
+            color: #dcecfb;
+        }
+
+        body.dark-mode .shop-module .field label,
+        body.dark-mode .shop-module .product-desc,
+        body.dark-mode .shop-module .order-summary {
+            color: #98acc0;
+        }
+
+        body.dark-mode .shop-module .field input {
+            background: rgba(10, 18, 29, 0.86);
+            border-color: rgba(74, 96, 121, 0.52);
+            color: #eff7ff;
+        }
+
+        body.dark-mode .shop-module .order-summary {
+            background:
+                linear-gradient(135deg, rgba(45, 212, 191, 0.08), rgba(56, 189, 248, 0.06)),
+                rgba(12, 22, 35, 0.86);
+            border-color: rgba(93, 116, 141, 0.58);
+        }
+
+        @media (max-width: 760px) {
+            .shop-module .order-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .shop-module .order-form {
+                grid-template-columns: 1fr;
+            }
+
+            .shop-module .order-hero,
+            .shop-module .order-hero-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+
+    <div class="shop-head">
+        <div>
+            <h1>{{ 'main.tab.shop'|trans }}</h1>
+            <p>Browse products and order with your coins.</p>
+        </div>
+        <div class="coins-pill">Available coins: <span class="js-available-coins">{{ availableCoins }}</span></div>
+    </div>
+
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="shop-flash {{ label == 'success' ? 'success' : 'error' }}">{{ message }}</div>
+        {% endfor %}
+    {% endfor %}
+
+    {% if products is empty %}
+        <div class="empty-state">No products available yet.</div>
+    {% else %}
+        <div class="shop-grid">
+            {% for product in products %}
+                {% set canAfford = availableCoins >= product.price_coins and product.quantity > 0 %}
+                <article class="product-card">
+                    <img class="product-image" src="{{ product.image_url }}" alt="{{ product.name }}">
+                    <div class="product-body">
+                        <h3 class="product-name">{{ product.name }}</h3>
+                        <div class="product-meta">
+                            <span class="tag">{{ product.category|default('General') }}</span>
+                            <span class="tag">Stock: {{ product.quantity }}</span>
+                        </div>
+                        <div class="product-desc">{{ product.description|default('No description available.') }}</div>
+                        <div class="product-foot">
+                            <div class="price">{{ product.price_coins }} coins</div>
+                            <button
+                                type="button"
+                                class="order-btn"
+                                data-product-id="{{ product.id }}"
+                                data-product-name="{{ product.name|e('html_attr') }}"
+                                data-product-price="{{ product.price_coins }}"
+                                data-product-stock="{{ product.quantity }}"
+                                {% if not canAfford %}disabled{% endif %}
+                            >Order</button>
+                        </div>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="modal-overlay shop-order-modal" aria-hidden="true">
+        <div class="order-modal">
+            <div class="order-head">
+                <h2>Order now</h2>
+                <button class="order-close" type="button" aria-label="Close">x</button>
+            </div>
+
+            <form class="order-form" method="post" action="{{ path('app_shop_order') }}" data-no-loader="true" data-turbo="false">
+                <input type="hidden" name="_token" value="{{ csrf_token('shop-order') }}">
+                <input class="js-product-id" type="hidden" name="product_id" value="">
+                <input type="hidden" name="quantity" value="1">
+                <input class="js-location-lat" type="hidden" name="location_lat" value="">
+                <input class="js-location-lng" type="hidden" name="location_lng" value="">
+
+                <div class="checkout-panel checkout-main">
+                    <div class="order-hero">
+                        <div class="order-hero-title">
+                            <strong class="js-product-name">Product</strong>
+                            <span>Fill in your details below to place the order.</span>
+                        </div>
+                        <div class="order-hero-stats">
+                            <div class="hero-stat">
+                                <small>Product price</small>
+                                <strong><span class="js-product-price">0</span> coins</strong>
+                            </div>
+                            <div class="hero-stat">
+                                <small>Your coins</small>
+                                <strong><span class="js-available-coins-text">{{ availableCoins }}</span> coins</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="order-summary">
+                        <strong class="js-product-name">Product</strong>
+                        <span>Price: <span class="js-product-price">0</span> coins</span>
+                        <span>Total: <strong class="js-total-coins">0</strong> coins</span>
+                    </div>
+
+                    <div class="order-grid">
+                        <div class="field">
+                            <label>First Name</label>
+                            <input type="text" name="first_name" value="{{ defaultFirstName }}" required>
+                        </div>
+                        <div class="field">
+                            <label>Last Name</label>
+                            <input type="text" name="last_name" value="{{ defaultLastName }}" required>
+                        </div>
+                        <div class="field full-width">
+                            <label>Email</label>
+                            <input type="email" name="buyer_email" value="{{ defaultBuyerEmail }}" required>
+                        </div>
+                        <div class="field full-width">
+                            <label>Phone Number</label>
+                            <input type="text" name="buyer_phone" value="{{ defaultBuyerPhone }}" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="checkout-panel checkout-side">
+                    <div class="panel-title">Delivery location</div>
+                    <div class="order-info-card">
+                        <strong class="js-product-name">Product</strong>
+                        <small>Choose a pin on the map and the order will use that location.</small>
+                    </div>
+
+                    <div class="field">
+                        <label>Location</label>
+                        <input class="js-location-text" type="text" name="location_text" placeholder="Click on the map to pick your location" required>
+                    </div>
+
+                    <div class="field">
+                        <div class="js-order-map" id="orderMap"></div>
+                        <div class="map-hint">Pin your location on the map, then place the order.</div>
+                    </div>
+                </div>
+
+                <div class="order-actions">
+                    <button class="btn btn-cancel order-close" type="button">Cancel</button>
+                    <button class="btn btn-submit primary" type="submit">Order Now</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

@@ -253,6 +253,47 @@
             color: #c6d4e3;
         }
 
+        body.dark-mode .product-card {
+            background: linear-gradient(165deg, #162131 0%, #101827 100%);
+            border-color: #314356;
+            box-shadow: 0 10px 22px rgba(0, 0, 0, 0.28);
+        }
+
+        body.dark-mode .product-card:hover {
+            border-color: #4c647d;
+            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.35);
+        }
+
+        body.dark-mode .product-media {
+            background: linear-gradient(180deg, #121c2b 0%, #101827 100%);
+            border-bottom-color: #2a374b;
+        }
+
+        body.dark-mode .product-name {
+            color: #eff7ff;
+        }
+
+        body.dark-mode .product-description,
+        body.dark-mode .qty,
+        body.dark-mode .product-id {
+            color: #a8bbcf;
+        }
+
+        body.dark-mode .chip {
+            background: #132131;
+            border-color: #314356;
+            color: #9ccfe3;
+        }
+
+        body.dark-mode .meta-row:last-child {
+            border-top-color: #2a374b;
+        }
+
+        body.dark-mode .product-delete-btn {
+            background: rgba(255, 103, 116, 0.92);
+            color: #fff;
+        }
+
         body.dark-mode .hero h1,
         body.dark-mode .hero-chip strong {
             color: #dbe8f6;
@@ -462,6 +503,7 @@
         }
 
         .product-card {
+            position: relative;
             background: linear-gradient(165deg, #ffffff 0%, #f3faff 100%);
             border: 1px solid #dce8f2;
             border-radius: 14px;
@@ -477,6 +519,35 @@
             transform: translateY(-4px);
             border-color: #b9d5e7;
             box-shadow: 0 14px 28px rgba(13, 42, 66, 0.14);
+        }
+
+        .product-delete-form {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 2;
+        }
+
+        .product-delete-btn {
+            width: 30px;
+            height: 30px;
+            border: 0;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+            font-size: 18px;
+            line-height: 1;
+            font-weight: 800;
+            color: #ffffff;
+            background: rgba(217, 74, 90, 0.92);
+            box-shadow: 0 8px 18px rgba(217, 74, 90, 0.24);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+        }
+
+        .product-delete-btn:hover {
+            transform: scale(1.06);
+            box-shadow: 0 10px 20px rgba(217, 74, 90, 0.32);
         }
 
         .product-media {
@@ -642,12 +713,12 @@
                 <div class="admin-name">{{ app.user.username }}</div>
                 <div class="admin-role">{{ 'dashboard.admin_role'|trans }}</div>
 
-                <a href="{{ path('app_dashboard') }}" class="sidebar-link">{{ 'dashboard.sidebar.dashboard'|trans }}</a>
-                <a href="{{ path('app_users') }}" class="sidebar-link">{{ 'dashboard.sidebar.users'|trans }}</a>
-                <a href="{{ path('app_todos') }}" class="sidebar-link">{{ 'dashboard.sidebar.todo_list'|trans }}</a>
-                <a href="{{ path('app_admin_stats') }}" class="sidebar-link">{{ 'dashboard.sidebar.statistics'|trans }}</a>
-                <a href="{{ path('app_admin_shop') }}" class="sidebar-link active">{{ 'dashboard.sidebar.shop'|trans }}</a>
-                <a href="{{ path('app_logout') }}" class="sidebar-link" style="color: #ff9aa5; margin-top: 30px;">{{ 'dashboard.sidebar.logout'|trans }}</a>
+                <a href="{{ path('app_dashboard') }}" class="sidebar-link" data-no-loader="true">{{ 'dashboard.sidebar.dashboard'|trans }}</a>
+                <a href="{{ path('app_users') }}" class="sidebar-link" data-no-loader="true">{{ 'dashboard.sidebar.users'|trans }}</a>
+                <a href="{{ path('app_todos') }}" class="sidebar-link" data-no-loader="true">{{ 'dashboard.sidebar.todo_list'|trans }}</a>
+                <a href="{{ path('app_admin_stats') }}" class="sidebar-link" data-no-loader="true">{{ 'dashboard.sidebar.statistics'|trans }}</a>
+                <a href="{{ path('app_admin_shop') }}" class="sidebar-link active" data-no-loader="true">{{ 'dashboard.sidebar.shop'|trans }}</a>
+                <a href="{{ path('app_logout') }}" class="sidebar-link" style="color: #ff9aa5; margin-top: 30px;" data-no-loader="true">{{ 'dashboard.sidebar.logout'|trans }}</a>
             </aside>
 
             <main class="admin-content">
@@ -743,6 +814,10 @@
                             <div class="products-grid">
                                 {% for product in products %}
                                     <article class="product-card">
+                                        <form method="post" action="{{ path('app_admin_shop_delete', { id: product.id }) }}" class="product-delete-form" data-no-loader="true" data-turbo="false" onsubmit="return confirm('Delete this product?');">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('shop-product-delete-' ~ product.id) }}">
+                                            <button type="submit" class="product-delete-btn" aria-label="Delete product" title="Delete product">&times;</button>
+                                        </form>
                                         <div class="product-media">
                                             <img src="{{ product.image_url|default('/images/default_image.png') }}" alt="{{ product.name }}" class="product-image" />
                                         </div>

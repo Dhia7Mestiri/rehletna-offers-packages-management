@@ -1,0 +1,313 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'dashboard.sidebar.orders'|trans }} - {{ 'dashboard.title'|trans }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .dashboard-page {
+            min-height: 100vh;
+            background: #f2f4f7;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #213142;
+        }
+
+        .dashboard-layout {
+            display: grid;
+            grid-template-columns: 260px minmax(0, 1fr);
+            min-height: 100vh;
+        }
+
+        .dash-sidebar {
+            background: #2f445a;
+            color: #fff;
+            padding: 28px 14px;
+        }
+
+        .admin-avatar {
+            width: 84px;
+            height: 84px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: #e5e9ef;
+            color: #2f445a;
+            font-size: 28px;
+            font-weight: 800;
+            margin: 0 auto 14px;
+            border: 4px solid rgba(255, 255, 255, 0.25);
+            overflow: hidden;
+        }
+
+        .admin-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .admin-name {
+            text-align: center;
+            font-size: 32px;
+            line-height: 1;
+            margin-bottom: 4px;
+            color: #ffffff;
+        }
+
+        .admin-role {
+            text-align: center;
+            color: #FCBE31;
+            font-weight: 800;
+            margin-bottom: 26px;
+        }
+
+        .sidebar-link {
+            display: block;
+            color: #d9e4ef;
+            text-decoration: none;
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .sidebar-link.active {
+            background: #d8f4f2;
+            color: #0BA4A1;
+            font-weight: 700;
+        }
+
+        .admin-content {
+            padding: 22px;
+        }
+
+        .orders-panel {
+            background: #fff;
+            border: 1px solid #e7edf2;
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 10px 20px rgba(10, 34, 62, 0.08);
+        }
+
+        .orders-panel h1 {
+            margin: 0 0 12px;
+            color: #194575;
+            font-size: 30px;
+            font-weight: 800;
+        }
+
+        .orders-table-wrap {
+            border: 1px solid #dde8f2;
+            border-radius: 12px;
+            overflow: auto;
+            background: #fff;
+        }
+
+        .orders-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 980px;
+        }
+
+        .orders-table th,
+        .orders-table td {
+            text-align: left;
+            padding: 10px;
+            border-bottom: 1px solid #edf2f7;
+            font-size: 12px;
+            vertical-align: top;
+        }
+
+        .orders-table th {
+            color: #586b7f;
+            font-weight: 700;
+            font-size: 11px;
+            text-transform: uppercase;
+            background: #f5f9fd;
+        }
+
+        .status-select {
+            width: 100%;
+            border: 1px solid #cddbe9;
+            border-radius: 8px;
+            padding: 6px 8px;
+            font: inherit;
+            font-size: 12px;
+            background: #fff;
+            color: #1f4469;
+        }
+
+        .save-btn {
+            border: 0;
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #fff;
+            background: linear-gradient(135deg, #0fa5a2, #1788b6);
+            cursor: pointer;
+            margin-top: 6px;
+        }
+
+        .flash {
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-bottom: 10px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .flash.success {
+            background: #e7f9f3;
+            color: #11885f;
+            border: 1px solid #b8ebd7;
+        }
+
+        .flash.error {
+            background: #fff1f1;
+            color: #c43d3d;
+            border: 1px solid #ffd3d3;
+        }
+
+        body.dark-mode .dashboard-page {
+            background: #0f1724;
+            color: #d8e2ef;
+        }
+
+        body.dark-mode .dash-sidebar {
+            background: #131c2a;
+        }
+
+        body.dark-mode .sidebar-link {
+            color: #b5c5d7;
+        }
+
+        body.dark-mode .sidebar-link.active {
+            background: #1d3346;
+            color: #66d8d5;
+        }
+
+        body.dark-mode .orders-panel,
+        body.dark-mode .orders-table-wrap {
+            background: #182232;
+            border-color: #2a374b;
+        }
+
+        body.dark-mode .orders-panel h1,
+        body.dark-mode .orders-table th,
+        body.dark-mode .orders-table td {
+            color: #c6d4e3;
+            border-bottom-color: #2a374b;
+        }
+
+        body.dark-mode .orders-table th {
+            background: #121c2b;
+            color: #9fb2c7;
+        }
+
+        body.dark-mode .status-select {
+            background: #121c2b;
+            border-color: #2a374b;
+            color: #dbe8f6;
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .dash-sidebar {
+                display: none;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="dashboard-page">
+        <div class="dashboard-layout">
+            <aside class="dash-sidebar">
+                <div class="admin-avatar">
+                    {% if adminImageUrl is defined and adminImageUrl %}
+                        <img src="{{ adminImageUrl }}" alt="{{ app.user.username }}" />
+                    {% else %}
+                        {{ app.user.username|first|upper }}
+                    {% endif %}
+                </div>
+                <div class="admin-name">{{ app.user.username }}</div>
+                <div class="admin-role">{{ 'dashboard.admin_role'|trans }}</div>
+
+                <a href="{{ path('app_dashboard') }}" class="sidebar-link">{{ 'dashboard.sidebar.dashboard'|trans }}</a>
+                <a href="{{ path('app_users') }}" class="sidebar-link">{{ 'dashboard.sidebar.users'|trans }}</a>
+                <a href="{{ path('app_todos') }}" class="sidebar-link">{{ 'dashboard.sidebar.todo_list'|trans }}</a>
+                <a href="{{ path('app_admin_stats') }}" class="sidebar-link">{{ 'dashboard.sidebar.statistics'|trans }}</a>
+                <a href="{{ path('app_admin_shop') }}" class="sidebar-link">{{ 'dashboard.sidebar.shop'|trans }}</a>
+                <a href="{{ path('app_admin_orders') }}" class="sidebar-link active">{{ 'dashboard.sidebar.orders'|trans }}</a>
+                <a href="{{ path('app_logout') }}" class="sidebar-link" style="color: #ff9aa5; margin-top: 30px;">{{ 'dashboard.sidebar.logout'|trans }}</a>
+            </aside>
+
+            <div class="admin-content">
+                {% for label, messages in app.flashes %}
+                    {% for message in messages %}
+                        <div class="flash {{ label == 'success' ? 'success' : 'error' }}">{{ message }}</div>
+                    {% endfor %}
+                {% endfor %}
+
+                <section class="orders-panel">
+                    <h1>{{ 'dashboard.sidebar.orders'|trans }}</h1>
+
+                    <div class="orders-table-wrap">
+                        <table class="orders-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>User</th>
+                                    <th>Product</th>
+                                    <th>Quantity</th>
+                                    <th>Total Coins</th>
+                                    <th>Buyer</th>
+                                    <th>Address</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in orders %}
+                                    <tr>
+                                        <td>#{{ order.id }}</td>
+                                        <td>{{ order.username|default('User #' ~ order.user_id) }}</td>
+                                        <td>{{ order.product_name|default('Shop item #' ~ order.shop_id) }}</td>
+                                        <td>{{ order.quantity }}</td>
+                                        <td>{{ order.total_coins }}</td>
+                                        <td>
+                                            <strong>{{ order.buyer_name }}</strong><br>
+                                            <span>{{ order.buyer_email }}</span>
+                                        </td>
+                                        <td>{{ order.buyer_address|default('')|nl2br }}</td>
+                                        <td>{{ order.purchase_date }}</td>
+                                        <td>
+                                            <form method="post" action="{{ path('app_admin_order_status_update', { id: order.id }) }}" data-no-loader="true">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('order-status-' ~ order.id) }}">
+                                                <select class="status-select" name="status">
+                                                    {% set currentStatus = order.status|default('pending')|lower %}
+                                                    <option value="pending" {{ currentStatus == 'pending' ? 'selected' : '' }}>pending</option>
+                                                    <option value="confirmed" {{ currentStatus == 'confirmed' ? 'selected' : '' }}>confirmed</option>
+                                                    <option value="cancelled" {{ currentStatus == 'cancelled' ? 'selected' : '' }}>cancelled</option>
+                                                    <option value="delivered" {{ currentStatus == 'delivered' ? 'selected' : '' }}>delivered</option>
+                                                </select>
+                                                <button type="submit" class="save-btn">Update</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                        <td colspan="9">No orders found.</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+{% endblock %}

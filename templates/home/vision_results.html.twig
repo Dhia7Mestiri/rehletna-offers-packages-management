@@ -1,0 +1,250 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Vision Test Results{% endblock %}
+
+{% block body %}
+<div class="vision-results-container">
+    <div class="vision-results-card">
+        <h1 class="vision-results-title">{{ colorProblem.title }}</h1>
+        
+        <div class="vision-results-scores">
+            <h3>Your Scores by Color Group</h3>
+            <div class="scores-grid">
+                {% for theme, score in themeScores %}
+                    <div class="score-item {% if theme == selectedTheme %}active{% endif %}">
+                        <div class="score-label">{{ theme|capitalize }}</div>
+                        <div class="score-value">{{ score }}/3</div>
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="total-score">
+                <strong>Total Correct: {{ totalCorrect }}/{{ totalPlates }}</strong>
+            </div>
+        </div>
+
+        <div class="vision-results-description">
+            <h3>What This Means</h3>
+            <p>{{ colorProblem.description }}</p>
+            <p class="recommendation">
+                <strong>💡 Recommendation:</strong> {{ colorProblem.recommendation }}
+            </p>
+        </div>
+
+        <div class="vision-results-actions">
+            <h3>Would you like to apply this theme to the site?</h3>
+            
+            <form method="POST" action="{{ path('app_vision_test_apply_theme') }}" style="display: inline;">
+                <input type="hidden" name="_token" value="{{ csrf_token('apply-theme') }}">
+                <button type="submit" class="btn-apply">
+                    ✓ Yes, Apply {{ selectedTheme|capitalize }} Theme
+                </button>
+            </form>
+
+            <form method="POST" action="{{ path('app_vision_test_skip_theme') }}" style="display: inline;">
+                <input type="hidden" name="_token" value="{{ csrf_token('skip-theme') }}">
+                <button type="submit" class="btn-skip">
+                    ✗ No, Keep Normal Colors
+                </button>
+            </form>
+
+            <a href="{{ path('app_vision_test') }}" class="btn-retry">
+                🔄 Retake Test
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+.vision-results-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.vision-results-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    padding: 40px;
+    max-width: 600px;
+    width: 100%;
+}
+
+.vision-results-title {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 30px;
+    font-size: 28px;
+}
+
+.vision-results-scores {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+}
+
+.vision-results-scores h3 {
+    margin-top: 0;
+    color: #34495e;
+    font-size: 16px;
+}
+
+.scores-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.score-item {
+    background: white;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    padding: 12px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.score-item.active {
+    background: #ecf0f1;
+    border-color: #3498db;
+    font-weight: bold;
+}
+
+.score-label {
+    font-size: 12px;
+    color: #7f8c8d;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+}
+
+.score-value {
+    font-size: 18px;
+    color: #2c3e50;
+    font-weight: bold;
+}
+
+.total-score {
+    text-align: center;
+    padding-top: 10px;
+    border-top: 1px solid #ddd;
+    color: #27ae60;
+    font-size: 16px;
+}
+
+.vision-results-description {
+    background: #ecf0f1;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    border-left: 4px solid #3498db;
+}
+
+.vision-results-description h3 {
+    margin-top: 0;
+    color: #2c3e50;
+}
+
+.vision-results-description p {
+    margin: 10px 0;
+    color: #34495e;
+    line-height: 1.6;
+}
+
+.recommendation {
+    background: white;
+    padding: 12px;
+    border-radius: 5px;
+    margin-top: 15px !important;
+    color: #27ae60;
+    font-style: italic;
+}
+
+.vision-results-actions {
+    text-align: center;
+}
+
+.vision-results-actions h3 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+}
+
+.vision-results-actions form {
+    margin: 10px 5px;
+}
+
+.btn-apply,
+.btn-skip,
+.btn-retry {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-block;
+    text-decoration: none;
+    margin: 5px;
+}
+
+.btn-apply {
+    background: #27ae60;
+    color: white;
+}
+
+.btn-apply:hover {
+    background: #229954;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+}
+
+.btn-skip {
+    background: #e74c3c;
+    color: white;
+}
+
+.btn-skip:hover {
+    background: #c0392b;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+}
+
+.btn-retry {
+    background: #3498db;
+    color: white;
+}
+
+.btn-retry:hover {
+    background: #2980b9;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+}
+
+@media (max-width: 600px) {
+    .vision-results-card {
+        padding: 20px;
+    }
+
+    .vision-results-title {
+        font-size: 22px;
+    }
+
+    .scores-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .btn-apply,
+    .btn-skip,
+    .btn-retry {
+        display: block;
+        width: 100%;
+        margin: 8px 0;
+    }
+}
+</style>
+{% endblock %}

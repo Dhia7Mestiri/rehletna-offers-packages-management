@@ -205,16 +205,92 @@ class HomeController extends AbstractController
             $selectedTheme = 'blue';
         }
 
+        // Store temp results in session for results page
         $session = $request->getSession();
+        $session->set('vision_temp_results', [
+            'selectedTheme' => $selectedTheme,
+            'themeScores' => $themeScores,
+            'totalCorrect' => $totalCorrect,
+            'totalPlates' => $totalPlates,
+        ]);
+
+        return $this->redirectToRoute('app_vision_test_results');
+    }
+
+    #[Route('/vision-test/results', name: 'app_vision_test_results', methods: ['GET'])]
+    #[IsGranted('ROLE_USER')]
+    public function visionTestResults(Request $request): Response
+    {
+        $session = $request->getSession();
+        $tempResults = $session->get('vision_temp_results');
+
+        if (!$tempResults) {
+            return $this->redirectToRoute('app_vision_test');
+        }
+
+        $selectedTheme = $tempResults['selectedTheme'];
+        $themeScores = $tempResults['themeScores'];
+        $totalCorrect = $tempResults['totalCorrect'];
+        $totalPlates = $tempResults['totalPlates'];
+
+        $colorProblems = $this->getColorProblemText($selectedTheme, $themeScores);
+
+        return $this->render('home/vision_results.html.twig', [
+            'selectedTheme' => $selectedTheme,
+            'themeScores' => $themeScores,
+            'totalCorrect' => $totalCorrect,
+            'totalPlates' => $totalPlates,
+            'colorProblem' => $colorProblems,
+            'visionTheme' => (string) $session->get('vision_theme', 'default'),
+        ]);
+    }
+
+    #[Route('/vision-test/apply-theme', name: 'app_vision_test_apply_theme', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function applyVisionTheme(Request $request): Response
+    {
+        if (!$this->isCsrfTokenValid('apply-theme', (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Invalid request.');
+            return $this->redirectToRoute('app_vision_test_results');
+        }
+
+        $session = $request->getSession();
+        $tempResults = $session->get('vision_temp_results');
+
+        if (!$tempResults) {
+            return $this->redirectToRoute('app_vision_test');
+        }
+
+        $selectedTheme = $tempResults['selectedTheme'];
+        $totalCorrect = $tempResults['totalCorrect'];
+        $totalPlates = $tempResults['totalPlates'];
+
+        // Apply the theme permanently
         $session->set('vision_theme', $selectedTheme);
         $session->set('vision_accessible_mode', $totalCorrect < $totalPlates);
+        $session->remove('vision_temp_results');
 
         $this->addFlash('success', sprintf(
-            'Vision test saved. Your strongest color result is %s (%d/%d correct).',
-            ucfirst($selectedTheme),
-            $totalCorrect,
-            $totalPlates
+            '✓ Site theme applied to %s!',
+            ucfirst($selectedTheme)
         ));
+
+        return $this->redirectToRoute('app_mainpage');
+    }
+
+    #[Route('/vision-test/skip-theme', name: 'app_vision_test_skip_theme', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function skipVisionTheme(Request $request): Response
+    {
+        if (!$this->isCsrfTokenValid('skip-theme', (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Invalid request.');
+            return $this->redirectToRoute('app_vision_test_results');
+        }
+
+        $session = $request->getSession();
+        $session->remove('vision_temp_results');
+
+        $this->addFlash('info', 'Theme not applied. Site colors remain normal.');
 
         return $this->redirectToRoute('app_mainpage');
     }
@@ -436,6 +512,43 @@ class HomeController extends AbstractController
             [$userId],
             [ParameterType::INTEGER]
         )->fetchAssociative() ?: null;
+    }
+
+    private function getColorProblemText(string $theme, array $themeScores): array
+    {
+        $descriptions = [
+            'blue' => [
+                'title' => '🔵 Blue Perception Focus',
+                'description' => 'Your eyes show strongest perception in blue color spectrum. This may indicate sensitivity to blue light or difficulty with blue-red distinction.',
+                'recommendation' => 'The blue theme provides better contrast for your visual comfort.',
+            ],
+            'red' => [
+                'title' => '🔴 Red Perception Focus',
+                'description' => 'Your eyes show strongest perception in red color spectrum. This may indicate red-green color blindness or reduced red sensitivity.',
+                'recommendation' => 'The red theme helps enhance contrast for red-color scenarios.',
+            ],
+            'yellow' => [
+                'title' => '🟡 Yellow Perception Focus',
+                'description' => 'Your eyes show strongest perception in yellow color spectrum. This may indicate challenges with blue-yellow distinction.',
+                'recommendation' => 'The yellow theme provides enhanced visibility in your optimal color range.',
+            ],
+            'black' => [
+                'title' => '⚫ Dark Tone Perception Focus',
+                'description' => 'Your eyes show strongest perception in dark and low-contrast areas. This may indicate light sensitivity or need for better contrast.',
+                'recommendation' => 'The dark theme reduces eye strain and improves your comfort.',
+            ],
+            'white' => [
+                'title' => '⚪ Bright Tone Perception Focus',
+                'description' => 'Your eyes show strongest perception in bright and high-contrast areas. This may indicate preference for clarity and definition.',
+                'recommendation' => 'The bright theme maximizes visual clarity for your needs.',
+            ],
+        ];
+
+        return $descriptions[$theme] ?? [
+            'title' => 'Color Perception Result',
+            'description' => 'Your results show a unique color perception pattern.',
+            'recommendation' => 'You can apply a custom theme to match your visual needs.',
+        ];
     }
 
     private function visionTestGroups(): array

@@ -14,14 +14,22 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class HomeController extends AbstractController
 {
     #[Route('/', name: 'app_home')]
     #[Route('/home', name: 'app_home_home')]
-    public function index(): Response
+    public function index(Request $request, TokenStorageInterface $tokenStorage): Response
     {
+        if ($this->getUser()) {
+            $tokenStorage->setToken(null);
+            if ($request->hasSession()) {
+                $request->getSession()->invalidate();
+            }
+        }
+
         return $this->render('home/index.html.twig');
     }
 

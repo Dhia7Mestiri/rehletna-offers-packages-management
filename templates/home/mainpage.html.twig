@@ -12,11 +12,25 @@
         .main-container {
             display: flex;
             min-height: 100vh;
-            background:
-                radial-gradient(1400px 500px at 10% -20%, rgba(10, 160, 159, 0.22), transparent 60%),
-                radial-gradient(1000px 500px at 100% 0%, rgba(252, 186, 48, 0.20), transparent 55%),
-                linear-gradient(180deg, #f4f9ff 0%, #eff6fb 100%);
+            background: var(--vision-main-background, radial-gradient(1400px 500px at 10% -20%, rgba(10, 160, 159, 0.22), transparent 60%), radial-gradient(1000px 500px at 100% 0%, rgba(252, 186, 48, 0.20), transparent 55%), linear-gradient(180deg, #f4f9ff 0%, #eff6fb 100%));
             font-family: 'Sora', 'Segoe UI', sans-serif;
+        }
+
+        .main-container.vision-support {
+            background: var(--vision-support-background, radial-gradient(1400px 500px at 10% -20%, rgba(37, 130, 150, 0.28), transparent 60%), radial-gradient(1000px 500px at 100% 0%, rgba(226, 169, 52, 0.2), transparent 55%), linear-gradient(180deg, #edf7fb 0%, #e6f2f8 100%));
+        }
+
+        .main-container.vision-support .top-bar {
+            background: var(--vision-top-bar-background, rgba(240, 251, 255, 0.95));
+        }
+
+        .main-container.vision-support .nav-tab.active {
+            background: var(--vision-nav-active-background, linear-gradient(135deg, #0b8e8b, #1a6ea0));
+            color: var(--vision-nav-active-color, #f1fcff);
+        }
+
+        .main-container.vision-support .profile-section {
+            border-color: var(--vision-profile-hover-border, rgba(31, 136, 171, 0.35));
         }
 
         .side-menu {
@@ -25,7 +39,7 @@
             top: 0;
             width: 300px;
             height: 100vh;
-            background: linear-gradient(180deg, #ffffff 0%, #f3f9ff 100%);
+            background: var(--vision-side-menu-background, linear-gradient(180deg, #ffffff 0%, #f3f9ff 100%));
             box-shadow: 10px 0 32px rgba(3, 39, 75, 0.15);
             transition: left 0.3s ease;
             z-index: 1000;
@@ -100,9 +114,9 @@
         }
 
         .side-menu-btn:hover {
-            background: rgba(10, 160, 159, 0.10);
-            border-color: rgba(10, 160, 159, 0.22);
-            color: #0b8e8b;
+            background: var(--vision-hover-background, rgba(10, 160, 159, 0.10));
+            border-color: var(--vision-hover-border, rgba(10, 160, 159, 0.22));
+            color: var(--vision-hover-color, #0b8e8b);
         }
 
         .logout-btn {
@@ -136,7 +150,7 @@
         }
 
         .top-bar {
-            background: rgba(255, 255, 255, 0.90);
+            background: var(--vision-top-bar-background, rgba(255, 255, 255, 0.90));
             backdrop-filter: blur(10px);
             padding: 16px 28px;
             box-shadow: 0 8px 24px rgba(10, 46, 88, 0.08);
@@ -185,14 +199,14 @@
         }
 
         .menu-toggle:hover {
-            background: rgba(10, 160, 159, 0.10);
+            background: var(--vision-hover-background, rgba(10, 160, 159, 0.10));
         }
 
         .menu-toggle span {
             display: block;
             width: 24px;
             height: 2px;
-            background: #1D4D7C;
+            background: var(--vision-accent-strong, #1D4D7C);
             margin: 5px 0;
             transition: 0.3s;
         }
@@ -205,13 +219,15 @@
             padding: 6px 8px 6px 14px;
             border-radius: 999px;
             background: rgba(255, 255, 255, 0.7);
-            border: none;
-            transition: all 0.2s ease;
+            border: 1px solid rgba(80, 149, 198, 0.16);
+            transition: all 0.25s ease;
         }
 
         .profile-section:hover {
             transform: translateY(-1px);
-            box-shadow: 0 8px 18px rgba(7, 57, 107, 0.10);
+            border-color: var(--vision-profile-hover-border, rgba(86, 218, 255, 0.92));
+            background: var(--vision-profile-hover-background, linear-gradient(135deg, rgba(219, 247, 255, 0.98), rgba(192, 238, 255, 0.94)));
+            box-shadow: var(--vision-profile-hover-shadow, 0 0 0 1px rgba(129, 230, 255, 0.72), 0 0 16px rgba(65, 203, 255, 0.46), 0 10px 24px rgba(10, 98, 141, 0.24));
         }
 
         .profile-info {
@@ -349,6 +365,15 @@
             border-color: rgba(255, 255, 255, 0.1) !important;
         }
 
+        body.dark-mode .profile-section:hover {
+            background: linear-gradient(135deg, rgba(14, 79, 110, 0.95), rgba(7, 118, 139, 0.9)) !important;
+            border-color: rgba(108, 229, 255, 0.92) !important;
+            box-shadow:
+                0 0 0 1px rgba(108, 229, 255, 0.54),
+                0 0 18px rgba(54, 185, 235, 0.44),
+                0 10px 24px rgba(3, 22, 38, 0.62) !important;
+        }
+
         body.dark-mode .profile-name {
             color: #e8f0f6 !important;
         }
@@ -473,10 +498,90 @@
         }
 
         .nav-tab.active {
-            background: linear-gradient(135deg, #0FA5A2 0%, #1788b6 100%);
-            color: white;
+            background: var(--vision-nav-active-background, linear-gradient(135deg, #0FA5A2 0%, #1788b6 100%));
+            color: var(--vision-nav-active-color, white);
             border-color: transparent;
             box-shadow: 0 8px 18px rgba(15, 165, 162, 0.26);
+        }
+
+        .main-container.theme-blue {
+            --vision-main-background: radial-gradient(1400px 500px at 10% -20%, rgba(34, 132, 222, 0.24), transparent 60%), radial-gradient(1000px 500px at 100% 0%, rgba(129, 196, 255, 0.18), transparent 55%), linear-gradient(180deg, #f1f8ff 0%, #eaf4ff 100%);
+            --vision-support-background: radial-gradient(1400px 500px at 10% -20%, rgba(37, 130, 150, 0.22), transparent 60%), radial-gradient(1000px 500px at 100% 0%, rgba(129, 196, 255, 0.16), transparent 55%), linear-gradient(180deg, #edf7fb 0%, #e6f2f8 100%);
+            --vision-top-bar-background: rgba(244, 250, 255, 0.94);
+            --vision-side-menu-background: linear-gradient(180deg, #ffffff 0%, #eef6ff 100%);
+            --vision-nav-active-background: linear-gradient(135deg, #156fd1, #0f4c9a);
+            --vision-nav-active-color: #f6fbff;
+            --vision-hover-background: rgba(34, 132, 222, 0.10);
+            --vision-hover-border: rgba(34, 132, 222, 0.22);
+            --vision-hover-color: #156fd1;
+            --vision-profile-hover-border: rgba(88, 154, 209, 0.92);
+            --vision-profile-hover-background: linear-gradient(135deg, rgba(232, 244, 255, 0.98), rgba(213, 234, 255, 0.94));
+            --vision-profile-hover-shadow: 0 0 0 1px rgba(134, 196, 255, 0.72), 0 0 16px rgba(63, 165, 255, 0.40), 0 10px 24px rgba(14, 82, 138, 0.22);
+            --vision-accent-strong: #0f4c9a;
+        }
+
+        .main-container.theme-red {
+            --vision-main-background: radial-gradient(1400px 500px at 10% -20%, rgba(220, 82, 82, 0.24), transparent 60%), radial-gradient(1000px 500px at 100% 0%, rgba(255, 191, 191, 0.16), transparent 55%), linear-gradient(180deg, #fff4f4 0%, #ffecec 100%);
+            --vision-support-background: radial-gradient(1400px 500px at 10% -20%, rgba(220, 82, 82, 0.18), transparent 60%), radial-gradient(1000px 500px at 100% 0%, rgba(255, 191, 191, 0.12), transparent 55%), linear-gradient(180deg, #fff7f7 0%, #fff0f0 100%);
+            --vision-top-bar-background: rgba(255, 246, 246, 0.95);
+            --vision-side-menu-background: linear-gradient(180deg, #ffffff 0%, #fff1f1 100%);
+            --vision-nav-active-background: linear-gradient(135deg, #d33f49, #8f2433);
+            --vision-nav-active-color: #fff8f8;
+            --vision-hover-background: rgba(220, 82, 82, 0.10);
+            --vision-hover-border: rgba(220, 82, 82, 0.22);
+            --vision-hover-color: #d33f49;
+            --vision-profile-hover-border: rgba(224, 114, 114, 0.92);
+            --vision-profile-hover-background: linear-gradient(135deg, rgba(255, 237, 237, 0.98), rgba(255, 225, 225, 0.94));
+            --vision-profile-hover-shadow: 0 0 0 1px rgba(255, 170, 170, 0.72), 0 0 16px rgba(255, 124, 124, 0.34), 0 10px 24px rgba(152, 50, 50, 0.20);
+            --vision-accent-strong: #8f2433;
+        }
+
+        .main-container.theme-yellow {
+            --vision-main-background: radial-gradient(1400px 500px at 10% -20%, rgba(232, 177, 38, 0.28), transparent 60%), radial-gradient(1000px 500px at 100% 0%, rgba(255, 238, 181, 0.18), transparent 55%), linear-gradient(180deg, #fffaf0 0%, #fff3d6 100%);
+            --vision-support-background: radial-gradient(1400px 500px at 10% -20%, rgba(232, 177, 38, 0.20), transparent 60%), radial-gradient(1000px 500px at 100% 0%, rgba(255, 238, 181, 0.14), transparent 55%), linear-gradient(180deg, #fffdf6 0%, #fff6dd 100%);
+            --vision-top-bar-background: rgba(255, 251, 240, 0.95);
+            --vision-side-menu-background: linear-gradient(180deg, #ffffff 0%, #fff7e4 100%);
+            --vision-nav-active-background: linear-gradient(135deg, #d39a15, #8e5f09);
+            --vision-nav-active-color: #fffdf7;
+            --vision-hover-background: rgba(232, 177, 38, 0.12);
+            --vision-hover-border: rgba(232, 177, 38, 0.24);
+            --vision-hover-color: #c98f00;
+            --vision-profile-hover-border: rgba(230, 194, 86, 0.92);
+            --vision-profile-hover-background: linear-gradient(135deg, rgba(255, 248, 220, 0.98), rgba(255, 242, 194, 0.94));
+            --vision-profile-hover-shadow: 0 0 0 1px rgba(248, 214, 123, 0.72), 0 0 16px rgba(255, 204, 84, 0.34), 0 10px 24px rgba(162, 124, 22, 0.18);
+            --vision-accent-strong: #8e5f09;
+        }
+
+        .main-container.theme-black {
+            --vision-main-background: radial-gradient(1400px 500px at 10% -20%, rgba(68, 74, 88, 0.30), transparent 60%), radial-gradient(1000px 500px at 100% 0%, rgba(156, 163, 175, 0.16), transparent 55%), linear-gradient(180deg, #1f2733 0%, #121822 100%);
+            --vision-support-background: radial-gradient(1400px 500px at 10% -20%, rgba(68, 74, 88, 0.22), transparent 60%), radial-gradient(1000px 500px at 100% 0%, rgba(156, 163, 175, 0.12), transparent 55%), linear-gradient(180deg, #1b232f 0%, #121822 100%);
+            --vision-top-bar-background: rgba(25, 32, 44, 0.96);
+            --vision-side-menu-background: linear-gradient(180deg, #1f2733 0%, #151b24 100%);
+            --vision-nav-active-background: linear-gradient(135deg, #586174, #262d3a);
+            --vision-nav-active-color: #f8fafc;
+            --vision-hover-background: rgba(148, 163, 184, 0.12);
+            --vision-hover-border: rgba(148, 163, 184, 0.24);
+            --vision-hover-color: #d8e0ea;
+            --vision-profile-hover-border: rgba(114, 128, 145, 0.92);
+            --vision-profile-hover-background: linear-gradient(135deg, rgba(33, 41, 53, 0.98), rgba(24, 31, 42, 0.94));
+            --vision-profile-hover-shadow: 0 0 0 1px rgba(86, 95, 109, 0.70), 0 0 16px rgba(74, 85, 104, 0.30), 0 10px 24px rgba(0, 0, 0, 0.38);
+            --vision-accent-strong: #e2e8f0;
+        }
+
+        .main-container.theme-white {
+            --vision-main-background: radial-gradient(1400px 500px at 10% -20%, rgba(203, 213, 225, 0.34), transparent 60%), radial-gradient(1000px 500px at 100% 0%, rgba(241, 245, 249, 0.22), transparent 55%), linear-gradient(180deg, #ffffff 0%, #f6f8fb 100%);
+            --vision-support-background: radial-gradient(1400px 500px at 10% -20%, rgba(203, 213, 225, 0.20), transparent 60%), radial-gradient(1000px 500px at 100% 0%, rgba(241, 245, 249, 0.14), transparent 55%), linear-gradient(180deg, #ffffff 0%, #f7f9fc 100%);
+            --vision-top-bar-background: rgba(255, 255, 255, 0.96);
+            --vision-side-menu-background: linear-gradient(180deg, #ffffff 0%, #f6f8fb 100%);
+            --vision-nav-active-background: linear-gradient(135deg, #7a8798, #475569);
+            --vision-nav-active-color: #ffffff;
+            --vision-hover-background: rgba(148, 163, 184, 0.10);
+            --vision-hover-border: rgba(148, 163, 184, 0.24);
+            --vision-hover-color: #475569;
+            --vision-profile-hover-border: rgba(203, 213, 225, 0.95);
+            --vision-profile-hover-background: linear-gradient(135deg, rgba(250, 251, 252, 0.98), rgba(243, 246, 249, 0.95));
+            --vision-profile-hover-shadow: 0 0 0 1px rgba(226, 232, 240, 0.9), 0 0 16px rgba(203, 213, 225, 0.30), 0 10px 24px rgba(148, 163, 184, 0.18);
+            --vision-accent-strong: #334155;
         }
 
         .content-area {
@@ -743,18 +848,84 @@
         /* Profile Popup */
         .profile-popup {
             position: absolute;
-            background: rgba(255, 255, 255, 0.98);
-            border-radius: 14px;
-            padding: 15px;
-            min-width: 200px;
-            border: none;
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.18);
+            background:
+                radial-gradient(260px 120px at 100% 0%, rgba(123, 233, 255, 0.34), transparent 72%),
+                linear-gradient(145deg, rgba(245, 253, 255, 0.99), rgba(222, 247, 255, 0.97));
+            border-radius: 16px;
+            padding: 14px;
+            min-width: 248px;
+            border: 1px solid rgba(86, 218, 255, 0.72);
+            box-shadow:
+                0 0 0 1px rgba(164, 240, 255, 0.7),
+                0 14px 28px rgba(8, 67, 104, 0.2),
+                0 0 24px rgba(95, 222, 255, 0.32);
             z-index: 1000;
             display: none;
         }
 
         .profile-popup.show {
             display: block;
+        }
+
+        .profile-popup .popup-username {
+            margin: 0 0 10px;
+            color: #0f3f63;
+            font-size: 18px;
+            line-height: 1.1;
+        }
+
+        .profile-popup .popup-stats {
+            display: grid;
+            gap: 7px;
+        }
+
+        .profile-popup .popup-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 7px 9px;
+            border-radius: 10px;
+            border: 1px solid rgba(130, 221, 246, 0.42);
+            background: rgba(255, 255, 255, 0.56);
+            color: #194a71;
+            font-size: 13px;
+        }
+
+        .profile-popup .popup-label {
+            font-weight: 700;
+            color: #4a6d89;
+        }
+
+        .profile-popup .popup-value {
+            font-weight: 800;
+            color: #0e3f67;
+            text-align: right;
+        }
+
+        body.dark-mode .profile-popup {
+            background:
+                radial-gradient(260px 120px at 100% 0%, rgba(84, 218, 255, 0.34), transparent 72%),
+                linear-gradient(145deg, rgba(8, 28, 42, 0.98), rgba(11, 44, 63, 0.98));
+            border-color: rgba(98, 227, 255, 0.8);
+            box-shadow:
+                0 0 0 1px rgba(98, 227, 255, 0.54),
+                0 14px 28px rgba(0, 0, 0, 0.5),
+                0 0 24px rgba(60, 198, 255, 0.32);
+        }
+
+        body.dark-mode .profile-popup .popup-username,
+        body.dark-mode .profile-popup .popup-value {
+            color: #ddf6ff;
+        }
+
+        body.dark-mode .profile-popup .popup-row {
+            background: rgba(7, 31, 44, 0.75);
+            border-color: rgba(96, 222, 255, 0.34);
+            color: #bee8fb;
+        }
+
+        body.dark-mode .profile-popup .popup-label {
+            color: #9ccde3;
         }
 
         /* Responsive */
@@ -834,7 +1005,7 @@
                             top: offset.top + 60,
                             right: 20
                         });
-                    }, 1000);
+                    }, 120);
                 },
                 function() {
                     clearTimeout(hoverTimer);
@@ -899,6 +1070,8 @@
 
                 const availableCoins = Number($module.data('availableCoins') || 0);
                 const mapboxToken = String($module.data('mapboxToken') || '');
+                const mapHintNoToken = String($module.data('mapHintNoToken') || '');
+                const mapHintError = String($module.data('mapHintError') || '');
                 const $overlay = $module.find('.shop-order-modal');
                 const $productId = $module.find('.js-product-id');
                 const $productName = $module.find('.js-product-name');
@@ -908,6 +1081,7 @@
                 const $locationLat = $module.find('.js-location-lat');
                 const $locationLng = $module.find('.js-location-lng');
                 const mapContainer = $module.find('.js-order-map')[0];
+                const $mapHint = $module.find('.map-hint');
                 const $submitButton = $module.find('.btn-submit');
                 let currentPrice = 0;
                 let currentStock = 1;
@@ -930,45 +1104,131 @@
                         setTimeout(function () {
                             map.resize();
                         }, 120);
+                    } else if (map && typeof map.invalidateSize === 'function') {
+                        setTimeout(function () {
+                            map.invalidateSize();
+                        }, 120);
                     }
                 }
 
+                function setLocation(lat, lng, label) {
+                    $locationLat.val(lat.toFixed(6));
+                    $locationLng.val(lng.toFixed(6));
+                    $locationText.val(label || (lat.toFixed(6) + ', ' + lng.toFixed(6)));
+                }
+
+                function loadLeafletAssets() {
+                    return new Promise(function (resolve, reject) {
+                        if (typeof window.L !== 'undefined') {
+                            resolve();
+                            return;
+                        }
+
+                        const existingScript = document.getElementById('leaflet-js');
+                        if (existingScript) {
+                            existingScript.addEventListener('load', function () { resolve(); }, { once: true });
+                            existingScript.addEventListener('error', function () { reject(new Error('Leaflet failed to load.')); }, { once: true });
+                            return;
+                        }
+
+                        if (!document.getElementById('leaflet-css')) {
+                            const leafletCss = document.createElement('link');
+                            leafletCss.id = 'leaflet-css';
+                            leafletCss.rel = 'stylesheet';
+                            leafletCss.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+                            leafletCss.integrity = 'sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=';
+                            leafletCss.crossOrigin = '';
+                            document.head.appendChild(leafletCss);
+                        }
+
+                        const leafletScript = document.createElement('script');
+                        leafletScript.id = 'leaflet-js';
+                        leafletScript.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+                        leafletScript.integrity = 'sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=';
+                        leafletScript.crossOrigin = '';
+                        leafletScript.onload = function () { resolve(); };
+                        leafletScript.onerror = function () { reject(new Error('Leaflet failed to load.')); };
+                        document.body.appendChild(leafletScript);
+                    });
+                }
+
                 function initMap() {
-                    if (map || !mapContainer || !mapboxToken || typeof window.mapboxgl === 'undefined') {
+                    if (map || !mapContainer) {
                         return;
                     }
 
-                    window.mapboxgl.accessToken = mapboxToken;
-                    map = new window.mapboxgl.Map({
-                        container: mapContainer,
-                        style: 'mapbox://styles/mapbox/streets-v12',
-                        center: [10.1815, 36.8065],
-                        zoom: 10,
-                    });
+                    if (mapboxToken && typeof window.mapboxgl !== 'undefined') {
+                        window.mapboxgl.accessToken = mapboxToken;
+                        map = new window.mapboxgl.Map({
+                            container: mapContainer,
+                            style: 'mapbox://styles/mapbox/streets-v12',
+                            center: [10.1815, 36.8065],
+                            zoom: 10,
+                        });
 
-                    map.on('click', function (event) {
-                        const lng = event.lngLat.lng;
-                        const lat = event.lngLat.lat;
+                        map.on('click', function (event) {
+                            const lng = event.lngLat.lng;
+                            const lat = event.lngLat.lat;
 
-                        if (!marker) {
-                            marker = new window.mapboxgl.Marker({ color: '#0fa5a2' }).setLngLat([lng, lat]).addTo(map);
-                        } else {
-                            marker.setLngLat([lng, lat]);
-                        }
+                            if (!marker) {
+                                marker = new window.mapboxgl.Marker({ color: '#0fa5a2' }).setLngLat([lng, lat]).addTo(map);
+                            } else {
+                                marker.setLngLat([lng, lat]);
+                            }
 
-                        $locationLat.val(lat.toFixed(6));
-                        $locationLng.val(lng.toFixed(6));
+                            fetch('https://api.mapbox.com/geocoding/v5/mapbox.places/' + lng + ',' + lat + '.json?access_token=' + mapboxToken)
+                                .then((response) => response.ok ? response.json() : null)
+                                .then((payload) => {
+                                    const place = payload && payload.features && payload.features[0] ? payload.features[0].place_name : '';
+                                    setLocation(lat, lng, place);
+                                })
+                                .catch(() => {
+                                    setLocation(lat, lng, '');
+                                });
+                        });
 
-                        fetch('https://api.mapbox.com/geocoding/v5/mapbox.places/' + lng + ',' + lat + '.json?access_token=' + mapboxToken)
-                            .then((response) => response.ok ? response.json() : null)
-                            .then((payload) => {
-                                const place = payload && payload.features && payload.features[0] ? payload.features[0].place_name : '';
-                                $locationText.val(place || (lat.toFixed(6) + ', ' + lng.toFixed(6)));
-                            })
-                            .catch(() => {
-                                $locationText.val(lat.toFixed(6) + ', ' + lng.toFixed(6));
+                        return;
+                    }
+
+                    $mapHint.text(mapHintNoToken);
+
+                    loadLeafletAssets()
+                        .then(function () {
+                            if (map || typeof window.L === 'undefined') {
+                                return;
+                            }
+
+                            map = window.L.map(mapContainer).setView([36.8065, 10.1815], 10);
+
+                            window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                maxZoom: 19,
+                                attribution: '&copy; OpenStreetMap contributors'
+                            }).addTo(map);
+
+                            map.on('click', function (event) {
+                                const lat = event.latlng.lat;
+                                const lng = event.latlng.lng;
+
+                                if (!marker) {
+                                    marker = window.L.marker([lat, lng]).addTo(map);
+                                } else {
+                                    marker.setLatLng([lat, lng]);
+                                }
+
+                                fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=' + lat + '&lon=' + lng)
+                                    .then((response) => response.ok ? response.json() : null)
+                                    .then((payload) => {
+                                        const label = payload && payload.display_name ? payload.display_name : '';
+                                        setLocation(lat, lng, label);
+                                    })
+                                    .catch(() => {
+                                        setLocation(lat, lng, '');
+                                    });
                             });
-                    });
+                        })
+                        .catch(function () {
+                            $mapHint.text(mapHintError);
+                        });
                 }
 
                 $(document).off('click.shopModule').on('click.shopModule', '.shop-module .order-btn', function () {
@@ -1002,7 +1262,7 @@
                 });
 
                 if (!mapboxToken) {
-                    $module.find('.map-hint').text('Mapbox token is missing. Set MAPBOX_PUBLIC_TOKEN in your environment to enable map picking.');
+                    $mapHint.text(mapHintNoToken);
                 }
             }
             
@@ -1166,6 +1426,12 @@
                     window.location.href = '{{ path('app_offers_grid') }}';
                 }
             });
+
+            window.addEventListener('pageshow', function () {
+                $('.side-menu').removeClass('open');
+                $('.menu-overlay').removeClass('show');
+                isMenuOpen = false;
+            });
         });
         
         function showChatPopup() {
@@ -1224,7 +1490,7 @@
     </div>
     
     <!-- Main Content -->
-    <div class="main-container">
+    <div class="main-container theme-{{ visionTheme|default('default') }}{% if visionAccessibleMode|default(false) %} vision-support{% endif %}">
         <div style="flex: 1;">
             <!-- Top Bar -->
             <div class="top-bar">
@@ -1342,21 +1608,29 @@
     
     <!-- Profile Popup -->
     <div class="profile-popup">
-        <div>
-            <strong>{{ app.user.fullName|default(app.user.username) }}</strong>
-            <p>{{ 'main.popup.membership'|trans }}: {{ profile.member_premium|default('Standard') }}</p>
-            <p>{{ 'main.popup.language'|trans }}: {{ profile.language|default('English') }}</p>
-            <p>{{ 'main.popup.coins'|trans }}: {{ profile.coins|default(0) }}</p>
-            <p>{{ 'main.popup.rate'|trans }}:
-                {% set membership = profile.member_premium|default('Standard') %}
-                {% if membership in ['Administrator', 'VIP', 'VIP+'] %}
-                    {{ 'main.popup.rate_vip'|trans }}
-                {% elseif membership == 'Premium' %}
-                    {{ 'main.popup.rate_premium'|trans }}
-                {% else %}
-                    {{ 'main.popup.rate_standard'|trans }}
-                {% endif %}
-            </p>
+        <strong class="popup-username">{{ app.user.fullName|default(app.user.username) }}</strong>
+        <div class="popup-stats">
+            <div class="popup-row">
+                <span class="popup-label">{{ 'main.popup.membership'|trans }}</span>
+                <span class="popup-value">{{ profile.member_premium|default('Standard') }}</span>
+            </div>
+            <div class="popup-row">
+                <span class="popup-label">{{ 'main.popup.coins'|trans }}</span>
+                <span class="popup-value">{{ profile.coins|default(0) }}</span>
+            </div>
+            <div class="popup-row">
+                <span class="popup-label">{{ 'main.popup.rate'|trans }}</span>
+                <span class="popup-value">
+                    {% set membership = profile.member_premium|default('Standard') %}
+                    {% if membership in ['Administrator', 'VIP', 'VIP+'] %}
+                        {{ 'main.popup.rate_vip'|trans }}
+                    {% elseif membership == 'Premium' %}
+                        {{ 'main.popup.rate_premium'|trans }}
+                    {% else %}
+                        {{ 'main.popup.rate_standard'|trans }}
+                    {% endif %}
+                </span>
+            </div>
         </div>
     </div>
 {% endblock %}

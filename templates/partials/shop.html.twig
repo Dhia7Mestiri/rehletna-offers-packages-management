@@ -7,7 +7,13 @@
 {% set defaultBuyerEmail = shop.defaultBuyerEmail|default('') %}
 {% set defaultBuyerPhone = shop.defaultBuyerPhone|default('') %}
 
-<div class="shop-module" data-mapbox-token="{{ mapboxToken|e('html_attr') }}" data-available-coins="{{ availableCoins }}">
+<div
+    class="shop-module"
+    data-mapbox-token="{{ mapboxToken|e('html_attr') }}"
+    data-available-coins="{{ availableCoins }}"
+    data-map-hint-no-token="{{ 'shop.map_hint_no_token'|trans|e('html_attr') }}"
+    data-map-hint-error="{{ 'shop.map_hint_error'|trans|e('html_attr') }}"
+>
     <style>
         .shop-module {
             min-height: 100%;
@@ -50,6 +56,45 @@
             white-space: nowrap;
         }
 
+        .shop-module .shop-head-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .shop-module .history-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.16);
+            color: #ffffff;
+            font-weight: 800;
+            font-size: 13px;
+            text-decoration: none;
+            transition: transform 0.2s ease, background 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .shop-module .history-link:hover {
+            transform: translateY(-1px);
+            background: rgba(255, 255, 255, 0.24);
+        }
+
+        .shop-module .history-link svg {
+            width: 15px;
+            height: 15px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
         .shop-module .shop-flash {
             border-radius: 12px;
             padding: 10px 12px;
@@ -89,9 +134,12 @@
 
         .shop-module .product-image {
             width: 100%;
-            height: 170px;
-            object-fit: cover;
-            background: #e8f0f8;
+            height: 140px;
+            object-fit: contain;
+            object-position: center;
+            padding: 10px;
+            background: transparent;
+            mix-blend-mode: multiply;
         }
 
         .shop-module .product-body {
@@ -409,10 +457,15 @@
 
         .shop-module .order-actions {
             display: flex;
-            justify-content: flex-end;
+            justify-content: space-between;
             gap: 10px;
             padding-top: 4px;
             grid-column: 1 / -1;
+            width: 100%;
+        }
+
+        .shop-module .order-actions .btn-submit {
+            margin-left: auto;
         }
 
         .shop-module .btn {
@@ -464,6 +517,10 @@
             color: #d9e5f0;
         }
 
+        body.dark-mode .shop-module .product-image {
+            mix-blend-mode: normal;
+        }
+
         body.dark-mode .shop-module .order-head {
             background:
                 radial-gradient(220px 120px at 100% 0%, rgba(45, 212, 191, 0.1), transparent 70%),
@@ -506,6 +563,20 @@
             color: #dcecfb;
         }
 
+        body.dark-mode .shop-module .hero-stat {
+            border-color: rgba(45, 212, 191, 0.45);
+            background: linear-gradient(145deg, rgba(15, 66, 105, 0.9), rgba(18, 110, 126, 0.9));
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        }
+
+        body.dark-mode .shop-module .hero-stat small {
+            color: #a9d0e9;
+        }
+
+        body.dark-mode .shop-module .hero-stat strong {
+            color: #e8fbff;
+        }
+
         body.dark-mode .shop-module .field label,
         body.dark-mode .shop-module .product-desc,
         body.dark-mode .shop-module .order-summary {
@@ -544,9 +615,18 @@
     <div class="shop-head">
         <div>
             <h1>{{ 'main.tab.shop'|trans }}</h1>
-            <p>Browse products and order with your coins.</p>
+            <p>{{ 'shop.subtitle'|trans }}</p>
         </div>
-        <div class="coins-pill">Available coins: <span class="js-available-coins">{{ availableCoins }}</span></div>
+        <div class="shop-head-actions">
+            <a class="history-link" href="{{ path('app_my_orders') }}" data-no-loader="true" data-turbo="false" aria-label="{{ 'shop.history'|trans }}">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <circle cx="12" cy="12" r="9"></circle>
+                    <path d="M12 7v5l3 2"></path>
+                </svg>
+                <span>{{ 'shop.history'|trans }}</span>
+            </a>
+            <div class="coins-pill">{{ 'shop.available_coins'|trans }}: <span class="js-available-coins">{{ availableCoins }}</span></div>
+        </div>
     </div>
 
     {% for label, messages in app.flashes %}
@@ -556,7 +636,7 @@
     {% endfor %}
 
     {% if products is empty %}
-        <div class="empty-state">No products available yet.</div>
+        <div class="empty-state">{{ 'shop.empty'|trans }}</div>
     {% else %}
         <div class="shop-grid">
             {% for product in products %}
@@ -566,12 +646,12 @@
                     <div class="product-body">
                         <h3 class="product-name">{{ product.name }}</h3>
                         <div class="product-meta">
-                            <span class="tag">{{ product.category|default('General') }}</span>
-                            <span class="tag">Stock: {{ product.quantity }}</span>
+                            <span class="tag">{{ product.category|default('shop.category.general'|trans) }}</span>
+                            <span class="tag">{{ 'shop.stock'|trans }}: {{ product.quantity }}</span>
                         </div>
-                        <div class="product-desc">{{ product.description|default('No description available.') }}</div>
+                        <div class="product-desc">{{ product.description|default('shop.no_description'|trans) }}</div>
                         <div class="product-foot">
-                            <div class="price">{{ product.price_coins }} coins</div>
+                            <div class="price">{{ product.price_coins }} {{ 'shop.coins'|trans }}</div>
                             <button
                                 type="button"
                                 class="order-btn"
@@ -580,7 +660,7 @@
                                 data-product-price="{{ product.price_coins }}"
                                 data-product-stock="{{ product.quantity }}"
                                 {% if not canAfford %}disabled{% endif %}
-                            >Order</button>
+                            >{{ 'shop.order'|trans }}</button>
                         </div>
                     </div>
                 </article>
@@ -591,8 +671,8 @@
     <div class="modal-overlay shop-order-modal" aria-hidden="true">
         <div class="order-modal">
             <div class="order-head">
-                <h2>Order now</h2>
-                <button class="order-close" type="button" aria-label="Close">x</button>
+                <h2>{{ 'shop.order_now'|trans }}</h2>
+                <button class="order-close" type="button" aria-label="{{ 'shop.close'|trans }}">x</button>
             </div>
 
             <form class="order-form" method="post" action="{{ path('app_shop_order') }}" data-no-loader="true" data-turbo="false">
@@ -605,68 +685,68 @@
                 <div class="checkout-panel checkout-main">
                     <div class="order-hero">
                         <div class="order-hero-title">
-                            <strong class="js-product-name">Product</strong>
-                            <span>Fill in your details below to place the order.</span>
+                            <strong class="js-product-name">{{ 'shop.product'|trans }}</strong>
+                            <span>{{ 'shop.fill_details'|trans }}</span>
                         </div>
                         <div class="order-hero-stats">
                             <div class="hero-stat">
-                                <small>Product price</small>
-                                <strong><span class="js-product-price">0</span> coins</strong>
+                                <small>{{ 'shop.product_price'|trans }}</small>
+                                <strong><span class="js-product-price">0</span> {{ 'shop.coins'|trans }}</strong>
                             </div>
                             <div class="hero-stat">
-                                <small>Your coins</small>
-                                <strong><span class="js-available-coins-text">{{ availableCoins }}</span> coins</strong>
+                                <small>{{ 'shop.your_coins'|trans }}</small>
+                                <strong><span class="js-available-coins-text">{{ availableCoins }}</span> {{ 'shop.coins'|trans }}</strong>
                             </div>
                         </div>
                     </div>
 
                     <div class="order-summary">
-                        <strong class="js-product-name">Product</strong>
-                        <span>Price: <span class="js-product-price">0</span> coins</span>
-                        <span>Total: <strong class="js-total-coins">0</strong> coins</span>
+                        <strong class="js-product-name">{{ 'shop.product'|trans }}</strong>
+                        <span>{{ 'shop.price'|trans }}: <span class="js-product-price">0</span> {{ 'shop.coins'|trans }}</span>
+                        <span>{{ 'shop.total'|trans }}: <strong class="js-total-coins">0</strong> {{ 'shop.coins'|trans }}</span>
                     </div>
 
                     <div class="order-grid">
                         <div class="field">
-                            <label>First Name</label>
+                            <label>{{ 'shop.first_name'|trans }}</label>
                             <input type="text" name="first_name" value="{{ defaultFirstName }}" required>
                         </div>
                         <div class="field">
-                            <label>Last Name</label>
+                            <label>{{ 'shop.last_name'|trans }}</label>
                             <input type="text" name="last_name" value="{{ defaultLastName }}" required>
                         </div>
                         <div class="field full-width">
-                            <label>Email</label>
+                            <label>{{ 'shop.email'|trans }}</label>
                             <input type="email" name="buyer_email" value="{{ defaultBuyerEmail }}" required>
                         </div>
                         <div class="field full-width">
-                            <label>Phone Number</label>
+                            <label>{{ 'shop.phone_number'|trans }}</label>
                             <input type="text" name="buyer_phone" value="{{ defaultBuyerPhone }}" required>
                         </div>
                     </div>
                 </div>
 
                 <div class="checkout-panel checkout-side">
-                    <div class="panel-title">Delivery location</div>
+                    <div class="panel-title">{{ 'shop.delivery_location'|trans }}</div>
                     <div class="order-info-card">
-                        <strong class="js-product-name">Product</strong>
-                        <small>Choose a pin on the map and the order will use that location.</small>
+                        <strong class="js-product-name">{{ 'shop.product'|trans }}</strong>
+                        <small>{{ 'shop.delivery_help'|trans }}</small>
                     </div>
 
                     <div class="field">
-                        <label>Location</label>
-                        <input class="js-location-text" type="text" name="location_text" placeholder="Click on the map to pick your location" required>
+                        <label>{{ 'shop.location'|trans }}</label>
+                        <input class="js-location-text" type="text" name="location_text" placeholder="{{ 'shop.location_placeholder'|trans }}" required>
                     </div>
 
                     <div class="field">
                         <div class="js-order-map" id="orderMap"></div>
-                        <div class="map-hint">Pin your location on the map, then place the order.</div>
+                        <div class="map-hint">{{ 'shop.map_hint'|trans }}</div>
                     </div>
                 </div>
 
                 <div class="order-actions">
-                    <button class="btn btn-cancel order-close" type="button">Cancel</button>
-                    <button class="btn btn-submit primary" type="submit">Order Now</button>
+                    <button class="btn btn-cancel order-close" type="button">{{ 'shop.cancel'|trans }}</button>
+                    <button class="btn btn-submit primary" type="submit">{{ 'shop.order_now'|trans }}</button>
                 </div>
             </form>
         </div>

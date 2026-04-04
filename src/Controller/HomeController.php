@@ -55,10 +55,12 @@ class HomeController extends AbstractController
 
     #[Route('/mainpage', name: 'app_mainpage')]
     #[IsGranted('ROLE_USER')]
-    public function mainpage(Connection $connection): Response
+    public function mainpage(Request $request, Connection $connection): Response
     {
         $user = $this->getUser();
         $profile = null;
+        $visionAccessibleMode = (bool) $request->getSession()->get('vision_accessible_mode', false);
+        $visionTheme = (string) $request->getSession()->get('vision_theme', 'default');
 
         if ($user) {
             $defaults = [
@@ -151,7 +153,70 @@ class HomeController extends AbstractController
 
         return $this->render('home/mainpage.html.twig', [
             'profile' => $profile,
+            'visionAccessibleMode' => $visionAccessibleMode,
+            'visionTheme' => $visionTheme,
         ]);
+    }
+
+    #[Route('/vision-test', name: 'app_vision_test', methods: ['GET'])]
+    #[IsGranted('ROLE_USER')]
+    public function visionTest(Request $request): Response
+    {
+        $groups = $this->visionTestGroups();
+
+        return $this->render('home/vision_test.html.twig', [
+            'visionAccessibleMode' => (bool) $request->getSession()->get('vision_accessible_mode', false),
+            'visionTheme' => (string) $request->getSession()->get('vision_theme', 'default'),
+            'visionGroups' => $groups,
+        ]);
+    }
+
+    #[Route('/vision-test/submit', name: 'app_vision_test_submit', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function submitVisionTest(Request $request): Response
+    {
+        if (!$this->isCsrfTokenValid('vision-test', (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Invalid vision test request.');
+            return $this->redirectToRoute('app_vision_test');
+        }
+
+        $groups = $this->visionTestGroups();
+        $themeScores = [];
+        $totalCorrect = 0;
+        $totalPlates = 0;
+
+        foreach ($groups as $group) {
+            $theme = $group['theme'];
+            $themeScores[$theme] = 0;
+
+            foreach ($group['plates'] as $plate) {
+                $totalPlates++;
+                $answer = trim((string) $request->request->get($plate['field'], ''));
+                if ($answer === $plate['answer']) {
+                    $themeScores[$theme]++;
+                    $totalCorrect++;
+                }
+            }
+        }
+
+        arsort($themeScores);
+        $selectedTheme = array_key_first($themeScores) ?: 'blue';
+        if (!in_array($selectedTheme, ['blue', 'red', 'yellow', 'black', 'white'], true)) {
+            $selectedTheme = 'blue';
+        }
+
+        $session = $request->getSession();
+        $session->set('vision_theme', $selectedTheme);
+        $session->set('vision_accessible_mode', $totalCorrect < $totalPlates);
+
+        $this->addFlash('success', sprintf(
+            'Vision test saved. Your strongest color result is %s (%d/%d correct).',
+            ucfirst($selectedTheme),
+            $totalCorrect,
+            $totalPlates
+        ));
+
+        return $this->redirectToRoute('app_mainpage');
     }
 
     #[Route('/settings', name: 'app_settings')]
@@ -371,6 +436,62 @@ class HomeController extends AbstractController
             [$userId],
             [ParameterType::INTEGER]
         )->fetchAssociative() ?: null;
+    }
+
+    private function visionTestGroups(): array
+    {
+        return [
+            [
+                'theme' => 'blue',
+                'title' => 'Blue focus check',
+                'subtitle' => 'Three plates tuned for blue tones.',
+                'plates' => [
+                    ['field' => 'blue_1', 'answer' => '12', 'image' => 'plate-12.svg', 'alt' => 'Blue tone plate 1'],
+                    ['field' => 'blue_2', 'answer' => '8', 'image' => 'plate-8.svg', 'alt' => 'Blue tone plate 2'],
+                    ['field' => 'blue_3', 'answer' => '29', 'image' => 'plate-29.svg', 'alt' => 'Blue tone plate 3'],
+                ],
+            ],
+            [
+                'theme' => 'red',
+                'title' => 'Red focus check',
+                'subtitle' => 'Three plates tuned for red tones.',
+                'plates' => [
+                    ['field' => 'red_1', 'answer' => '16', 'image' => 'plate-red-1.svg', 'alt' => 'Red tone plate 1'],
+                    ['field' => 'red_2', 'answer' => '5', 'image' => 'plate-red-2.svg', 'alt' => 'Red tone plate 2'],
+                    ['field' => 'red_3', 'answer' => '42', 'image' => 'plate-red-3.svg', 'alt' => 'Red tone plate 3'],
+                ],
+            ],
+            [
+                'theme' => 'yellow',
+                'title' => 'Yellow focus check',
+                'subtitle' => 'Three plates tuned for yellow tones.',
+                'plates' => [
+                    ['field' => 'yellow_1', 'answer' => '7', 'image' => 'plate-yellow-1.svg', 'alt' => 'Yellow tone plate 1'],
+                    ['field' => 'yellow_2', 'answer' => '14', 'image' => 'plate-yellow-2.svg', 'alt' => 'Yellow tone plate 2'],
+                    ['field' => 'yellow_3', 'answer' => '61', 'image' => 'plate-yellow-3.svg', 'alt' => 'Yellow tone plate 3'],
+                ],
+            ],
+            [
+                'theme' => 'black',
+                'title' => 'Black focus check',
+                'subtitle' => 'Three plates tuned for black and dark tones.',
+                'plates' => [
+                    ['field' => 'black_1', 'answer' => '19', 'image' => 'plate-black-1.svg', 'alt' => 'Black tone plate 1'],
+                    ['field' => 'black_2', 'answer' => '2', 'image' => 'plate-black-2.svg', 'alt' => 'Black tone plate 2'],
+                    ['field' => 'black_3', 'answer' => '88', 'image' => 'plate-black-3.svg', 'alt' => 'Black tone plate 3'],
+                ],
+            ],
+            [
+                'theme' => 'white',
+                'title' => 'White focus check',
+                'subtitle' => 'Three plates tuned for white and bright tones.',
+                'plates' => [
+                    ['field' => 'white_1', 'answer' => '3', 'image' => 'plate-white-1.svg', 'alt' => 'White tone plate 1'],
+                    ['field' => 'white_2', 'answer' => '10', 'image' => 'plate-white-2.svg', 'alt' => 'White tone plate 2'],
+                    ['field' => 'white_3', 'answer' => '27', 'image' => 'plate-white-3.svg', 'alt' => 'White tone plate 3'],
+                ],
+            ],
+        ];
     }
 
     private function coinRewardForTier(string $tier): int
@@ -1479,6 +1600,78 @@ class HomeController extends AbstractController
         }
 
         try {
+                        $siteName = 'rehltna.tn';
+                        $safeProductName = htmlspecialchars($productName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                        $safeBuyerName = htmlspecialchars($buyerName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                        $safeBuyerEmail = htmlspecialchars($buyerEmail, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                        $safeBuyerPhone = htmlspecialchars($buyerPhone, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                        $safeBuyerAddress = htmlspecialchars($buyerAddress, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                        $safeLocationText = htmlspecialchars($locationText, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                        $safeCoordinates = htmlspecialchars($locationLat . ', ' . $locationLng, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+
+                        $locationRows = '';
+                        if ($locationText !== '') {
+                                $locationRows .= '<tr><td style="padding:8px 0;color:#4b6078;font-weight:700;">Localisation</td><td style="padding:8px 0;color:#0e2340;">' . $safeLocationText . '</td></tr>';
+                        }
+                        if ($locationLat !== '' && $locationLng !== '') {
+                                $locationRows .= '<tr><td style="padding:8px 0;color:#4b6078;font-weight:700;">Coordinates</td><td style="padding:8px 0;color:#0e2340;">' . $safeCoordinates . '</td></tr>';
+                        }
+
+                        $emailHtml = '<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation</title>
+</head>
+<body style="margin:0;padding:0;background:#edf4fb;font-family:Segoe UI,Arial,sans-serif;color:#12263f;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#edf4fb;padding:24px 0;">
+        <tr>
+            <td align="center">
+                <table role="presentation" width="680" cellspacing="0" cellpadding="0" style="max-width:680px;width:100%;background:#ffffff;border-radius:18px;overflow:hidden;border:1px solid #c9d9eb;">
+                    <tr>
+                        <td style="padding:24px 28px;background:linear-gradient(135deg,#066a8f,#0fa5a2);color:#ffffff;">
+                            <div style="font-size:13px;letter-spacing:.8px;text-transform:uppercase;opacity:.9;">' . $siteName . '</div>
+                            <h1 style="margin:8px 0 0;font-size:30px;line-height:1.1;">Order Confirmed</h1>
+                            <p style="margin:10px 0 0;font-size:15px;opacity:.95;">Thank you for shopping with us. Your order is now registered.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding:24px 28px;">
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
+                                <tr>
+                                    <td colspan="2" style="font-size:16px;font-weight:800;color:#0f4f7a;padding-bottom:10px;">Order Details</td>
+                                </tr>
+                                <tr><td style="padding:8px 0;color:#4b6078;font-weight:700;">Product</td><td style="padding:8px 0;color:#0e2340;">' . $safeProductName . '</td></tr>
+                                <tr><td style="padding:8px 0;color:#4b6078;font-weight:700;">Quantity</td><td style="padding:8px 0;color:#0e2340;">' . $quantity . '</td></tr>
+                                <tr><td style="padding:8px 0;color:#4b6078;font-weight:700;">Total coins</td><td style="padding:8px 0;color:#0e2340;">' . $totalCoins . ' coins</td></tr>
+                            </table>
+
+                            <div style="height:1px;background:#dce7f3;margin:18px 0;"></div>
+
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
+                                <tr>
+                                    <td colspan="2" style="font-size:16px;font-weight:800;color:#0f4f7a;padding-bottom:10px;">Buyer Information</td>
+                                </tr>
+                                <tr><td style="padding:8px 0;color:#4b6078;font-weight:700;">Name</td><td style="padding:8px 0;color:#0e2340;">' . $safeBuyerName . '</td></tr>
+                                <tr><td style="padding:8px 0;color:#4b6078;font-weight:700;">Email</td><td style="padding:8px 0;color:#0e2340;">' . $safeBuyerEmail . '</td></tr>
+                                <tr><td style="padding:8px 0;color:#4b6078;font-weight:700;">Phone number</td><td style="padding:8px 0;color:#0e2340;">' . $safeBuyerPhone . '</td></tr>
+                                <tr><td style="padding:8px 0;color:#4b6078;font-weight:700;">Address</td><td style="padding:8px 0;color:#0e2340;">' . $safeBuyerAddress . '</td></tr>
+                                ' . $locationRows . '
+                            </table>
+
+                            <div style="margin-top:20px;padding:14px 16px;background:#f2f9ff;border:1px solid #cbe5ff;border-radius:12px;color:#2c4d6e;font-size:13px;">
+                                Need help? Reply to this email and our ' . $siteName . ' support team will assist you.
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>';
+
             $email = (new Email())
                 ->from((string) ($_ENV['EMAIL_FROM'] ?? $_SERVER['EMAIL_FROM'] ?? 'noreply@rehletna.tn'))
                 ->to($buyerEmail)
@@ -1495,7 +1688,8 @@ class HomeController extends AbstractController
                     ($locationText !== '' ? "Map location: {$locationText}\n" : '') .
                     (($locationLat !== '' && $locationLng !== '') ? "Coordinates: {$locationLat}, {$locationLng}\n" : '') .
                     "\nThank you for your purchase."
-                );
+                )
+                ->html($emailHtml);
 
             $mailer->send($email);
         } catch (\Throwable $e) {

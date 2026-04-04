@@ -1,0 +1,258 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Eye Color Test - Rehletna.tn{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .vision-test-page {
+            min-height: 100vh;
+            padding: 28px 16px;
+            background:
+                radial-gradient(900px 420px at 10% -10%, rgba(11, 164, 161, 0.18), transparent 62%),
+                radial-gradient(860px 360px at 100% 0%, rgba(24, 111, 167, 0.14), transparent 64%),
+                linear-gradient(180deg, #eef6fc 0%, #e5eff9 100%);
+        }
+
+        .vision-shell {
+            max-width: 980px;
+            margin: 0 auto;
+            display: grid;
+            gap: 14px;
+        }
+
+        .vision-head {
+            border-radius: 20px;
+            padding: 18px 20px;
+            color: #ffffff;
+            background: linear-gradient(135deg, #0a6f8b, #159cb1);
+            box-shadow: 0 16px 32px rgba(10, 52, 90, 0.2);
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .vision-head h1 {
+            margin: 0;
+            font-size: clamp(24px, 3vw, 36px);
+        }
+
+        .vision-head p {
+            margin: 6px 0 0;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.92);
+        }
+
+        .vision-back {
+            border-radius: 999px;
+            padding: 8px 14px;
+            text-decoration: none;
+            font-weight: 800;
+            background: rgba(255, 255, 255, 0.14);
+            border: 1px solid rgba(255, 255, 255, 0.34);
+            color: #ffffff;
+        }
+
+        .vision-alert {
+            border-radius: 14px;
+            padding: 10px 12px;
+            border: 1px solid rgba(59, 130, 246, 0.32);
+            background: rgba(59, 130, 246, 0.1);
+            color: #1f5e95;
+            font-weight: 700;
+        }
+
+        .vision-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+        }
+
+        .vision-group {
+            display: grid;
+            gap: 12px;
+            padding: 16px;
+            border-radius: 18px;
+            border: 1px solid rgba(137, 156, 174, 0.22);
+            background: rgba(255, 255, 255, 0.72);
+            box-shadow: 0 10px 20px rgba(10, 34, 62, 0.06);
+        }
+
+        .vision-group-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .vision-group-head h2 {
+            margin: 0;
+            font-size: 18px;
+            color: #173f68;
+        }
+
+        .vision-group-head p {
+            margin: 4px 0 0;
+            color: #597591;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .vision-group-tag {
+            border-radius: 999px;
+            padding: 6px 12px;
+            background: rgba(15, 165, 162, 0.10);
+            border: 1px solid rgba(15, 165, 162, 0.20);
+            color: #0a6f8b;
+            font-weight: 800;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.6px;
+        }
+
+        .vision-card {
+            border-radius: 16px;
+            border: 1px solid rgba(137, 156, 174, 0.3);
+            background: rgba(255, 255, 255, 0.96);
+            box-shadow: 0 12px 24px rgba(10, 34, 62, 0.08);
+            padding: 12px;
+            display: grid;
+            gap: 10px;
+        }
+
+        .vision-card img {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+            border-radius: 14px;
+            border: 1px solid rgba(137, 156, 174, 0.34);
+            background: #f9fbff;
+        }
+
+        .vision-card label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #5a728b;
+            font-weight: 800;
+        }
+
+        .vision-card input {
+            border-radius: 12px;
+            border: 1px solid rgba(137, 156, 174, 0.42);
+            padding: 10px 12px;
+            font: inherit;
+            font-weight: 700;
+            color: #153753;
+        }
+
+        .vision-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .vision-submit {
+            border: 0;
+            border-radius: 12px;
+            padding: 11px 18px;
+            cursor: pointer;
+            color: #ffffff;
+            font-weight: 800;
+            background: linear-gradient(135deg, #0fa5a2, #1788b6);
+            box-shadow: 0 10px 20px rgba(10, 128, 170, 0.25);
+        }
+
+        .vision-summary {
+            border-radius: 14px;
+            padding: 10px 12px;
+            border: 1px solid rgba(15, 165, 162, 0.24);
+            background: rgba(15, 165, 162, 0.08);
+            color: #136d78;
+            font-weight: 700;
+        }
+
+        body.dark-mode .vision-test-page {
+            background:
+                radial-gradient(900px 420px at 0% 0%, rgba(45, 212, 191, 0.12), transparent 60%),
+                radial-gradient(760px 360px at 100% 0%, rgba(56, 189, 248, 0.1), transparent 64%),
+                linear-gradient(180deg, #0c1420 0%, #111b2a 100%);
+        }
+
+        body.dark-mode .vision-card {
+            background: rgba(16, 24, 37, 0.96);
+            border-color: rgba(74, 96, 121, 0.44);
+        }
+
+        body.dark-mode .vision-card label {
+            color: #9ab1c8;
+        }
+
+        body.dark-mode .vision-card input {
+            background: rgba(10, 18, 29, 0.86);
+            border-color: rgba(74, 96, 121, 0.52);
+            color: #eff7ff;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="vision-test-page">
+        <div class="vision-shell">
+            <div class="vision-head">
+                <div>
+                    <h1>Eye Color Test</h1>
+                    <p>Type the number you see in each image.</p>
+                </div>
+                <a class="vision-back" href="{{ path('app_mainpage') }}" data-no-loader="true" data-turbo="false">Back to Main</a>
+            </div>
+
+            {% for label, messages in app.flashes %}
+                {% for message in messages %}
+                    <div class="vision-alert">{{ message }}</div>
+                {% endfor %}
+            {% endfor %}
+
+            {% if visionTheme|default('default') != 'default' %}
+                <div class="vision-summary">Saved theme: {{ visionTheme|capitalize }}</div>
+            {% endif %}
+
+            {% if visionAccessibleMode|default(false) %}
+                <div class="vision-alert">A theme result is active for your account.</div>
+            {% endif %}
+
+            <form method="post" action="{{ path('app_vision_test_submit') }}" data-turbo="false" data-no-loader="true">
+                <input type="hidden" name="_token" value="{{ csrf_token('vision-test') }}">
+
+                {% for group in visionGroups %}
+                    <section class="vision-group">
+                        <div class="vision-group-head">
+                            <div>
+                                <h2>{{ group.title }}</h2>
+                                <p>{{ group.subtitle }}</p>
+                            </div>
+                            <span class="vision-group-tag">{{ group.theme }}</span>
+                        </div>
+
+                        <div class="vision-grid">
+                            {% for plate in group.plates %}
+                                <article class="vision-card">
+                                    <img src="{{ asset('images/vision-test/' ~ plate.image) }}" alt="{{ plate.alt }}">
+                                    <label for="{{ plate.field }}">Number in {{ group.theme }} plate {{ loop.index }}</label>
+                                    <input id="{{ plate.field }}" name="{{ plate.field }}" type="text" maxlength="3" required inputmode="numeric">
+                                </article>
+                            {% endfor %}
+                        </div>
+                    </section>
+                {% endfor %}
+
+                <div class="vision-actions" style="margin-top: 14px;">
+                    <button class="vision-submit" type="submit">Check Result</button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

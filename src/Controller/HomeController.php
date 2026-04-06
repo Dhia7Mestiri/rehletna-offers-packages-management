@@ -13,6 +13,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -970,10 +971,155 @@ class HomeController extends AbstractController
         return $this->render('guide/dashboard.html.twig');
     }
 
-    #[Route('/users', name: 'app_users')]
+    #[Route('/users', name: 'app_users', methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_ADMIN')]
-    public function users(Request $request, Connection $connection): Response
+    public function users(Request $request, Connection $connection, UserPasswordHasherInterface $passwordHasher): Response
     {
+        if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('create-user', (string) $request->request->get('_token'))) {
+                $this->addFlash('error', 'Invalid create user token.');
+                return $this->redirectToRoute('app_dashboard', ['module' => 'users']);
+            }
+
+            $firstName = trim((string) $request->request->get('first_name', ''));
+            $lastName = trim((string) $request->request->get('last_name', ''));
+            $username = trim((string) $request->request->get('username', ''));
+            $email = trim((string) $request->request->get('email', ''));
+            $role = strtoupper(trim((string) $request->request->get('role', 'USER')));
+            $password = (string) $request->request->get('password', '');
+            $membershipTier = strtolower(trim((string) $request->request->get('membership_tier', 'standard')));
+
+            $allowedRoles = ['USER', 'GUIDER', 'ADMIN', 'AGENCY'];
+            $allowedTiers = ['standard', 'premium', 'vip', 'vip+'];
+            $errors = [];
+
+            if (!preg_match('/^[A-Za-z]{3,}$/', $firstName)) {
+                $errors[] = 'First name must be at least 3 characters and only letters A-z.';
+            }
+
+            if (!preg_match('/^[A-Za-z]{3,}$/', $lastName)) {
+                $errors[] = 'Last name must be at least 3 characters and only letters A-z.';
+            }
+
+            if ($username === '' || mb_strlen($username) > 15) {
+                $errors[] = 'Username is required and must be 15 characters max.';
+            }
+
+            if (!str_contains($email, '@') || !str_contains($email, '.') || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $errors[] = 'Email must contain @ and . and be valid.';
+            }
+
+            if (!in_array($role, $allowedRoles, true)) {
+                $errors[] = 'Role must be USER, GUIDER, ADMIN, or AGENCY.';
+            }
+
+            if (!in_array($membershipTier, $allowedTiers, true)) {
+                $errors[] = 'Membership tier must be standard, premium, vip, or vip+.';
+            }
+
+            if (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/', $password)) {
+                $errors[] = 'Password must be 8+ chars and include a-z, A-Z, and a number.';
+            }
+
+            $existingUserByUsername = (int) $connection->fetchOne(
+                'SELECT COUNT(*) FROM `user` WHERE username = ?',
+                [$username],
+                [ParameterType::STRING]
+            );
+
+            if ($existingUserByUsername > 0) {
+                $errors[] = 'Username already exists.';
+            }
+
+            $existingUserByEmail = (int) $connection->fetchOne(
+                'SELECT COUNT(*) FROM `user` WHERE email = ?',
+                [$email],
+                [ParameterType::STRING]
+            );
+
+            if ($existingUserByEmail > 0) {
+                $errors[] = 'Email already exists.';
+            }
+
+            if (!empty($errors)) {
+                foreach ($errors as $error) {
+                    $this->addFlash('error', $error);
+                }
+
+                return $this->redirectToRoute('app_dashboard', ['module' => 'users']);
+            }
+
+            $defaultImagePath = $this->getParameter('kernel.project_dir') . '/public/images/default_image.png';
+            $defaultImageBlob = null;
+
+            if (is_file($defaultImagePath) && is_readable($defaultImagePath)) {
+                $defaultImageBlob = file_get_contents($defaultImagePath);
+            }
+
+            $connection->beginTransaction();
+
+            try {
+                $userEntity = new User();
+                $hashedPassword = $passwordHasher->hashPassword($userEntity, $password);
+
+                $connection->executeStatement(
+                    'INSERT INTO `user` (email, role, password, name, last_name, date, username, status, two_factor_enabled)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                    [
+                        $email,
+                        $role,
+                        $hashedPassword,
+                        $firstName,
+                        $lastName,
+                        (new \DateTimeImmutable())->format('Y-m-d'),
+                        $username,
+                        'offline',
+                        0,
+                    ],
+                    [
+                        ParameterType::STRING,
+                        ParameterType::STRING,
+                        ParameterType::STRING,
+                        ParameterType::STRING,
+                        ParameterType::STRING,
+                        ParameterType::STRING,
+                        ParameterType::STRING,
+                        ParameterType::STRING,
+                        ParameterType::INTEGER,
+                    ]
+                );
+
+                $newUserId = (int) $connection->lastInsertId();
+
+                $connection->executeStatement(
+                    'INSERT INTO profile (image, member_premium, language, id_user, coins)
+                     VALUES (?, ?, ?, ?, ?)',
+                    [
+                        $defaultImageBlob,
+                        $membershipTier,
+                        'English',
+                        $newUserId,
+                        0,
+                    ],
+                    [
+                        ParameterType::LARGE_OBJECT,
+                        ParameterType::STRING,
+                        ParameterType::STRING,
+                        ParameterType::INTEGER,
+                        ParameterType::INTEGER,
+                    ]
+                );
+
+                $connection->commit();
+                $this->addFlash('success', 'New user added successfully.');
+            } catch (\Throwable $e) {
+                $connection->rollBack();
+                $this->addFlash('error', 'Could not add user. Please verify data and try again.');
+            }
+
+            return $this->redirectToRoute('app_dashboard', ['module' => 'users']);
+        }
+
         // Fetch all users with pagination
         $page = max(1, (int) $request->query->get('page', 1));
         $limit = 20;

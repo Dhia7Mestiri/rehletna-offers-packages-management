@@ -32,6 +32,51 @@
             font-family: 'Space Grotesk', 'Segoe UI', Tahoma, sans-serif;
         }
 
+        .global-quick-toggle,
+        .global-glass-overlay,
+        .global-glass-panel {
+            display: none !important;
+        }
+
+        .home-top-tools {
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            z-index: 35;
+            display: flex;
+            gap: 0;
+        }
+
+        .home-top-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            border: 1px solid rgba(138, 220, 255, 0.55);
+            background: rgba(8, 24, 47, 0.9);
+            color: #e7f7ff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(3, 13, 25, 0.4);
+            transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+            padding: 0;
+        }
+
+        .home-top-icon img {
+            width: 28px;
+            height: 28px;
+            object-fit: cover;
+            border-radius: 6px;
+        }
+
+        .home-top-icon:hover {
+            transform: translateY(-2px);
+            background: #ffffff;
+            color: #0d355a;
+        }
+
         .home-bg-layer {
             position: absolute;
             pointer-events: none;
@@ -92,35 +137,6 @@
             background: url('{{ asset('images/logo.png') }}') center/contain no-repeat;
             z-index: 0;
             animation: breathe 7s ease-in-out infinite;
-        }
-
-        .home-login-fab {
-            position: fixed;
-            top: 18px;
-            right: 18px;
-            width: 56px;
-            height: 56px;
-            border-radius: 999px;
-            border: 1px solid rgba(138, 220, 255, 0.5);
-            color: #dff4ff;
-            background: rgba(9, 24, 47, 0.88);
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: 800;
-            letter-spacing: 0.3px;
-            text-transform: uppercase;
-            box-shadow: 0 10px 26px rgba(3, 13, 25, 0.42);
-            z-index: 10;
-            transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease;
-        }
-
-        .home-login-fab:hover {
-            transform: translateY(-2px) scale(1.02);
-            background: #ffffff;
-            color: #0d355a;
         }
 
         .home-card {
@@ -215,17 +231,6 @@
             box-shadow: 0 10px 24px rgba(56, 189, 248, 0.25);
         }
 
-        .home-btn-secondary {
-            background: rgba(15, 39, 67, 0.5);
-            color: #dff3ff;
-        }
-
-        .home-btn-secondary:hover {
-            transform: translateY(-2px);
-            background: #ffffff;
-            color: #0d355a;
-        }
-
         .home-dev-team {
             margin-top: 34px;
             padding: 22px 14px 14px;
@@ -265,6 +270,7 @@
             gap: 10px;
             min-height: 154px;
             transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+            cursor: pointer;
         }
 
         .home-dev-card:hover {
@@ -282,6 +288,15 @@
             box-shadow: inset 0 0 18px rgba(103, 232, 249, 0.12);
         }
 
+        .home-dev-avatar.has-photo {
+            border-style: solid;
+            border-color: rgba(111, 224, 255, 0.95);
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+            box-shadow: 0 0 0 3px rgba(8, 31, 55, 0.72), 0 0 22px rgba(56, 189, 248, 0.35);
+        }
+
         .home-dev-name {
             margin: 0;
             color: #e8f4ff;
@@ -294,6 +309,128 @@
         .home-dev-name.placeholder {
             color: #9bb8d7;
             font-weight: 600;
+        }
+
+        .home-dev-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 25;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+            background: rgba(4, 13, 28, 0.34);
+            backdrop-filter: blur(9px);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.22s ease, visibility 0.22s ease;
+        }
+
+        .home-landing.is-dev-open .home-card,
+        .home-landing.is-dev-open .home-bg-layer {
+            filter: blur(7px);
+            transform: scale(0.995);
+            transition: filter 0.25s ease, transform 0.25s ease;
+        }
+
+        .home-dev-modal.is-open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .home-dev-modal-content {
+            width: min(980px, 95vw);
+            height: min(680px, 90vh);
+            border-radius: 24px;
+            border: 1px solid rgba(148, 197, 255, 0.34);
+            background:
+                linear-gradient(150deg, rgba(14, 28, 54, 0.9), rgba(8, 23, 44, 0.9)),
+                radial-gradient(340px 220px at 18% -20%, rgba(103, 232, 249, 0.14), transparent 72%);
+            box-shadow: 0 20px 48px rgba(0, 0, 0, 0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #f2fbff;
+            font-size: clamp(44px, 10vw, 94px);
+            font-weight: 800;
+            user-select: none;
+            padding: clamp(22px, 4vw, 46px);
+            text-align: left;
+        }
+
+        .home-dev-panel {
+            width: min(760px, 100%);
+            border: 1px solid rgba(135, 211, 255, 0.36);
+            border-radius: 18px;
+            background: linear-gradient(150deg, rgba(8, 22, 41, 0.72), rgba(7, 26, 49, 0.62));
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 18px 34px rgba(0, 0, 0, 0.24);
+            padding: clamp(18px, 2.8vw, 30px);
+        }
+
+        .home-dev-panel-head {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 14px;
+        }
+
+        .home-dev-panel-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 999px;
+            border: 2px solid rgba(111, 224, 255, 0.9);
+            background: radial-gradient(circle at 35% 30%, rgba(103, 232, 249, 0.22), rgba(9, 28, 52, 0.9));
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            box-shadow: 0 0 0 3px rgba(8, 31, 55, 0.7), 0 0 18px rgba(56, 189, 248, 0.25);
+            flex-shrink: 0;
+        }
+
+        .home-dev-panel-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 0;
+        }
+
+        .home-dev-panel-name {
+            margin: 0;
+            color: #edf8ff;
+            font-size: clamp(18px, 2.2vw, 24px);
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .home-dev-panel-tag {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(108, 225, 255, 0.46);
+            color: #a7efff;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        .home-dev-panel h3 {
+            margin: 0;
+            color: #f3fbff;
+            font-size: clamp(28px, 4vw, 44px);
+            line-height: 1.15;
+            text-shadow: 0 8px 26px rgba(56, 189, 248, 0.24);
+        }
+
+        .home-dev-panel p {
+            margin: 14px 0 0;
+            color: #d8ebff;
+            font-size: clamp(16px, 1.8vw, 21px);
+            line-height: 1.75;
+            font-weight: 500;
         }
 
         .home-contact {
@@ -391,16 +528,19 @@
                 padding: 24px 16px;
             }
 
-            .home-btn {
-                width: 100%;
+            .home-top-tools {
+                top: 12px;
+                left: 12px;
             }
 
-            .home-login-fab {
-                top: 14px;
-                right: 14px;
-                width: 50px;
-                height: 50px;
-                font-size: 11px;
+            .home-top-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 16px;
+            }
+
+            .home-btn {
+                width: 100%;
             }
 
             .home-social {
@@ -423,56 +563,141 @@
 
 {% block body %}
 <section class="home-landing">
+    <div class="home-top-tools" aria-label="Page tools">
+        <button type="button" class="home-top-icon" id="langToggleBtn" aria-label="Toggle language French and English" title="FR / EN">
+            <img id="langFlagImg" src="{{ asset('images/usa.png') }}" alt="English">
+        </button>
+    </div>
+
     <span class="home-bg-layer grid" aria-hidden="true"></span>
     <span class="home-bg-layer glow-a" aria-hidden="true"></span>
     <span class="home-bg-layer glow-b" aria-hidden="true"></span>
     <span class="home-bg-layer glow-c" aria-hidden="true"></span>
     <span class="home-bg-layer logo-halo" aria-hidden="true"></span>
 
-    <a href="{{ path('app_login') }}" class="home-login-fab" aria-label="Login">Login</a>
-
     <div class="home-card">
         <img src="{{ asset('images/logo.png') }}" alt="Rehltna logo" class="home-logo">
 
-        <h1 class="home-title">Welcome to Rehltna.tn</h1>
-        <p class="home-subtitle">Your futuristic travel companion for smooth and easy journeys.</p>
+        <h1 class="home-title" id="homeTitle">Welcome to Rehltna.tn</h1>
+        <p class="home-subtitle" id="homeSubtitle">Your futuristic travel companion for smooth and easy journeys.</p>
 
-        <p class="home-description">
+        <p class="home-description" id="homeDescription">
             Rehltna.tn is a modern platform designed to give clients a better travel experience from start to finish.
             Discover destinations, compare options quickly, and organize your trip with less effort and more confidence.
         </p>
 
         <div class="home-cta-row">
-            <a href="{{ path('app_login') }}" class="home-btn home-btn-primary">Start Now</a>
-            <a href="#contact-us" class="home-btn home-btn-secondary">Contact Team</a>
+            <a href="{{ path('app_login') }}" class="home-btn home-btn-primary" id="homeStartBtn">Start Now</a>
         </div>
 
         <div class="home-dev-team" id="developers">
-            <h2>Our Developers</h2>
-            <p>Image placeholders ready for your team profiles.</p>
+            <h2 id="devTitle">Our Developers</h2>
+            <p id="devSubtitle">Image placeholders ready for your team profiles.</p>
 
             <div class="home-dev-grid">
-                <article class="home-dev-card">
-                    <div class="home-dev-avatar" aria-hidden="true"></div>
+                <article
+                    class="home-dev-card"
+                    role="button"
+                    tabindex="0"
+                    aria-label="Open developer page"
+                    data-dev-name="Wassim Becharguia"
+                    data-dev-module="User"
+                    data-dev-photo="{{ asset('images/pic1.jpg') }}"
+                    data-dev-title="Gestion des utilisateurs"
+                    data-dev-description="Responsable de la gestion des utilisateurs, incluant la création, la modification et la sécurisation des comptes afin d’assurer une expérience fiable et fluide."
+                    data-dev-title-en="User management"
+                    data-dev-description-en="Responsible for user management, including account creation, updates, and security to ensure a reliable and smooth experience."
+                    data-dev-module-en="User"
+                    data-dev-title-fr="Gestion des utilisateurs"
+                    data-dev-description-fr="Responsable de la gestion des utilisateurs, incluant la création, la modification et la sécurisation des comptes afin d’assurer une expérience fiable et fluide."
+                    data-dev-module-fr="Utilisateur"
+                >
+                    <div class="home-dev-avatar has-photo" aria-hidden="true" style="background-image: url('{{ asset('images/pic1.jpg') }}');"></div>
                     <p class="home-dev-name">Wassim becharguia</p>
                 </article>
-                <article class="home-dev-card">
-                    <div class="home-dev-avatar" aria-hidden="true"></div>
+                <article
+                    class="home-dev-card"
+                    role="button"
+                    tabindex="0"
+                    aria-label="Open developer page"
+                    data-dev-name="Sahar Oueslati"
+                    data-dev-module="Design"
+                    data-dev-photo="{{ asset('images/pic3.jpg') }}"
+                    data-dev-title="Experience utilisateur"
+                    data-dev-description="Conception de parcours intuitifs et harmonisation des ecrans afin d'offrir une navigation claire, rapide et agreable pour tous les utilisateurs."
+                    data-dev-title-en="User experience"
+                    data-dev-description-en="Design of intuitive user journeys and harmonized interfaces to deliver clear, fast, and enjoyable navigation for everyone."
+                    data-dev-module-en="Design"
+                    data-dev-title-fr="Gestion des activités et des offres de guides touristiques"
+                    data-dev-description-fr="Gestion des activités et des offres de guides touristiques, permettant la découverte et la réservation d'expériences variées"
+                    data-dev-module-fr="Activités"
+                >
+                    <div class="home-dev-avatar has-photo" aria-hidden="true" style="background-image: url('{{ asset('images/pic3.jpg') }}');"></div>
                     <p class="home-dev-name">Sahar Oueslati</p>
                 </article>
-                <article class="home-dev-card">
-                    <div class="home-dev-avatar" aria-hidden="true"></div>
+                <article
+                    class="home-dev-card"
+                    role="button"
+                    tabindex="0"
+                    aria-label="Open developer page"
+                    data-dev-name="Doua Jlassi"
+                    data-dev-module="Messagerie"
+                    data-dev-photo="{{ asset('images/pic4.jpg') }}"
+                    data-dev-title="Gestion des messageries"
+                    data-dev-description="Gestion des messageries, facilitant la communication transparente entre utilisateurs et agences"
+                    data-dev-title-en="Messaging management"
+                    data-dev-description-en="Messaging management, facilitating transparent communication between users and agencies"
+                    data-dev-module-en="Messaging"
+                    data-dev-title-fr="Gestion des messageries"
+                    data-dev-description-fr="Gestion des messageries, facilitant la communication transparente entre utilisateurs et agences"
+                    data-dev-module-fr="Messagerie"
+                >
+                    <div class="home-dev-avatar has-photo" aria-hidden="true" style="background-image: url('{{ asset('images/pic4.jpg') }}');"></div>
                     <p class="home-dev-name">Doua Jlassi</p>
                 </article>
-                <article class="home-dev-card">
+                <article
+                    class="home-dev-card"
+                    role="button"
+                    tabindex="0"
+                    aria-label="Open developer page"
+                    data-dev-name="Achref Souli"
+                    data-dev-module="Performance"
+                    data-dev-title="Performance et optimisation"
+                    data-dev-description="Optimisation des temps de reponse, reduction des charges inutiles et amelioration de la fluidite generale pour une plateforme plus rapide."
+                >
                     <div class="home-dev-avatar" aria-hidden="true"></div>
                     <p class="home-dev-name">Achref Souli</p>
                 </article>
-                <article class="home-dev-card">
-                    <div class="home-dev-avatar" aria-hidden="true"></div>
+                <article
+                    class="home-dev-card"
+                    role="button"
+                    tabindex="0"
+                    aria-label="Open developer page"
+                    data-dev-name="Wajdi Farhat"
+                    data-dev-module="API"
+                    data-dev-photo="{{ asset('images/pic2.jpg') }}"
+                    data-dev-title="Integration API"
+                    data-dev-description="Connexion des services externes et synchronisation des donnees en temps reel afin d'ameliorer la coherence et la qualite des informations."
+                    data-dev-title-en="API integration"
+                    data-dev-description-en="Connection of external services and real-time data synchronization to improve consistency and data quality."
+                    data-dev-module-en="API"
+                    data-dev-title-fr="Gestion des publications"
+                    data-dev-description-fr="Gestion des publications, animant la communauté avec contenu engageant"
+                    data-dev-module-fr="Publications"
+                >
+                    <div class="home-dev-avatar has-photo" aria-hidden="true" style="background-image: url('{{ asset('images/pic2.jpg') }}');"></div>
                     <p class="home-dev-name">Wajdi Farhat</p>
                 </article>
-                <article class="home-dev-card">
+                <article
+                    class="home-dev-card"
+                    role="button"
+                    tabindex="0"
+                    aria-label="Open developer page"
+                    data-dev-name="Dhia Mestiri"
+                    data-dev-module="Security"
+                    data-dev-title="Qualite et securite"
+                    data-dev-description="Validation des fonctionnalites, controle des erreurs critiques et renforcement des mecanismes de securite pour maintenir une application fiable."
+                >
                     <div class="home-dev-avatar" aria-hidden="true"></div>
                     <p class="home-dev-name">Dhia mestiri</p>
                 </article>
@@ -499,5 +724,171 @@
             </div>
         </div>
     </div>
+
+    <div class="home-dev-modal" id="homeDevModal" aria-hidden="true">
+        <div class="home-dev-modal-content">
+            <section class="home-dev-panel" aria-label="Developer details">
+                <div class="home-dev-panel-head">
+                    <div class="home-dev-panel-avatar" id="homeDevPanelAvatar" aria-hidden="true"></div>
+                    <div class="home-dev-panel-meta">
+                        <h4 class="home-dev-panel-name" id="homeDevPanelName">Wassim Becharguia</h4>
+                        <span class="home-dev-panel-tag" id="homeDevPanelModule">Module: User</span>
+                    </div>
+                </div>
+                <h3 id="homeDevPanelTitle">Gestion des utilisateurs</h3>
+                <p id="homeDevPanelDescription">Responsable de la gestion des utilisateurs.</p>
+            </section>
+        </div>
+    </div>
 </section>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const homeLanding = document.querySelector('.home-landing');
+            const devCards = document.querySelectorAll('.home-dev-card');
+            const devModal = document.getElementById('homeDevModal');
+            const devModalContent = devModal ? devModal.querySelector('.home-dev-modal-content') : null;
+            const langToggleBtn = document.getElementById('langToggleBtn');
+            const homeTitle = document.getElementById('homeTitle');
+            const homeSubtitle = document.getElementById('homeSubtitle');
+            const homeDescription = document.getElementById('homeDescription');
+            const homeStartBtn = document.getElementById('homeStartBtn');
+            const devTitle = document.getElementById('devTitle');
+            const devSubtitle = document.getElementById('devSubtitle');
+            const panelAvatar = document.getElementById('homeDevPanelAvatar');
+            const panelName = document.getElementById('homeDevPanelName');
+            const panelModule = document.getElementById('homeDevPanelModule');
+            const panelTitle = document.getElementById('homeDevPanelTitle');
+            const panelDescription = document.getElementById('homeDevPanelDescription');
+
+            if (!devModal || !devModalContent || !panelAvatar || !panelName || !panelModule || !panelTitle || !panelDescription || devCards.length === 0 || !langToggleBtn) {
+                return;
+            }
+
+            const baseTranslations = {
+                en: {
+                    homeTitle: 'Welcome to Rehltna.tn',
+                    homeSubtitle: 'Your futuristic travel companion for smooth and easy journeys.',
+                    homeDescription: 'Rehltna.tn is a modern platform designed to give clients a better travel experience from start to finish. Discover destinations, compare options quickly, and organize your trip with less effort and more confidence.',
+                    startNow: 'Start Now',
+                    devTitle: 'Our Developers',
+                    devSubtitle: 'Image placeholders ready for your team profiles.',
+                    modulePrefix: 'Module: '
+                },
+                fr: {
+                    homeTitle: 'Bienvenue sur Rehltna.tn',
+                    homeSubtitle: 'Votre compagnon de voyage futuriste pour des trajets fluides et simples.',
+                    homeDescription: 'Rehletna.tn est une plateforme web innovante de réservation de voyages et d\'événements multi-agences. Ce projet représente une solution technologique complète et sécurisée qui transforme l\'organisation des voyages en un processus simple, collaboratif et personnalisé.',
+                    startNow: 'Commencer',
+                    devTitle: 'Nos developpeurs',
+                    devSubtitle: 'Profils de l equipe en presentation.',
+                    modulePrefix: 'Module: '
+                }
+            };
+
+            const getLocalizedField = function (card, baseName, lang, fallback) {
+                const key = baseName + lang.charAt(0).toUpperCase() + lang.slice(1);
+                return card.dataset[key] || card.dataset[baseName] || fallback;
+            };
+
+            let activeLang = 'en';
+            let activeCard = null;
+
+            const applyLanguage = function () {
+                const t = baseTranslations[activeLang];
+                if (homeTitle) {
+                    homeTitle.textContent = t.homeTitle;
+                }
+                if (homeSubtitle) {
+                    homeSubtitle.textContent = t.homeSubtitle;
+                }
+                if (homeDescription) {
+                    homeDescription.textContent = t.homeDescription;
+                }
+                if (homeStartBtn) {
+                    homeStartBtn.textContent = t.startNow;
+                }
+                if (devTitle) {
+                    devTitle.textContent = t.devTitle;
+                }
+                if (devSubtitle) {
+                    devSubtitle.textContent = t.devSubtitle;
+                }
+                if (activeCard) {
+                    panelModule.textContent = t.modulePrefix + getLocalizedField(activeCard, 'devModule', activeLang, 'General');
+                    panelTitle.textContent = getLocalizedField(activeCard, 'devTitle', activeLang, 'Developer profile');
+                    panelDescription.textContent = getLocalizedField(activeCard, 'devDescription', activeLang, 'No description available.');
+                }
+            };
+
+            if (langToggleBtn) {
+                const langFlagImg = document.getElementById('langFlagImg');
+                langToggleBtn.addEventListener('click', function () {
+                    activeLang = activeLang === 'en' ? 'fr' : 'en';
+                    if (langFlagImg) {
+                        langFlagImg.src = activeLang === 'en' ? '{{ asset('images/usa.png') }}' : '{{ asset('images/france.png') }}';
+                        langFlagImg.alt = activeLang === 'en' ? 'English' : 'Français';
+                    }
+                    applyLanguage();
+                });
+            }
+
+            const openModal = function (card) {
+                activeCard = card;
+                const photo = card.dataset.devPhoto || '';
+                panelName.textContent = card.dataset.devName || 'Developer';
+                panelModule.textContent = baseTranslations[activeLang].modulePrefix + getLocalizedField(card, 'devModule', activeLang, 'General');
+                panelTitle.textContent = getLocalizedField(card, 'devTitle', activeLang, 'Developer profile');
+                panelDescription.textContent = getLocalizedField(card, 'devDescription', activeLang, 'No description available.');
+                panelAvatar.style.backgroundImage = photo ? 'url("' + photo + '")' : '';
+                devModal.classList.add('is-open');
+                devModal.setAttribute('aria-hidden', 'false');
+                if (homeLanding) {
+                    homeLanding.classList.add('is-dev-open');
+                }
+            };
+
+            const closeModal = function () {
+                devModal.classList.remove('is-open');
+                devModal.setAttribute('aria-hidden', 'true');
+                if (homeLanding) {
+                    homeLanding.classList.remove('is-dev-open');
+                }
+            };
+
+            devCards.forEach(function (card) {
+                card.addEventListener('click', function () {
+                    openModal(card);
+                });
+
+                card.addEventListener('keydown', function (event) {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        openModal(card);
+                    }
+                });
+            });
+
+            devModal.addEventListener('click', function (event) {
+                if (event.target === devModal) {
+                    closeModal();
+                }
+            });
+
+            devModalContent.addEventListener('click', function (event) {
+                event.stopPropagation();
+            });
+
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape' && devModal.classList.contains('is-open')) {
+                    closeModal();
+                }
+            });
+
+            applyLanguage();
+        });
+    </script>
 {% endblock %}

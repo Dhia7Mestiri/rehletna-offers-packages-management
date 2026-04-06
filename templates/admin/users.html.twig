@@ -4,13 +4,6 @@
 
 {% block body %}
     <div class="dashboard-page">
-        <div class="dashboard-top">
-            <div class="top-logo">
-                <img src="{{ asset('images/logo.png') }}" alt="Rehletna.tn" title="Rehletna.tn" />
-            </div>
-            <a class="back-main-btn" href="{{ path('app_dashboard') }}">← {{ 'admin.back_dashboard'|trans }}</a>
-        </div>
-
         <div class="dashboard-layout">
             <aside class="dash-sidebar">
                 <div class="admin-avatar">
@@ -35,7 +28,6 @@
             <div class="admin-content">
                 <div class="content-header">
                     <h1 style="margin: 0; color: #213142; font-size: 28px; font-weight: 700;">{{ 'admin.users.title'|trans }}</h1>
-                    <a class="content-back-btn" href="{{ path('app_mainpage') }}">{{ 'admin.back_main'|trans }}</a>
                 </div>
 
                 <div class="content-panel">
@@ -48,8 +40,79 @@
                     <!-- Search and Filter Bar -->
                     <div class="search-filter-bar">
                         <input type="text" id="searchInput" class="search-input" placeholder="{{ 'admin.users.search_placeholder'|trans }}" />
-                        <button class="add-user-btn" type="button" onclick="window.location.reload()">{{ 'admin.users.refresh'|trans }}</button>
+                        <div class="toolbar-actions">
+                            <button class="add-user-btn" type="button" id="usersSortBtn">Sort A-Z</button>
+                            <button class="add-user-icon" type="button" id="openCreateUserModal" title="Add user" aria-label="Add user" onclick="(function(){const m=document.getElementById('createUserModal');if(m){m.classList.add('open');m.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';}})();">+</button>
+                        </div>
                     </div>
+
+                       <div class="create-user-modal" id="createUserModal" aria-hidden="true">
+                           <div class="create-user-backdrop" data-close-modal="true"></div>
+                           <div class="create-user-dialog" role="dialog" aria-modal="true" aria-labelledby="createUserModalTitle">
+                               <div class="create-user-header">
+                                   <h2 id="createUserModalTitle">Add New User</h2>
+                                   <button type="button" class="create-user-close" id="closeCreateUserModal" aria-label="Close">×</button>
+                               </div>
+
+                               <form method="post" action="{{ path('app_users') }}" class="create-user-form" id="createUserForm">
+                                   <input type="hidden" name="_token" value="{{ csrf_token('create-user') }}">
+
+                                   <div class="create-user-grid">
+                                       <label class="field-wrap">
+                                           <span>First Name</span>
+                                           <input type="text" name="first_name" required minlength="3" maxlength="25" pattern="[A-Za-z]{3,}" />
+                                       </label>
+
+                                       <label class="field-wrap">
+                                           <span>Last Name</span>
+                                           <input type="text" name="last_name" required minlength="3" maxlength="25" pattern="[A-Za-z]{3,}" />
+                                       </label>
+
+                                       <label class="field-wrap">
+                                           <span>Username</span>
+                                           <input type="text" name="username" required maxlength="15" />
+                                       </label>
+
+                                       <label class="field-wrap">
+                                           <span>Email</span>
+                                           <input type="email" name="email" required />
+                                       </label>
+
+                                       <label class="field-wrap">
+                                           <span>Role</span>
+                                           <select name="role" required>
+                                               <option value="USER">USER</option>
+                                               <option value="GUIDER">GUIDER</option>
+                                               <option value="ADMIN">ADMIN</option>
+                                               <option value="AGENCY">AGENCY</option>
+                                           </select>
+                                       </label>
+
+                                       <label class="field-wrap">
+                                           <span>Password</span>
+                                           <input type="password" name="password" required minlength="8" />
+                                       </label>
+
+                                       <label class="field-wrap field-wrap-wide">
+                                           <span>Membership Tier</span>
+                                           <select name="membership_tier" required>
+                                               <option value="standard">standard</option>
+                                               <option value="premium">premium</option>
+                                               <option value="vip">vip</option>
+                                               <option value="vip+">vip+</option>
+                                           </select>
+                                       </label>
+                                   </div>
+
+                                   <p class="form-hint">Validation: email must include @ and ., username max 15 chars, password min 8 with a-z + A-Z + number, names min 3 letters only.</p>
+
+                                   <div class="create-user-actions">
+                                       <button type="button" class="btn-cancel" id="cancelCreateUserModal">Cancel</button>
+                                       <button type="submit" class="btn-save">Save User</button>
+                                   </div>
+                               </form>
+                           </div>
+                       </div>
 
                     <!-- Users Cards -->
                     <div class="users-grid" id="usersGrid">
@@ -156,17 +219,32 @@
             gap: 12px;
         }
 
-        .content-back-btn {
-            display: inline-flex;
-            align-items: center;
-            border: 1px solid #d4dce6;
-            border-radius: 999px;
-            padding: 8px 14px;
-            text-decoration: none;
-            color: #0BA4A1;
-            font-weight: 700;
-            background: #f5fffe;
-        }
+
+                   .toolbar-actions {
+                       display: inline-flex;
+                       align-items: center;
+                       gap: 10px;
+                   }
+
+                   .add-user-icon {
+                       width: 40px;
+                       height: 40px;
+                       border-radius: 10px;
+                       border: none;
+                       background: linear-gradient(135deg, #0f7ab0, #0BA4A1);
+                       color: #ffffff;
+                       font-size: 24px;
+                       line-height: 1;
+                       font-weight: 700;
+                       cursor: pointer;
+                       box-shadow: 0 6px 14px rgba(11, 164, 161, 0.25);
+                       transition: transform 0.2s ease, box-shadow 0.2s ease;
+                   }
+
+                   .add-user-icon:hover {
+                       transform: translateY(-2px);
+                       box-shadow: 0 10px 18px rgba(11, 164, 161, 0.35);
+                   }
 
         .content-panel {
             background: #ffffff;
@@ -227,12 +305,6 @@
             color: #dbe8f6 !important;
         }
 
-        body.dark-mode .content-back-btn {
-            background: #132431;
-            border-color: #2a3b51;
-            color: #66d8d5;
-        }
-
         body.dark-mode .content-panel {
             background: #182232;
             border-color: #2a374b;
@@ -281,6 +353,153 @@
             background: #099490;
             box-shadow: 0 4px 12px rgba(11, 164, 161, 0.25);
             transform: translateY(-1px);
+        }
+
+        .create-user-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 1400;
+            display: none;
+        }
+
+        .create-user-modal.open {
+            display: block;
+        }
+
+        .create-user-backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(7, 21, 35, 0.58);
+            backdrop-filter: blur(5px);
+        }
+
+        .create-user-dialog {
+            position: relative;
+            width: min(760px, calc(100vw - 28px));
+            max-height: calc(100vh - 40px);
+            overflow: auto;
+            margin: 20px auto;
+            border-radius: 18px;
+            border: 1px solid #d3e7ee;
+            background: linear-gradient(165deg, #f8fdff 0%, #eef7fb 100%);
+            box-shadow: 0 20px 44px rgba(7, 25, 42, 0.28);
+            padding: 20px;
+        }
+
+        .create-user-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+
+        .create-user-header h2 {
+            margin: 0;
+            color: #12324f;
+            font-size: 22px;
+        }
+
+        .create-user-close {
+            border: none;
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            background: #e8f2f8;
+            color: #1a4668;
+            font-size: 24px;
+            line-height: 1;
+            cursor: pointer;
+        }
+
+        .create-user-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .field-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .field-wrap span {
+            color: #274b6b;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .field-wrap input,
+        .field-wrap select {
+            border: 1px solid #c8dce8;
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-size: 14px;
+            font-family: inherit;
+            background: #ffffff;
+            color: #203a55;
+        }
+
+        .field-wrap-wide {
+            grid-column: 1 / -1;
+        }
+
+        .form-hint {
+            margin: 12px 0 0;
+            font-size: 12px;
+            color: #5a7691;
+        }
+
+        .create-user-actions {
+            margin-top: 16px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .btn-cancel,
+        .btn-save {
+            border: none;
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-cancel {
+            background: #e8edf2;
+            color: #304a63;
+        }
+
+        .btn-save {
+            background: linear-gradient(135deg, #0f7ab0, #0BA4A1);
+            color: #ffffff;
+        }
+
+        body.dark-mode .create-user-dialog {
+            border-color: #2b3e54;
+            background: linear-gradient(165deg, #132133 0%, #101d2f 100%);
+        }
+
+        body.dark-mode .create-user-header h2,
+        body.dark-mode .field-wrap span {
+            color: #cbe0f3;
+        }
+
+        body.dark-mode .field-wrap input,
+        body.dark-mode .field-wrap select {
+            background: #0d1827;
+            border-color: #2b3e54;
+            color: #cfe2f5;
+        }
+
+        body.dark-mode .form-hint {
+            color: #8ea8bf;
+        }
+
+        body.dark-mode .btn-cancel {
+            background: #25384d;
+            color: #c9deee;
         }
 
         .users-grid {
@@ -552,6 +771,7 @@
 
             .search-filter-bar {
                 flex-direction: column;
+                align-items: stretch;
             }
 
             .content-header {
@@ -561,6 +781,18 @@
 
             .add-user-btn {
                 width: 100%;
+            }
+
+            .toolbar-actions {
+                width: 100%;
+            }
+
+            .add-user-icon {
+                flex: 0 0 44px;
+            }
+
+            .create-user-grid {
+                grid-template-columns: 1fr;
             }
 
             .users-grid {
@@ -580,21 +812,126 @@
 
     <script>
         (function () {
-            document.addEventListener('DOMContentLoaded', function () {
+            const initUsersPage = function () {
+                const pageRoot = document.querySelector('.dashboard-page');
+                if (!pageRoot || pageRoot.dataset.usersInitDone === '1') {
+                    return;
+                }
+                pageRoot.dataset.usersInitDone = '1';
+
                 const input = document.getElementById('searchInput');
-                if (!input) {
+                const sortBtn = document.getElementById('usersSortBtn');
+                const usersGrid = document.getElementById('usersGrid');
+                const openBtn = document.getElementById('openCreateUserModal');
+                const closeBtn = document.getElementById('closeCreateUserModal');
+                const cancelBtn = document.getElementById('cancelCreateUserModal');
+                const createUserForm = document.getElementById('createUserForm');
+                const modal = document.getElementById('createUserModal');
+                let sortAsc = true;
+
+                if (input) {
+                    const cards = Array.from(document.querySelectorAll('#usersGrid .user-card'));
+                    input.addEventListener('input', function () {
+                        const q = input.value.trim().toLowerCase();
+                        cards.forEach(function (card) {
+                            const text = card.textContent ? card.textContent.toLowerCase() : '';
+                            card.style.display = text.includes(q) ? '' : 'none';
+                        });
+                    });
+                }
+
+                if (!modal) {
                     return;
                 }
 
-                const cards = Array.from(document.querySelectorAll('#usersGrid .user-card'));
-                input.addEventListener('input', function () {
-                    const q = input.value.trim().toLowerCase();
-                    cards.forEach(function (card) {
-                        const text = card.textContent ? card.textContent.toLowerCase() : '';
-                        card.style.display = text.includes(q) ? '' : 'none';
-                    });
+                const releasePageLock = function () {
+                    document.body.style.overflow = '';
+                    modal.classList.remove('open');
+                    modal.setAttribute('aria-hidden', 'true');
+                };
+
+                // Ensure stale overlay/scroll lock never survives navigation.
+                releasePageLock();
+                window.addEventListener('pageshow', releasePageLock);
+                window.addEventListener('beforeunload', function () {
+                    document.body.style.overflow = '';
                 });
-            });
+                document.addEventListener('turbo:before-cache', releasePageLock);
+
+                const openModal = function () {
+                    modal.classList.add('open');
+                    modal.setAttribute('aria-hidden', 'false');
+                    document.body.style.overflow = 'hidden';
+                };
+
+                const closeModal = function () {
+                    releasePageLock();
+                };
+
+                if (sortBtn && usersGrid) {
+                    sortBtn.addEventListener('click', function () {
+                        const cards = Array.from(usersGrid.querySelectorAll('.user-card'));
+                        cards.sort(function (a, b) {
+                            const nameA = (a.querySelector('.username')?.textContent || '').trim().toLowerCase();
+                            const nameB = (b.querySelector('.username')?.textContent || '').trim().toLowerCase();
+                            if (nameA === nameB) {
+                                return 0;
+                            }
+                            if (sortAsc) {
+                                return nameA < nameB ? -1 : 1;
+                            }
+                            return nameA > nameB ? -1 : 1;
+                        });
+
+                        cards.forEach(function (card) {
+                            usersGrid.appendChild(card);
+                        });
+
+                        sortAsc = !sortAsc;
+                        sortBtn.textContent = sortAsc ? 'Sort A-Z' : 'Sort Z-A';
+                    });
+                }
+
+                if (openBtn) {
+                    openBtn.addEventListener('click', openModal);
+                }
+
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', closeModal);
+                }
+
+                if (cancelBtn) {
+                    cancelBtn.addEventListener('click', closeModal);
+                }
+
+                if (createUserForm) {
+                    createUserForm.addEventListener('submit', function () {
+                        // Avoid leaving the page locked while request/navigation is happening.
+                        releasePageLock();
+                    });
+                }
+
+                modal.addEventListener('click', function (event) {
+                    const target = event.target;
+                    if (target instanceof HTMLElement && target.dataset.closeModal === 'true') {
+                        closeModal();
+                    }
+                });
+
+                document.addEventListener('keydown', function (event) {
+                    if (event.key === 'Escape' && modal.classList.contains('open')) {
+                        closeModal();
+                    }
+                });
+            };
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initUsersPage);
+            } else {
+                initUsersPage();
+            }
+
+            document.addEventListener('turbo:load', initUsersPage);
         })();
     </script>
 {% endblock %}

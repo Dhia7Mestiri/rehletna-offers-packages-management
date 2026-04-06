@@ -596,6 +596,86 @@
                 animation-delay: 0.24s;
             }
 
+            .logout-confirm-modal {
+                position: fixed;
+                inset: 0;
+                z-index: 10010;
+                display: none;
+            }
+
+            .logout-confirm-modal.open {
+                display: block;
+            }
+
+            .logout-confirm-backdrop {
+                position: absolute;
+                inset: 0;
+                background: rgba(6, 16, 28, 0.58);
+                backdrop-filter: blur(4px);
+            }
+
+            .logout-confirm-card {
+                position: relative;
+                width: min(420px, calc(100vw - 24px));
+                margin: 16vh auto 0;
+                border-radius: 16px;
+                border: 1px solid rgba(152, 189, 216, 0.6);
+                background: rgba(255, 255, 255, 0.96);
+                box-shadow: 0 18px 40px rgba(8, 35, 66, 0.25);
+                padding: 18px;
+                color: #1e456e;
+            }
+
+            .logout-confirm-title {
+                margin: 0;
+                font-size: 20px;
+                font-weight: 800;
+            }
+
+            .logout-confirm-text {
+                margin: 10px 0 0;
+                color: #456482;
+                font-size: 14px;
+                line-height: 1.5;
+            }
+
+            .logout-confirm-actions {
+                margin-top: 16px;
+                display: flex;
+                justify-content: flex-end;
+                gap: 10px;
+            }
+
+            .logout-confirm-btn {
+                border: none;
+                border-radius: 10px;
+                padding: 9px 14px;
+                font-weight: 700;
+                cursor: pointer;
+                min-width: 96px;
+            }
+
+            /* Requested color swap: OK uses cancel color, Cancel uses OK color. */
+            .logout-confirm-btn.ok {
+                background: #ff5e62;
+                color: #ffffff;
+            }
+
+            .logout-confirm-btn.cancel {
+                background: #0BA4A1;
+                color: #ffffff;
+            }
+
+            html.dark-mode .logout-confirm-card {
+                background: rgba(18, 32, 50, 0.96);
+                border-color: rgba(70, 98, 126, 0.75);
+                color: #d0e0f0;
+            }
+
+            html.dark-mode .logout-confirm-text {
+                color: #a9bfd6;
+            }
+
             body.vision-theme-default {
                 --vision-main-background: radial-gradient(1400px 500px at 10% -20%, rgba(10, 160, 159, 0.22), transparent 60%), radial-gradient(1000px 500px at 100% 0%, rgba(252, 186, 48, 0.20), transparent 55%), linear-gradient(180deg, #f4f9ff 0%, #eff6fb 100%);
                 --vision-top-bar-background: rgba(255, 255, 255, 0.90);
@@ -885,7 +965,7 @@
                         <option value="fr" {% if currentLocale == 'fr' %}selected{% endif %}>🇫🇷 {{ 'panel.language_fr'|trans }}</option>
                     </select>
                 </div>
-                <a class="global-action-link power" href="{{ path('app_logout') }}" aria-label="{{ 'panel.logout'|trans }}">
+                <a id="globalLogoutLink" class="global-action-link power" href="{{ path('app_logout') }}" aria-label="{{ 'panel.logout'|trans }}">
                     <span class="global-action-icon">⏻</span>
                     <span>{{ 'panel.logout'|trans }}</span>
                 </a>
@@ -898,6 +978,17 @@
                 <span></span>
                 <span></span>
                 <span></span>
+            </div>
+        </div>
+        <div id="logoutConfirmModal" class="logout-confirm-modal" aria-hidden="true">
+            <div class="logout-confirm-backdrop" id="logoutConfirmBackdrop"></div>
+            <div class="logout-confirm-card" role="dialog" aria-modal="true" aria-labelledby="logoutConfirmTitle">
+                <h3 id="logoutConfirmTitle" class="logout-confirm-title">Confirm Logout</h3>
+                <p class="logout-confirm-text">Are you sure you want to log out?</p>
+                <div class="logout-confirm-actions">
+                    <button id="logoutConfirmCancel" type="button" class="logout-confirm-btn cancel">Cancel</button>
+                    <button id="logoutConfirmOk" type="button" class="logout-confirm-btn ok">OK</button>
+                </div>
             </div>
         </div>
         {% block body %}{% endblock %}
@@ -919,6 +1010,11 @@
                 const globalCoinTier = document.getElementById('globalCoinTier');
                 const globalCoinTimer = document.getElementById('globalCoinTimer');
                 const globalCoinBtnLabel = document.getElementById('globalCoinBtnLabel');
+                const globalLogoutLink = document.getElementById('globalLogoutLink');
+                const logoutConfirmModal = document.getElementById('logoutConfirmModal');
+                const logoutConfirmBackdrop = document.getElementById('logoutConfirmBackdrop');
+                const logoutConfirmCancel = document.getElementById('logoutConfirmCancel');
+                const logoutConfirmOk = document.getElementById('logoutConfirmOk');
                 const panelText = {
                     darkMode: '{{ 'panel.dark_mode'|trans|e('js') }}',
                     lightMode: '{{ 'panel.light_mode'|trans|e('js') }}',
@@ -1131,6 +1227,22 @@
                     globalGlassOverlay.setAttribute('aria-hidden', 'true');
                 };
 
+                const openLogoutConfirm = () => {
+                    if (!logoutConfirmModal) {
+                        return;
+                    }
+                    logoutConfirmModal.classList.add('open');
+                    logoutConfirmModal.setAttribute('aria-hidden', 'false');
+                };
+
+                const closeLogoutConfirm = () => {
+                    if (!logoutConfirmModal) {
+                        return;
+                    }
+                    logoutConfirmModal.classList.remove('open');
+                    logoutConfirmModal.setAttribute('aria-hidden', 'true');
+                };
+
                 window.showGlobalLoader = showLoader;
                 window.hideGlobalLoader = hideLoader;
 
@@ -1197,6 +1309,41 @@
                     });
                 }
 
+                if (globalLogoutLink) {
+                    globalLogoutLink.addEventListener('click', function (event) {
+                        event.preventDefault();
+                        closeGlassPanel();
+                        hideLoader();
+                        openLogoutConfirm();
+                    });
+                }
+
+                if (logoutConfirmBackdrop) {
+                    logoutConfirmBackdrop.addEventListener('click', function () {
+                        closeLogoutConfirm();
+                        hideLoader();
+                    });
+                }
+
+                if (logoutConfirmCancel) {
+                    logoutConfirmCancel.addEventListener('click', function () {
+                        closeLogoutConfirm();
+                        hideLoader();
+                    });
+                }
+
+                if (logoutConfirmOk) {
+                    logoutConfirmOk.addEventListener('click', function () {
+                        if (!globalLogoutLink) {
+                            closeLogoutConfirm();
+                            return;
+                        }
+                        closeLogoutConfirm();
+                        showLoader('Signing you out...');
+                        window.location.assign(globalLogoutLink.href);
+                    });
+                }
+
                 if (globalCollectCoinBtn) {
                     globalCollectCoinBtn.addEventListener('click', collectCoins);
                 }
@@ -1223,6 +1370,7 @@
                 document.addEventListener('keydown', function (event) {
                     if (event.key === 'Escape') {
                         closeGlassPanel();
+                        closeLogoutConfirm();
                     }
                 });
 
@@ -1268,6 +1416,10 @@
                 });
 
                 document.addEventListener('click', (event) => {
+                    if (event.defaultPrevented) {
+                        return;
+                    }
+
                     const link = event.target.closest('a[href]');
                     if (!link) {
                         return;

@@ -876,6 +876,18 @@
                 });
             });
 
+            const moduleFromQuery = new URLSearchParams(window.location.search).get('module');
+            if (moduleFromQuery) {
+                const moduleLink = moduleLinks.find((link) => {
+                    const href = link.getAttribute('href') || '';
+                    return href.endsWith('/' + moduleFromQuery) || href.includes('/' + moduleFromQuery + '?');
+                });
+
+                if (moduleLink) {
+                    loadModule(moduleLink);
+                }
+            }
+
             document.addEventListener('click', function (event) {
                 const homeBtn = event.target.closest('.home-action');
                 if (homeBtn) {
@@ -895,6 +907,12 @@
                 event.preventDefault();
                 const href = logoutBtn.getAttribute('href');
                 if (!href) {
+                    return;
+                }
+
+                const globalLogoutLink = document.getElementById('globalLogoutLink');
+                if (globalLogoutLink) {
+                    globalLogoutLink.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
                     return;
                 }
 

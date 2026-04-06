@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rehletna - Verify Code</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            min-height: 100vh;
+            margin: 0;
+            display: grid;
+            place-items: center;
+            background: radial-gradient(circle at 15% 20%, #0aa09f 0%, transparent 45%), radial-gradient(circle at 85% 80%, #07396b 0%, transparent 45%), #061f33;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            color: #102a43;
+        }
+
+        .verify-card {
+            width: min(92vw, 460px);
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(10, 160, 159, 0.35);
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.28);
+            padding: 28px;
+        }
+
+        .verify-title {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #07396b;
+        }
+
+        .verify-subtitle {
+            margin-top: 8px;
+            margin-bottom: 16px;
+            color: #325f87;
+            font-size: 0.95rem;
+        }
+
+        .code-boxes {
+            display: grid;
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .code-digit {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            max-height: 56px;
+            border-radius: 12px;
+            border: 1px solid rgba(7, 57, 107, 0.25);
+            background: #ffffff;
+            text-align: center;
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: #123f66;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.12s ease;
+        }
+
+        .code-digit:focus {
+            border-color: #0aa09f;
+            box-shadow: 0 0 0 0.2rem rgba(10, 160, 159, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .code-digit.filled {
+            border-color: rgba(10, 160, 159, 0.6);
+            background: #f2fcfb;
+        }
+
+        .btn-verify {
+            background: linear-gradient(135deg, #0aa09f, #07396b);
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            height: 46px;
+        }
+
+        .btn-verify:hover {
+            opacity: 0.95;
+        }
+
+        .btn-verify.is-loading {
+            opacity: 0.85;
+            cursor: wait;
+        }
+
+        .btn-verify-spinner {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.45);
+            border-top-color: #ffffff;
+            display: inline-block;
+            vertical-align: middle;
+            animation: spin 0.9s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .resend-btn {
+            border: none;
+            background: none;
+            color: #0a4a7d;
+            font-weight: 700;
+            padding: 0;
+        }
+
+        .resend-btn:hover {
+            color: #0aa09f;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+<div class="verify-card">
+    <h1 class="verify-title">Use code</h1>
+    <p class="verify-subtitle">Enter the 6-digit code sent to <strong>{{ user_email }}</strong>.</p>
+
+    {% for message in app.flashes('error') %}
+        <div class="alert alert-danger py-2" role="alert">{{ message }}</div>
+    {% endfor %}
+
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success py-2" role="alert">{{ message }}</div>
+    {% endfor %}
+
+    {% if expires_in is not null %}
+        <div class="alert alert-info py-2" role="alert">Code expires in {{ expires_in }} seconds.</div>
+    {% endif %}
+
+    <form method="post" action="{{ path('app_two_factor_verify_submit') }}" id="twoFactorForm">
+        <div class="mb-3">
+            <label class="form-label fw-semibold" for="digit-1">Verification code</label>
+            <input type="hidden" id="code" name="code" required>
+            <div class="code-boxes" id="codeBoxes" aria-label="6-digit verification code">
+                <input id="digit-1" class="code-digit" type="text" inputmode="numeric" pattern="[0-9]" maxlength="1" autocomplete="one-time-code" required>
+                <input id="digit-2" class="code-digit" type="text" inputmode="numeric" pattern="[0-9]" maxlength="1" required>
+                <input id="digit-3" class="code-digit" type="text" inputmode="numeric" pattern="[0-9]" maxlength="1" required>
+                <input id="digit-4" class="code-digit" type="text" inputmode="numeric" pattern="[0-9]" maxlength="1" required>
+                <input id="digit-5" class="code-digit" type="text" inputmode="numeric" pattern="[0-9]" maxlength="1" required>
+                <input id="digit-6" class="code-digit" type="text" inputmode="numeric" pattern="[0-9]" maxlength="1" required>
+            </div>
+        </div>
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token('two_factor_verify') }}">
+        <button type="submit" class="btn btn-primary w-100 btn-verify" id="verifyBtn">
+            <span id="verifyBtnText">Verify and continue</span>
+        </button>
+    </form>
+
+    <form method="post" action="{{ path('app_two_factor_resend') }}" class="mt-3 text-center">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token('two_factor_resend') }}">
+        <button type="submit" class="resend-btn">Resend code</button>
+    </form>
+</div>
+<script>
+    (function () {
+        const form = document.getElementById('twoFactorForm');
+        const hiddenCode = document.getElementById('code');
+        const verifyBtn = document.getElementById('verifyBtn');
+        const verifyBtnText = document.getElementById('verifyBtnText');
+        const inputs = Array.from(document.querySelectorAll('.code-digit'));
+
+        if (!form || !hiddenCode || !verifyBtn || !verifyBtnText || inputs.length !== 6) {
+            return;
+        }
+
+        const syncHiddenCode = () => {
+            const value = inputs.map((input) => input.value).join('');
+            hiddenCode.value = value;
+            inputs.forEach((input) => {
+                input.classList.toggle('filled', input.value !== '');
+            });
+            return value;
+        };
+
+        const focusInput = (index) => {
+            if (index < 0 || index >= inputs.length) {
+                return;
+            }
+            inputs[index].focus();
+            inputs[index].select();
+        };
+
+        inputs.forEach((input, index) => {
+            input.addEventListener('input', function () {
+                this.value = this.value.replace(/\D/g, '').slice(0, 1);
+                syncHiddenCode();
+                if (this.value !== '' && index < inputs.length - 1) {
+                    focusInput(index + 1);
+                }
+            });
+
+            input.addEventListener('keydown', function (event) {
+                if (event.key === 'Backspace' && this.value === '' && index > 0) {
+                    focusInput(index - 1);
+                }
+                if (event.key === 'ArrowLeft' && index > 0) {
+                    event.preventDefault();
+                    focusInput(index - 1);
+                }
+                if (event.key === 'ArrowRight' && index < inputs.length - 1) {
+                    event.preventDefault();
+                    focusInput(index + 1);
+                }
+            });
+
+            input.addEventListener('paste', function (event) {
+                event.preventDefault();
+                const pasted = (event.clipboardData || window.clipboardData).getData('text') || '';
+                const digits = pasted.replace(/\D/g, '').slice(0, inputs.length).split('');
+                if (digits.length === 0) {
+                    return;
+                }
+                inputs.forEach((el, i) => {
+                    el.value = digits[i] || '';
+                });
+                syncHiddenCode();
+                const nextIndex = Math.min(digits.length, inputs.length - 1);
+                focusInput(nextIndex);
+            });
+        });
+
+        form.addEventListener('submit', function (event) {
+            const code = syncHiddenCode();
+            if (!/^\d{6}$/.test(code)) {
+                event.preventDefault();
+                focusInput(inputs.findIndex((input) => input.value === ''));
+                return;
+            }
+
+            verifyBtn.disabled = true;
+            verifyBtn.classList.add('is-loading');
+            verifyBtnText.innerHTML = '<span class="btn-verify-spinner" aria-hidden="true"></span>Verifying...';
+        });
+
+        focusInput(0);
+    })();
+</script>
+</body>
+</html>

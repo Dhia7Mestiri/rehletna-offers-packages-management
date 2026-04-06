@@ -62,6 +62,219 @@ class HomeController extends AbstractController
         return $this->redirect($redirectTo);
     }
 
+    #[Route('/panel/2fa/toggle', name: 'app_panel_toggle_2fa', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function toggleTwoFactor(Connection $connection, MailerInterface $mailer): JsonResponse
+    {
+        $user = $this->getUser();
+        if (!$user instanceof User || $user->getId() === null) {
+            return $this->json(['success' => false, 'error' => 'Unauthorized'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $userId = (int) $user->getId();
+        $columnName = $this->resolveTwoFactorColumnName($connection);
+        $currentEnabled = (bool) $connection->fetchOne(
+            sprintf('SELECT %s FROM `user` WHERE id = ?', $columnName),
+            [$userId],
+            [ParameterType::INTEGER]
+        );
+
+        $nextEnabled = $currentEnabled ? 0 : 1;
+
+        $connection->executeStatement(
+            sprintf('UPDATE `user` SET %s = ? WHERE id = ?', $columnName),
+            [$nextEnabled, $userId],
+            [ParameterType::INTEGER, ParameterType::INTEGER]
+        );
+
+        $emailSent = false;
+        if ($nextEnabled === 1) {
+            try {
+                $email = (new Email())
+                    ->from((string) ($_ENV['EMAIL_FROM'] ?? $_SERVER['EMAIL_FROM'] ?? 'noreply@rehletna.tn'))
+                    ->to((string) $user->getEmail())
+                    ->subject('2FA Activated Successfully - Rehletna')
+                    ->text(
+                        "Hello " . (string) ($user->getFullName() ?: $user->getUsername()) . ",\n\n"
+                        . "We confirm that 2FA has been activated successfully on your Rehletna account.\n"
+                        . "Security Status: ACTIVE\n\n"
+                        . "If you did not make this change, please update your password immediately and contact support."
+                    )
+                    ->html(sprintf(
+                        '<div style="font-family:Segoe UI,Arial,sans-serif;background:#f3f8ff;padding:24px;">'
+                        . '<div style="max-width:640px;margin:0 auto;background:#ffffff;border:1px solid #d6e6f7;border-radius:16px;overflow:hidden;box-shadow:0 10px 28px rgba(10,42,76,0.12);">'
+                        . '<div style="background:linear-gradient(135deg,#0f7ab0,#0BA4A1);padding:20px;color:#fff;">'
+                        . '<h2 style="margin:0;font-size:24px;">Two-Factor Authentication Activated</h2>'
+                        . '<p style="margin:8px 0 0;opacity:.92;">Your account security is now stronger.</p>'
+                        . '</div>'
+                        . '<div style="padding:22px;color:#1f3f5f;">'
+                        . '<p style="margin:0 0 12px;">Hello <strong>%s</strong>,</p>'
+                        . '<p style="margin:0 0 12px;line-height:1.6;">We confirm that 2FA has been activated successfully on your Rehletna account.</p>'
+                        . '<div style="margin:14px 0;padding:12px 14px;border:1px solid #c7ddf2;border-radius:10px;background:#f7fbff;">'
+                        . '<div style="font-weight:700;color:#0f4f79;">Security Status: <span style="color:#11885f;">ACTIVE</span></div>'
+                        . '</div>'
+                        . '<p style="margin:0;line-height:1.6;">If you did not make this change, please update your password immediately and contact support.</p>'
+                        . '</div>'
+                        . '</div>'
+                        . '</div>',
+                        htmlspecialchars((string) ($user->getFullName() ?: $user->getUsername()), ENT_QUOTES)
+                    ));
+
+                $mailer->send($email);
+                $emailSent = true;
+            } catch (\Throwable $e) {
+                // Keep toggle successful even if email transport fails.
+            }
+        }
+
+        return $this->json([
+            'success' => true,
+            'enabled' => (bool) $nextEnabled,
+            'emailSent' => $emailSent,
+            'message' => $nextEnabled ? '2FA activated successfully.' : '2FA deactivated successfully.',
+        ]);
+    }
+
+    #[Route('/panel/2fa/send-credentials-qr', name: 'app_panel_send_credentials_qr', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function sendCredentialsQr(MailerInterface $mailer): JsonResponse
+    {
+        $user = $this->getUser();
+        if (!$user instanceof User || $user->getId() === null) {
+            return $this->json(['success' => false, 'error' => 'Unauthorized'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $emailAddress = (string) $user->getEmail();
+        $passwordHash = (string) $user->getPassword();
+        $displayName = (string) ($user->getFullName() ?: $user->getUsername());
+
+        if ($emailAddress === '' || $passwordHash === '') {
+            return $this->json(['success' => false, 'error' => 'Missing credentials payload'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $qrPayload = sprintf("email: %s\npassword_hash: %s", $emailAddress, $passwordHash);
+        $qrImageUrl = 'https://quickchart.io/qr?size=320&margin=2&text=' . rawurlencode($qrPayload);
+
+        try {
+            $message = (new Email())
+                ->from((string) ($_ENV['EMAIL_FROM'] ?? $_SERVER['EMAIL_FROM'] ?? 'noreply@rehletna.tn'))
+                ->to($emailAddress)
+                ->subject('Your Rehletna QR Code (Email + Password Hash)')
+                ->text(
+                    "Hello " . $displayName . ",\n\n"
+                    . "A quick scan helps you sign in faster with less typing.\n\n"
+                    . $qrPayload . "\n\n"
+                    . "If you did not request this email, please secure your account immediately."
+                )
+                ->html(sprintf(
+                    '<div style="font-family:Segoe UI,Arial,sans-serif;background:linear-gradient(160deg,#eef6ff,#f7fbff);padding:28px 14px;">'
+                    . '<div style="max-width:640px;margin:0 auto;background:#ffffff;border:1px solid #d7e7f7;border-radius:18px;overflow:hidden;box-shadow:0 14px 30px rgba(17,53,86,0.12);">'
+                    . '<div style="background:linear-gradient(135deg,#0e5f97,#1a86c8);padding:18px 22px;color:#ffffff;">'
+                    . '<div style="font-size:12px;letter-spacing:0.4px;opacity:.9;text-transform:uppercase;">Rehletna Security</div>'
+                    . '<h2 style="margin:8px 0 0;font-size:24px;line-height:1.2;">Your Login QR Code</h2>'
+                    . '</div>'
+                    . '<div style="padding:22px;color:#1f3f5f;">'
+                    . '<p style="margin:0 0 12px;font-size:15px;line-height:1.7;">Hello <strong>%s</strong>,</p>'
+                    . '<p style="margin:0 0 16px;font-size:14px;line-height:1.7;color:#456b90;">A quick scan helps you sign in faster with less typing.</p>'
+                    . '<div style="text-align:center;margin:12px 0 8px;padding:14px;border:1px solid #dce9f6;border-radius:14px;background:#f8fbff;">'
+                    . '<img src="%s" alt="Credentials QR Code" width="260" height="260" style="max-width:100%%;border:1px solid #cfe1f3;border-radius:12px;padding:10px;background:#fff;">'
+                    . '<div style="margin-top:10px;font-size:12px;color:#54779a;">Scan with your trusted QR app</div>'
+                    . '</div>'
+                    . '<div style="margin-top:16px;padding:10px 12px;border-radius:10px;background:#fff4f4;border:1px solid #f3d2d2;color:#9b3d3d;font-size:12px;line-height:1.6;">If you did not request this email, change your password immediately.</div>'
+                    . '</div>'
+                    . '</div>'
+                    . '</div>',
+                    htmlspecialchars($displayName, ENT_QUOTES),
+                    htmlspecialchars($qrImageUrl, ENT_QUOTES)
+                ));
+
+            $mailer->send($message);
+        } catch (\Throwable $e) {
+            return $this->json(['success' => false, 'error' => 'Failed to send QR email'], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
+        return $this->json([
+            'success' => true,
+            'message' => 'QR code sent successfully.',
+        ]);
+    }
+
+    #[Route('/panel/profile-summary', name: 'app_panel_profile_summary', methods: ['GET'])]
+    #[IsGranted('ROLE_USER')]
+    public function panelProfileSummary(Connection $connection): JsonResponse
+    {
+        $user = $this->getUser();
+        if (!$user instanceof User || $user->getId() === null) {
+            return $this->json(['success' => false, 'error' => 'Unauthorized'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $userId = (int) $user->getId();
+        $columnName = $this->resolveTwoFactorColumnName($connection);
+
+        $userRow = $connection->executeQuery(
+            sprintf('SELECT id, username, name, last_name, role, %s AS twofa FROM `user` WHERE id = ? LIMIT 1', $columnName),
+            [$userId],
+            [ParameterType::INTEGER]
+        )->fetchAssociative();
+
+        if (!$userRow) {
+            return $this->json(['success' => false, 'error' => 'User not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        $profileImage = $connection->executeQuery(
+            'SELECT image FROM profile WHERE id_user = ? ORDER BY id DESC LIMIT 1',
+            [$userId],
+            [ParameterType::INTEGER]
+        )->fetchOne();
+
+        $imageData = null;
+        if (is_resource($profileImage)) {
+            $imageData = stream_get_contents($profileImage) ?: null;
+        } elseif (is_string($profileImage)) {
+            $imageData = $profileImage;
+        }
+
+        $imageUrl = '/images/default_image.png';
+        if (!empty($imageData)) {
+            $mime = 'image/jpeg';
+            if (substr($imageData, 0, 8) === "\x89PNG\r\n\x1a\n") {
+                $mime = 'image/png';
+            } elseif (substr($imageData, 0, 6) === "GIF87a" || substr($imageData, 0, 6) === "GIF89a") {
+                $mime = 'image/gif';
+            } elseif (substr($imageData, 0, 2) === "\xFF\xD8") {
+                $mime = 'image/jpeg';
+            }
+
+            $imageUrl = 'data:' . $mime . ';base64,' . base64_encode($imageData);
+        }
+
+        return $this->json([
+            'success' => true,
+            'imageUrl' => $imageUrl,
+            'name' => trim((string) ($userRow['name'] ?? '') . ' ' . (string) ($userRow['last_name'] ?? '')),
+            'username' => (string) ($userRow['username'] ?? 'user'),
+            'role' => strtoupper((string) ($userRow['role'] ?? 'USER')),
+            'twoFactorEnabled' => (bool) ($userRow['twofa'] ?? false),
+        ]);
+    }
+
+    private function resolveTwoFactorColumnName(Connection $connection): string
+    {
+        $columns = $connection->executeQuery(
+            "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'user' AND COLUMN_NAME IN ('two_factor_enabled', 'two_factore_enabled')"
+        )->fetchFirstColumn();
+
+        if (in_array('two_factor_enabled', $columns, true)) {
+            return 'two_factor_enabled';
+        }
+
+        if (in_array('two_factore_enabled', $columns, true)) {
+            return 'two_factore_enabled';
+        }
+
+        return 'two_factor_enabled';
+    }
+
     #[Route('/mainpage', name: 'app_mainpage')]
     #[IsGranted('ROLE_USER')]
     public function mainpage(Request $request, Connection $connection): Response

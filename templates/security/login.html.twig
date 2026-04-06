@@ -567,6 +567,86 @@
             background: linear-gradient(135deg, #e15a4a 0%, #cc5540 100%);
         }
 
+        .qr-scanner-modal {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            z-index: 10000;
+        }
+
+        .qr-scanner-modal.open {
+            display: flex;
+        }
+
+        .qr-scanner-backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(4, 18, 34, 0.78);
+            backdrop-filter: blur(4px);
+        }
+
+        .qr-scanner-card {
+            position: relative;
+            width: min(460px, 96vw);
+            border-radius: 18px;
+            border: 1px solid rgba(10, 160, 159, 0.45);
+            background: linear-gradient(145deg, rgba(248, 252, 255, 0.98), rgba(236, 245, 252, 0.96));
+            box-shadow: 0 20px 50px rgba(1, 35, 65, 0.38);
+            padding: 16px;
+            z-index: 1;
+        }
+
+        .qr-scanner-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .qr-scanner-title {
+            margin: 0;
+            color: #0a2f57;
+            font-weight: 800;
+            font-size: 1.15rem;
+        }
+
+        .qr-scanner-close {
+            width: 32px;
+            height: 32px;
+            border: 0;
+            border-radius: 50%;
+            background: rgba(7, 57, 107, 0.12);
+            color: #07396B;
+            cursor: pointer;
+        }
+
+        .qr-scanner-video-wrap {
+            border-radius: 14px;
+            border: 1px solid rgba(10, 160, 159, 0.28);
+            background: #001a2f;
+            overflow: hidden;
+            aspect-ratio: 1 / 1;
+            position: relative;
+        }
+
+        .qr-scanner-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .qr-scanner-status {
+            margin-top: 10px;
+            margin-bottom: 0;
+            color: #194a76;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
         .form-check-label {
             color: #0a2f57 !important;
             font-weight: 500;
@@ -794,7 +874,7 @@
                                 </button>
                             </div>
                             <div class="col-6">
-                                <button type="button" class="btn biometric-btn qr-btn w-100">
+                                <button type="button" id="scanQrBtn" class="btn biometric-btn qr-btn w-100">
                                     <i class="fas fa-qrcode me-2"></i>Scan QR
                                 </button>
                             </div>
@@ -868,8 +948,23 @@
             </button>
         </div>
     </div>
+
+    <div id="qrScannerModal" class="qr-scanner-modal" aria-hidden="true">
+        <div class="qr-scanner-backdrop" id="qrScannerBackdrop"></div>
+        <div class="qr-scanner-card" role="dialog" aria-modal="true" aria-labelledby="qrScannerTitle">
+            <div class="qr-scanner-head">
+                <h3 id="qrScannerTitle" class="qr-scanner-title">Scan Login QR</h3>
+                <button type="button" id="qrScannerClose" class="qr-scanner-close" aria-label="Close scanner">×</button>
+            </div>
+            <div class="qr-scanner-video-wrap">
+                <video id="qrScannerVideo" class="qr-scanner-video" autoplay playsinline muted></video>
+            </div>
+            <p id="qrScannerStatus" class="qr-scanner-status">Point your camera at a QR code containing email and password.</p>
+        </div>
+    </div>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const pageLoader = document.getElementById('pageLoader');
@@ -937,6 +1032,16 @@
             const roleError = document.getElementById('role-error');
             const fieldNames = ['name', 'last_name', 'username', 'birth_date', 'email', 'password', 'confirm_password'];
             const initialView = '{{ initial_view|default('login') }}';
+            const scanQrBtn = document.getElementById('scanQrBtn');
+            const qrScannerModal = document.getElementById('qrScannerModal');
+            const qrScannerBackdrop = document.getElementById('qrScannerBackdrop');
+            const qrScannerClose = document.getElementById('qrScannerClose');
+            const qrScannerVideo = document.getElementById('qrScannerVideo');
+            const qrScannerStatus = document.getElementById('qrScannerStatus');
+            let qrScannerStream = null;
+            let qrScannerFrameId = null;
+            const qrScannerCanvas = document.createElement('canvas');
+            const qrScannerContext = qrScannerCanvas.getContext('2d', { willReadFrequently: true });
 
             const isRoleSelected = () => {
                 const checkboxes = document.querySelectorAll('.role-checkbox');
@@ -1140,6 +1245,179 @@
             }
 
             const form = document.querySelector('#loginPanel form');
+            const parseQrCredentials = (rawText) => {
+                if (typeof rawText !== 'string') {
+                    return null;
+                }
+
+                const text = rawText.trim();
+                if (text === '') {
+                    return null;
+                }
+
+                try {
+                    const parsed = JSON.parse(text);
+                    const email = String(parsed.email || parsed._username || '').trim();
+                    const password = String(parsed.password || parsed._password || '').trim();
+
+                    if (email && password) {
+                        return { email, password };
+                    }
+                } catch (error) {
+                    // Not JSON, continue with key:value parser.
+                }
+
+                const lines = text
+                    .split(/\r?\n|;/)
+                    .map((line) => line.trim())
+                    .filter((line) => line.length > 0);
+
+                const data = {};
+                lines.forEach((line) => {
+                    const separatorIndex = line.indexOf(':');
+                    if (separatorIndex === -1) {
+                        return;
+                    }
+
+                    const key = line.slice(0, separatorIndex).trim().toLowerCase();
+                    const value = line.slice(separatorIndex + 1).trim();
+                    data[key] = value;
+                });
+
+                const email = String(data.email || data.username || data._username || '').trim();
+                const password = String(data.password || data.pass || data._password || '').trim();
+
+                if (email && password) {
+                    return { email, password };
+                }
+
+                if (email && (data.password_hash || data.hash || data.passwordhash)) {
+                    return { email, password: '', hasHashOnly: true };
+                }
+
+                return null;
+            };
+
+            const setScannerStatus = (text) => {
+                if (qrScannerStatus) {
+                    qrScannerStatus.textContent = text;
+                }
+            };
+
+            const stopQrScanner = () => {
+                if (qrScannerFrameId) {
+                    window.cancelAnimationFrame(qrScannerFrameId);
+                    qrScannerFrameId = null;
+                }
+
+                if (qrScannerVideo) {
+                    qrScannerVideo.pause();
+                    qrScannerVideo.srcObject = null;
+                }
+
+                if (qrScannerStream) {
+                    qrScannerStream.getTracks().forEach((track) => track.stop());
+                    qrScannerStream = null;
+                }
+            };
+
+            const closeQrScanner = () => {
+                stopQrScanner();
+                if (qrScannerModal) {
+                    qrScannerModal.classList.remove('open');
+                    qrScannerModal.setAttribute('aria-hidden', 'true');
+                }
+            };
+
+            const submitCredentialsFromQr = (credentials) => {
+                if (!form || !credentials) {
+                    return;
+                }
+
+                const emailInput = form.querySelector('input[name="_username"]');
+                const passwordInput = form.querySelector('input[name="_password"]');
+                if (!emailInput || !passwordInput) {
+                    return;
+                }
+
+                emailInput.value = credentials.email;
+                passwordInput.value = credentials.password;
+                closeQrScanner();
+                showPageLoader('Signing you in...');
+                form.requestSubmit();
+            };
+
+            const scanQrFrame = () => {
+                if (!qrScannerVideo || !qrScannerContext) {
+                    return;
+                }
+
+                if (qrScannerVideo.readyState >= 2) {
+                    const width = qrScannerVideo.videoWidth;
+                    const height = qrScannerVideo.videoHeight;
+
+                    if (width > 0 && height > 0) {
+                        qrScannerCanvas.width = width;
+                        qrScannerCanvas.height = height;
+                        qrScannerContext.drawImage(qrScannerVideo, 0, 0, width, height);
+                        const frame = qrScannerContext.getImageData(0, 0, width, height);
+                        const code = window.jsQR ? window.jsQR(frame.data, width, height) : null;
+
+                        if (code && code.data) {
+                            const credentials = parseQrCredentials(code.data);
+                            if (credentials && credentials.email && credentials.password) {
+                                submitCredentialsFromQr(credentials);
+                                return;
+                            }
+
+                            if (credentials && credentials.hasHashOnly) {
+                                setScannerStatus('QR contains email and password hash only. Use a QR with real password.');
+                            } else {
+                                setScannerStatus('QR format invalid. Expected email and password values.');
+                            }
+                        }
+                    }
+                }
+
+                qrScannerFrameId = window.requestAnimationFrame(scanQrFrame);
+            };
+
+            const openQrScanner = async () => {
+                if (!qrScannerModal || !qrScannerVideo) {
+                    return;
+                }
+
+                if (!navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') {
+                    alert('Camera is not supported in this browser.');
+                    return;
+                }
+
+                if (typeof window.jsQR !== 'function') {
+                    alert('QR scanner library could not be loaded.');
+                    return;
+                }
+
+                try {
+                    setScannerStatus('Point your camera at a QR code containing email and password.');
+                    qrScannerModal.classList.add('open');
+                    qrScannerModal.setAttribute('aria-hidden', 'false');
+
+                    qrScannerStream = await navigator.mediaDevices.getUserMedia({
+                        video: {
+                            facingMode: { ideal: 'environment' }
+                        },
+                        audio: false
+                    });
+
+                    qrScannerVideo.srcObject = qrScannerStream;
+                    await qrScannerVideo.play();
+                    qrScannerFrameId = window.requestAnimationFrame(scanQrFrame);
+                } catch (error) {
+                    closeQrScanner();
+                    alert('Unable to open camera. Please allow camera permission and try again.');
+                }
+            };
+
             if (form) {
                 form.addEventListener('submit', (event) => {
                     const email = form.querySelector('input[name="_username"]').value.trim();
@@ -1154,6 +1432,30 @@
                     showPageLoader('Signing you in...');
                 });
             }
+
+            if (scanQrBtn) {
+                scanQrBtn.addEventListener('click', () => {
+                    openQrScanner();
+                });
+            }
+
+            if (qrScannerClose) {
+                qrScannerClose.addEventListener('click', closeQrScanner);
+            }
+
+            if (qrScannerBackdrop) {
+                qrScannerBackdrop.addEventListener('click', closeQrScanner);
+            }
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && qrScannerModal && qrScannerModal.classList.contains('open')) {
+                    closeQrScanner();
+                }
+            });
+
+            window.addEventListener('beforeunload', () => {
+                stopQrScanner();
+            });
 
             if (signupForm) {
                 fieldNames.forEach((name) => {

@@ -218,6 +218,117 @@
                 max-width: 760px;
             }
 
+            .global-glass-layout {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) 1px minmax(220px, 280px);
+                align-items: start;
+                gap: 16px;
+                padding: 18px 22px 22px;
+            }
+
+            .global-glass-divider {
+                width: 1px;
+                min-height: 320px;
+                background: linear-gradient(180deg, rgba(120, 166, 198, 0.15), rgba(70, 123, 163, 0.65), rgba(120, 166, 198, 0.15));
+                border-radius: 999px;
+                justify-self: center;
+            }
+
+            .global-profile-side {
+                border: 1px solid rgba(152, 189, 216, 0.58);
+                border-radius: 14px;
+                background: rgba(255, 255, 255, 0.9);
+                padding: 14px;
+                color: #1e456e;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 8px;
+                box-shadow: 0 6px 16px rgba(10, 45, 78, 0.1);
+            }
+
+            .global-profile-avatar {
+                width: 78px;
+                height: 78px;
+                border-radius: 50%;
+                border: 2px solid rgba(116, 194, 235, 0.75);
+                object-fit: cover;
+                box-shadow: 0 0 0 4px rgba(13, 111, 167, 0.08);
+            }
+
+            .global-profile-name {
+                font-weight: 800;
+                font-size: 17px;
+                text-align: center;
+                line-height: 1.3;
+            }
+
+            .global-profile-role {
+                font-size: 12px;
+                font-weight: 700;
+                letter-spacing: 0.4px;
+                color: #4d6e90;
+                text-transform: uppercase;
+            }
+
+            .global-profile-twofa {
+                width: 100%;
+                margin-top: 8px;
+                border: 1px solid rgba(152, 189, 216, 0.62);
+                border-radius: 10px;
+                background: rgba(248, 252, 255, 0.96);
+                color: #1e456e;
+                min-height: 54px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                font-weight: 800;
+                font-size: 13px;
+                cursor: pointer;
+                transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+            }
+
+            .global-profile-twofa:hover {
+                transform: translateY(-1px);
+                border-color: rgba(88, 154, 209, 0.62);
+                box-shadow: 0 0 10px rgba(56, 189, 248, 0.28);
+            }
+
+            .global-profile-twofa.active {
+                border-color: rgba(46, 184, 121, 0.75);
+                background: linear-gradient(135deg, rgba(235, 255, 246, 0.98), rgba(215, 252, 234, 0.96));
+                color: #128455;
+                box-shadow: 0 0 12px rgba(46, 184, 121, 0.4), 0 0 20px rgba(86, 214, 158, 0.22);
+            }
+
+            .global-profile-twofa.active .global-action-icon {
+                color: #128455;
+            }
+
+            .global-profile-qr {
+                width: 100%;
+                border: 1px solid rgba(84, 142, 198, 0.65);
+                border-radius: 10px;
+                background: linear-gradient(135deg, rgba(239, 248, 255, 0.98), rgba(228, 243, 255, 0.95));
+                color: #164972;
+                min-height: 50px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                font-weight: 800;
+                font-size: 13px;
+                cursor: pointer;
+                transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+            }
+
+            .global-profile-qr:hover {
+                transform: translateY(-1px);
+                border-color: rgba(56, 189, 248, 0.76);
+                box-shadow: 0 0 12px rgba(56, 189, 248, 0.35);
+            }
+
             .global-action-btn,
             .global-action-link {
                 border: 1px solid rgba(152, 189, 216, 0.6);
@@ -507,6 +618,58 @@
                 color: #12385f;
             }
 
+            html.dark-mode .global-profile-side {
+                border-color: rgba(66, 95, 125, 0.78);
+                background: rgba(15, 24, 36, 0.94);
+                color: #d7e5f4;
+                box-shadow: 0 10px 22px rgba(0, 0, 0, 0.28);
+            }
+
+            html.dark-mode .global-profile-name {
+                color: #f0f7ff;
+            }
+
+            html.dark-mode .global-profile-role {
+                color: #8ecdf3;
+            }
+
+            html.dark-mode .global-profile-twofa {
+                border-color: rgba(66, 95, 125, 0.82);
+                background: rgba(20, 33, 48, 0.95);
+                color: #d7e5f4;
+            }
+
+            html.dark-mode .global-profile-twofa:hover {
+                border-color: rgba(94, 234, 212, 0.5);
+                background: rgba(26, 44, 63, 1);
+                color: #ffffff;
+                box-shadow: 0 8px 20px rgba(5, 21, 40, 0.26);
+            }
+
+            html.dark-mode .global-profile-twofa.active {
+                border-color: rgba(46, 184, 121, 0.8);
+                background: linear-gradient(135deg, rgba(18, 51, 34, 0.96), rgba(23, 70, 48, 0.92));
+                color: #a7f3c1;
+                box-shadow: 0 0 12px rgba(46, 184, 121, 0.28), 0 0 20px rgba(86, 214, 158, 0.16);
+            }
+
+            html.dark-mode .global-profile-twofa.active .global-action-icon {
+                color: #a7f3c1;
+            }
+
+            html.dark-mode .global-profile-qr {
+                border-color: rgba(66, 95, 125, 0.82);
+                background: linear-gradient(135deg, rgba(18, 37, 54, 0.96), rgba(20, 44, 66, 0.95));
+                color: #cbe8ff;
+            }
+
+            html.dark-mode .global-profile-qr:hover {
+                border-color: rgba(56, 189, 248, 0.74);
+                background: linear-gradient(135deg, rgba(24, 49, 71, 0.98), rgba(27, 56, 82, 0.96));
+                color: #e6f4ff;
+                box-shadow: 0 8px 20px rgba(5, 21, 40, 0.3);
+            }
+
             html.dark-mode .global-language-select {
                 border-color: rgba(66, 95, 125, 0.75);
                 background: rgba(11, 20, 31, 0.9);
@@ -664,6 +827,21 @@
             .logout-confirm-btn.cancel {
                 background: #0BA4A1;
                 color: #ffffff;
+            }
+
+            @media (max-width: 980px) {
+                .global-glass-layout {
+                    grid-template-columns: 1fr;
+                    gap: 14px;
+                }
+
+                .global-glass-divider {
+                    display: none;
+                }
+
+                .global-profile-side {
+                    width: 100%;
+                }
             }
 
             html.dark-mode .logout-confirm-card {
@@ -930,45 +1108,71 @@
                 <div class="global-glass-brand">{{ 'panel.control_title'|trans }}</div>
                 <button id="globalGlassClose" class="global-glass-close" type="button" aria-label="{{ 'panel.close'|trans }}">x</button>
             </div>
-            <div class="global-glass-actions">
-                <button id="globalThemeButton" class="global-action-btn settings" type="button" aria-label="{{ 'panel.dark_mode'|trans }}">
-                    <span id="globalThemeIcon" class="global-action-icon">🌙</span>
-                    <span id="globalThemeLabel">{{ 'panel.dark_mode'|trans }}</span>
-                </button>
-                <button id="globalCollectCoinBtn" class="global-action-btn global-action-coin" type="button" aria-label="{{ 'panel.collect'|trans }}" disabled>
-                    <div class="global-coin-head">
-                        <span class="global-action-icon">💎</span>
-                        <span id="globalCoinCount" class="global-coin-count">0</span>
-                    </div>
-                    <div id="globalCoinTier" class="global-coin-tier">standard • +1</div>
-                    <div id="globalCoinTimer" class="global-coin-timer">{{ 'panel.ready_to_collect'|trans }}</div>
-                    <span id="globalCoinBtnLabel">{{ 'panel.collect'|trans }}</span>
-                </button>
-                <a id="globalUpgradeBtn" class="global-action-link upgrade" href="{{ path('app_premium') }}" aria-label="{{ 'panel.upgrade_plan'|trans }}" style="display: none;">
-                    <span class="global-action-icon">⭐</span>
-                    <span>{{ 'panel.upgrade_plan'|trans }}</span>
-                </a>
-                <a class="global-action-link settings" href="{{ path('app_settings') }}" data-no-loader="true" data-turbo="false" aria-label="{{ 'panel.settings'|trans }}">
-                    <span class="global-action-icon">⚙</span>
-                    <span>{{ 'panel.settings'|trans }}</span>
-                </a>
-                {% if app.user and is_granted('ROLE_USER') %}
-                    <a class="global-action-link settings" href="{{ path('app_vision_test') }}" data-no-loader="true" data-turbo="false" aria-label="{{ 'panel.eye_test'|trans }}">
-                        <span class="global-action-icon">👁️</span>
-                        <span>{{ 'panel.eye_test'|trans }}</span>
+            <div class="global-glass-layout">
+                <div class="global-glass-actions">
+                    <button id="globalThemeButton" class="global-action-btn settings" type="button" aria-label="{{ 'panel.dark_mode'|trans }}">
+                        <span id="globalThemeIcon" class="global-action-icon">🌙</span>
+                        <span id="globalThemeLabel">{{ 'panel.dark_mode'|trans }}</span>
+                    </button>
+                    <button id="globalCollectCoinBtn" class="global-action-btn global-action-coin" type="button" aria-label="{{ 'panel.collect'|trans }}" disabled>
+                        <div class="global-coin-head">
+                            <span class="global-action-icon">💎</span>
+                            <span id="globalCoinCount" class="global-coin-count">0</span>
+                        </div>
+                        <div id="globalCoinTier" class="global-coin-tier">standard • +1</div>
+                        <div id="globalCoinTimer" class="global-coin-timer">{{ 'panel.ready_to_collect'|trans }}</div>
+                        <span id="globalCoinBtnLabel">{{ 'panel.collect'|trans }}</span>
+                    </button>
+                    <a id="globalUpgradeBtn" class="global-action-link upgrade" href="{{ path('app_premium') }}" aria-label="{{ 'panel.upgrade_plan'|trans }}" style="display: none;">
+                        <span class="global-action-icon">⭐</span>
+                        <span>{{ 'panel.upgrade_plan'|trans }}</span>
                     </a>
-                {% endif %}
-                <div class="global-action-btn global-action-language settings">
-                    <label for="languageSelect" class="global-language-title">🌍 {{ 'panel.language'|trans }}</label>
-                    <select id="languageSelect" name="locale" class="global-language-select" onchange="window.location.href='/language/' + this.value;">
-                        <option value="en" {% if currentLocale == 'en' %}selected{% endif %}>🇺🇸 {{ 'panel.language_en'|trans }}</option>
-                        <option value="fr" {% if currentLocale == 'fr' %}selected{% endif %}>🇫🇷 {{ 'panel.language_fr'|trans }}</option>
-                    </select>
+                    <a class="global-action-link settings" href="{{ path('app_settings') }}" data-no-loader="true" data-turbo="false" aria-label="{{ 'panel.settings'|trans }}">
+                        <span class="global-action-icon">⚙</span>
+                        <span>{{ 'panel.settings'|trans }}</span>
+                    </a>
+                    {% if app.user and is_granted('ROLE_USER') %}
+                        <a class="global-action-link settings" href="{{ path('app_vision_test') }}" data-no-loader="true" data-turbo="false" aria-label="{{ 'panel.eye_test'|trans }}">
+                            <span class="global-action-icon">👁️</span>
+                            <span>{{ 'panel.eye_test'|trans }}</span>
+                        </a>
+                    {% endif %}
+                    <div class="global-action-btn global-action-language settings">
+                        <label for="languageSelect" class="global-language-title">🌍 {{ 'panel.language'|trans }}</label>
+                        <select id="languageSelect" name="locale" class="global-language-select" onchange="window.location.href='/language/' + this.value;">
+                            <option value="en" {% if currentLocale == 'en' %}selected{% endif %}>🇺🇸 {{ 'panel.language_en'|trans }}</option>
+                            <option value="fr" {% if currentLocale == 'fr' %}selected{% endif %}>🇫🇷 {{ 'panel.language_fr'|trans }}</option>
+                        </select>
+                    </div>
+                    <a id="globalLogoutLink" class="global-action-link power" href="{{ path('app_logout') }}" aria-label="{{ 'panel.logout'|trans }}">
+                        <span class="global-action-icon">⏻</span>
+                        <span>{{ 'panel.logout'|trans }}</span>
+                    </a>
                 </div>
-                <a id="globalLogoutLink" class="global-action-link power" href="{{ path('app_logout') }}" aria-label="{{ 'panel.logout'|trans }}">
-                    <span class="global-action-icon">⏻</span>
-                    <span>{{ 'panel.logout'|trans }}</span>
-                </a>
+                <div class="global-glass-divider" aria-hidden="true"></div>
+                <aside class="global-profile-side" aria-label="Current user profile">
+                    <img id="globalProfileAvatar" class="global-profile-avatar" src="{{ (app.user and app.user.profile and app.user.profile.imageUrl) ? app.user.profile.imageUrl : asset('images/default_image.png') }}" alt="User profile">
+                    <div id="globalProfileName" class="global-profile-name">{{ app.user ? (app.user.fullName|default(app.user.username)) : 'Guest' }}</div>
+                    <div id="globalProfileRole" class="global-profile-role">
+                        {% if app.user and 'ROLE_ADMIN' in app.user.roles %}
+                            ADMIN
+                        {% elseif app.user and 'ROLE_GUIDE' in app.user.roles %}
+                            GUIDE
+                        {% elseif app.user and 'ROLE_AGENCY' in app.user.roles %}
+                            AGENCY
+                        {% else %}
+                            USER
+                        {% endif %}
+                    </div>
+                    <button id="globalTwoFactorBtn" class="global-profile-twofa" type="button" aria-label="Toggle 2FA">
+                        <span class="global-action-icon">🛡️</span>
+                        <span id="globalTwoFactorLabel">Enable 2FA</span>
+                    </button>
+                    <button id="globalQrEmailBtn" class="global-profile-qr" type="button" aria-label="Send login QR">
+                        <span class="global-action-icon">📧</span>
+                        <span id="globalQrEmailLabel">Send QR Code</span>
+                    </button>
+                </aside>
             </div>
         </aside>
         <div id="globalLoader" class="global-loader" aria-hidden="true">
@@ -1011,6 +1215,13 @@
                 const globalCoinTimer = document.getElementById('globalCoinTimer');
                 const globalCoinBtnLabel = document.getElementById('globalCoinBtnLabel');
                 const globalLogoutLink = document.getElementById('globalLogoutLink');
+                const globalTwoFactorBtn = document.getElementById('globalTwoFactorBtn');
+                const globalTwoFactorLabel = document.getElementById('globalTwoFactorLabel');
+                const globalQrEmailBtn = document.getElementById('globalQrEmailBtn');
+                const globalQrEmailLabel = document.getElementById('globalQrEmailLabel');
+                const globalProfileAvatar = document.getElementById('globalProfileAvatar');
+                const globalProfileName = document.getElementById('globalProfileName');
+                const globalProfileRole = document.getElementById('globalProfileRole');
                 const logoutConfirmModal = document.getElementById('logoutConfirmModal');
                 const logoutConfirmBackdrop = document.getElementById('logoutConfirmBackdrop');
                 const logoutConfirmCancel = document.getElementById('logoutConfirmCancel');
@@ -1207,6 +1418,45 @@
                         });
                 };
 
+                const loadProfileSummary = () => {
+                    fetch('{{ path('app_panel_profile_summary') }}', {
+                        credentials: 'same-origin',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    })
+                        .then((response) => {
+                            if (!response.ok) {
+                                throw new Error('profile-summary-failed');
+                            }
+                            return response.json();
+                        })
+                        .then((payload) => {
+                            if (!payload || !payload.success) {
+                                return;
+                            }
+
+                            if (globalProfileAvatar && payload.imageUrl) {
+                                globalProfileAvatar.src = payload.imageUrl;
+                            }
+                            if (globalProfileName && payload.name) {
+                                globalProfileName.textContent = payload.name;
+                            }
+                            if (globalProfileRole && payload.role) {
+                                globalProfileRole.textContent = payload.role;
+                            }
+
+                            const isEnabled = !!payload.twoFactorEnabled;
+                            if (globalTwoFactorBtn) {
+                                globalTwoFactorBtn.classList.toggle('active', isEnabled);
+                            }
+                            if (globalTwoFactorLabel) {
+                                globalTwoFactorLabel.textContent = isEnabled ? 'Disable 2FA' : 'Enable 2FA';
+                            }
+                        })
+                        .catch(() => {
+                            // Keep defaults if summary endpoint is unavailable.
+                        });
+                };
+
                 const openGlassPanel = () => {
                     if (!globalGlassPanel || !globalGlassOverlay) {
                         return;
@@ -1215,6 +1465,7 @@
                     globalGlassOverlay.classList.add('open');
                     globalGlassPanel.setAttribute('aria-hidden', 'false');
                     globalGlassOverlay.setAttribute('aria-hidden', 'false');
+                    loadProfileSummary();
                 };
 
                 const closeGlassPanel = () => {
@@ -1348,8 +1599,76 @@
                     globalCollectCoinBtn.addEventListener('click', collectCoins);
                 }
 
+                if (globalTwoFactorBtn) {
+                    globalTwoFactorBtn.addEventListener('click', function () {
+                        fetch('{{ path('app_panel_toggle_2fa') }}', {
+                            method: 'POST',
+                            credentials: 'same-origin',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        })
+                            .then((response) => response.json())
+                            .then((payload) => {
+                                if (!payload || !payload.success) {
+                                    return;
+                                }
+
+                                const isEnabled = !!payload.enabled;
+                                globalTwoFactorBtn.classList.toggle('active', isEnabled);
+                                if (globalTwoFactorLabel) {
+                                    globalTwoFactorLabel.textContent = isEnabled ? 'Disable 2FA' : 'Enable 2FA';
+                                }
+                            })
+                            .catch(() => {
+                                // Keep UI unchanged if the request fails.
+                            });
+                    });
+                }
+
+                if (globalQrEmailBtn) {
+                    globalQrEmailBtn.addEventListener('click', function () {
+                        if (globalQrEmailLabel) {
+                            globalQrEmailLabel.textContent = 'Sending...';
+                        }
+
+                        fetch('{{ path('app_panel_send_credentials_qr') }}', {
+                            method: 'POST',
+                            credentials: 'same-origin',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        })
+                            .then((response) => response.json())
+                            .then((payload) => {
+                                if (!payload || !payload.success) {
+                                    if (globalQrEmailLabel) {
+                                        globalQrEmailLabel.textContent = 'Send failed';
+                                    }
+                                    return;
+                                }
+
+                                if (globalQrEmailLabel) {
+                                    globalQrEmailLabel.textContent = 'QR sent to email';
+                                    window.setTimeout(() => {
+                                        globalQrEmailLabel.textContent = 'Send QR Code';
+                                    }, 2000);
+                                }
+                            })
+                            .catch(() => {
+                                if (globalQrEmailLabel) {
+                                    globalQrEmailLabel.textContent = 'Send failed';
+                                    window.setTimeout(() => {
+                                        globalQrEmailLabel.textContent = 'Send QR Code';
+                                    }, 2000);
+                                }
+                            });
+                    });
+                }
+
                 loadCoinStatus();
                 checkUpgradeButton();
+                loadProfileSummary();
 
                 window.addEventListener('themechange', syncThemeIcon);
                 window.addEventListener('pageshow', function () {

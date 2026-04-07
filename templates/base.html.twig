@@ -329,6 +329,146 @@
                 box-shadow: 0 0 12px rgba(56, 189, 248, 0.35);
             }
 
+            .global-profile-faceid {
+                width: 100%;
+                border: 1px solid rgba(76, 170, 146, 0.65);
+                border-radius: 10px;
+                background: linear-gradient(135deg, rgba(237, 255, 248, 0.98), rgba(223, 248, 239, 0.95));
+                color: #0f5d4a;
+                min-height: 50px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                font-weight: 800;
+                font-size: 13px;
+                cursor: pointer;
+                transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+            }
+
+            .global-profile-faceid:hover {
+                transform: translateY(-1px);
+                border-color: rgba(16, 185, 129, 0.76);
+                box-shadow: 0 0 12px rgba(16, 185, 129, 0.35);
+            }
+
+            .global-face-modal {
+                position: fixed;
+                inset: 0;
+                display: none;
+                align-items: center;
+                justify-content: center;
+                z-index: 10040;
+                padding: 14px;
+            }
+
+            .global-face-modal.open {
+                display: flex;
+            }
+
+            .global-face-modal-backdrop {
+                position: absolute;
+                inset: 0;
+                background: rgba(4, 20, 35, 0.7);
+                backdrop-filter: blur(4px);
+            }
+
+            .global-face-modal-card {
+                position: relative;
+                width: min(460px, 96vw);
+                background: linear-gradient(145deg, rgba(248, 252, 255, 0.98), rgba(236, 245, 252, 0.96));
+                border: 1px solid rgba(84, 142, 198, 0.52);
+                border-radius: 16px;
+                box-shadow: 0 20px 54px rgba(6, 34, 63, 0.35);
+                overflow: hidden;
+            }
+
+            .global-face-modal-head {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 14px 16px;
+                border-bottom: 1px solid rgba(168, 201, 228, 0.55);
+            }
+
+            .global-face-modal-title {
+                margin: 0;
+                color: #194575;
+                font-size: 18px;
+                font-weight: 800;
+            }
+
+            .global-face-modal-close {
+                border: 0;
+                width: 30px;
+                height: 30px;
+                border-radius: 999px;
+                background: rgba(25, 69, 117, 0.12);
+                color: #194575;
+                cursor: pointer;
+                font-size: 16px;
+            }
+
+            .global-face-modal-body {
+                padding: 14px 16px 16px;
+            }
+
+            .global-face-video-wrap {
+                border-radius: 12px;
+                overflow: hidden;
+                border: 1px solid rgba(126, 169, 201, 0.62);
+                background: #051a30;
+                aspect-ratio: 4 / 3;
+            }
+
+            .global-face-video {
+                width: 100%;
+                height: 100%;
+                display: block;
+                object-fit: cover;
+            }
+
+            .global-face-preview {
+                width: 100%;
+                height: 100%;
+                display: none;
+                object-fit: cover;
+            }
+
+            .global-face-status {
+                margin: 10px 0 12px;
+                font-size: 13px;
+                color: #335f86;
+                font-weight: 700;
+                min-height: 20px;
+            }
+
+            .global-face-actions {
+                display: flex;
+                gap: 10px;
+            }
+
+            .global-face-btn {
+                border: 1px solid rgba(102, 153, 189, 0.65);
+                border-radius: 10px;
+                min-height: 44px;
+                padding: 0 14px;
+                font-weight: 800;
+                cursor: pointer;
+            }
+
+            .global-face-btn.capture {
+                flex: 1;
+                border-color: rgba(16, 185, 129, 0.65);
+                background: linear-gradient(135deg, rgba(226, 252, 243, 1), rgba(210, 245, 232, 0.96));
+                color: #0f5d4a;
+            }
+
+            .global-face-btn.cancel {
+                background: rgba(243, 248, 253, 0.96);
+                color: #245176;
+            }
+
             .global-action-btn,
             .global-action-link {
                 border: 1px solid rgba(152, 189, 216, 0.6);
@@ -668,6 +808,57 @@
                 background: linear-gradient(135deg, rgba(24, 49, 71, 0.98), rgba(27, 56, 82, 0.96));
                 color: #e6f4ff;
                 box-shadow: 0 8px 20px rgba(5, 21, 40, 0.3);
+            }
+
+            html.dark-mode .global-profile-faceid {
+                border-color: rgba(53, 122, 102, 0.85);
+                background: linear-gradient(135deg, rgba(22, 49, 42, 0.95), rgba(22, 60, 48, 0.94));
+                color: #b9f0de;
+            }
+
+            html.dark-mode .global-profile-faceid:hover {
+                border-color: rgba(16, 185, 129, 0.72);
+                background: linear-gradient(135deg, rgba(25, 58, 48, 0.96), rgba(28, 72, 58, 0.95));
+                color: #dcfff4;
+                box-shadow: 0 8px 20px rgba(5, 21, 40, 0.3);
+            }
+
+            html.dark-mode .global-face-modal-card {
+                background: linear-gradient(145deg, rgba(14, 27, 41, 0.96), rgba(17, 35, 52, 0.95));
+                border-color: rgba(63, 102, 136, 0.74);
+            }
+
+            html.dark-mode .global-face-modal-head {
+                border-bottom-color: rgba(71, 108, 140, 0.65);
+            }
+
+            html.dark-mode .global-face-modal-title,
+            html.dark-mode .global-face-modal-close {
+                color: #d9e9f9;
+            }
+
+            html.dark-mode .global-face-modal-close {
+                background: rgba(157, 196, 230, 0.14);
+            }
+
+            html.dark-mode .global-face-video-wrap {
+                border-color: rgba(80, 122, 156, 0.7);
+            }
+
+            html.dark-mode .global-face-status {
+                color: #9ec2e3;
+            }
+
+            html.dark-mode .global-face-btn.capture {
+                background: linear-gradient(135deg, rgba(21, 68, 55, 0.95), rgba(24, 84, 66, 0.94));
+                border-color: rgba(16, 185, 129, 0.7);
+                color: #cbffe8;
+            }
+
+            html.dark-mode .global-face-btn.cancel {
+                background: rgba(25, 43, 61, 0.94);
+                border-color: rgba(80, 122, 156, 0.72);
+                color: #d6e6f6;
             }
 
             html.dark-mode .global-language-select {
@@ -1172,6 +1363,10 @@
                         <span class="global-action-icon">📧</span>
                         <span id="globalQrEmailLabel">Send QR Code</span>
                     </button>
+                    <button id="globalFaceIdBtn" class="global-profile-faceid" type="button" aria-label="Capture face id">
+                        <span class="global-action-icon">📷</span>
+                        <span id="globalFaceIdLabel">Face Id</span>
+                    </button>
                 </aside>
             </div>
         </aside>
@@ -1192,6 +1387,28 @@
                 <div class="logout-confirm-actions">
                     <button id="logoutConfirmCancel" type="button" class="logout-confirm-btn cancel">Cancel</button>
                     <button id="logoutConfirmOk" type="button" class="logout-confirm-btn ok">OK</button>
+                </div>
+            </div>
+        </div>
+        <div id="globalFaceModal" class="global-face-modal" aria-hidden="true">
+            <div id="globalFaceModalBackdrop" class="global-face-modal-backdrop"></div>
+            <div class="global-face-modal-card" role="dialog" aria-modal="true" aria-labelledby="globalFaceModalTitle">
+                <div class="global-face-modal-head">
+                    <h3 id="globalFaceModalTitle" class="global-face-modal-title">Capture Face Id</h3>
+                    <button id="globalFaceModalClose" class="global-face-modal-close" type="button" aria-label="Close">x</button>
+                </div>
+                <div class="global-face-modal-body">
+                    <div class="global-face-video-wrap">
+                        <video id="globalFaceVideo" class="global-face-video" autoplay playsinline muted></video>
+                        <img id="globalFacePreview" class="global-face-preview" alt="Captured face preview">
+                    </div>
+                    <p id="globalFaceStatus" class="global-face-status">Allow camera access, center your face, then capture.</p>
+                    <div class="global-face-actions">
+                        <button id="globalFaceCaptureBtn" class="global-face-btn capture" type="button">Capture</button>
+                        <button id="globalFaceRetakeBtn" class="global-face-btn cancel" type="button" style="display:none;">Retake</button>
+                        <button id="globalFaceSaveBtn" class="global-face-btn capture" type="button" style="display:none;">Save</button>
+                        <button id="globalFaceCancelBtn" class="global-face-btn cancel" type="button">Cancel</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1219,6 +1436,18 @@
                 const globalTwoFactorLabel = document.getElementById('globalTwoFactorLabel');
                 const globalQrEmailBtn = document.getElementById('globalQrEmailBtn');
                 const globalQrEmailLabel = document.getElementById('globalQrEmailLabel');
+                const globalFaceIdBtn = document.getElementById('globalFaceIdBtn');
+                const globalFaceIdLabel = document.getElementById('globalFaceIdLabel');
+                const globalFaceModal = document.getElementById('globalFaceModal');
+                const globalFaceModalBackdrop = document.getElementById('globalFaceModalBackdrop');
+                const globalFaceModalClose = document.getElementById('globalFaceModalClose');
+                const globalFaceVideo = document.getElementById('globalFaceVideo');
+                const globalFacePreview = document.getElementById('globalFacePreview');
+                const globalFaceStatus = document.getElementById('globalFaceStatus');
+                const globalFaceCaptureBtn = document.getElementById('globalFaceCaptureBtn');
+                const globalFaceRetakeBtn = document.getElementById('globalFaceRetakeBtn');
+                const globalFaceSaveBtn = document.getElementById('globalFaceSaveBtn');
+                const globalFaceCancelBtn = document.getElementById('globalFaceCancelBtn');
                 const globalProfileAvatar = document.getElementById('globalProfileAvatar');
                 const globalProfileName = document.getElementById('globalProfileName');
                 const globalProfileRole = document.getElementById('globalProfileRole');
@@ -1241,6 +1470,8 @@
                 let isDraggingToggle = false;
                 let coinCooldownRemaining = 0;
                 let coinCountdownInterval = null;
+                let faceStream = null;
+                let capturedFaceImageData = '';
 
                 if (!loader) {
                     return;
@@ -1494,6 +1725,201 @@
                     logoutConfirmModal.setAttribute('aria-hidden', 'true');
                 };
 
+                const resetFaceCaptureState = () => {
+                    capturedFaceImageData = '';
+
+                    if (globalFacePreview) {
+                        globalFacePreview.removeAttribute('src');
+                        globalFacePreview.style.display = 'none';
+                    }
+
+                    if (globalFaceVideo) {
+                        globalFaceVideo.style.display = 'block';
+                    }
+
+                    if (globalFaceCaptureBtn) {
+                        globalFaceCaptureBtn.style.display = 'inline-flex';
+                        globalFaceCaptureBtn.disabled = false;
+                    }
+
+                    if (globalFaceRetakeBtn) {
+                        globalFaceRetakeBtn.style.display = 'none';
+                        globalFaceRetakeBtn.disabled = false;
+                    }
+
+                    if (globalFaceSaveBtn) {
+                        globalFaceSaveBtn.style.display = 'none';
+                        globalFaceSaveBtn.disabled = false;
+                    }
+                };
+
+                const setFaceStatus = (text) => {
+                    if (globalFaceStatus) {
+                        globalFaceStatus.textContent = text;
+                    }
+                };
+
+                const stopFaceCamera = () => {
+                    if (faceStream) {
+                        faceStream.getTracks().forEach((track) => track.stop());
+                        faceStream = null;
+                    }
+
+                    if (globalFaceVideo) {
+                        globalFaceVideo.pause();
+                        globalFaceVideo.srcObject = null;
+                    }
+                };
+
+                const closeFaceModal = () => {
+                    stopFaceCamera();
+                    resetFaceCaptureState();
+                    if (globalFaceModal) {
+                        globalFaceModal.classList.remove('open');
+                        globalFaceModal.setAttribute('aria-hidden', 'true');
+                    }
+                };
+
+                const openFaceModal = async () => {
+                    if (!globalFaceModal || !globalFaceVideo) {
+                        return;
+                    }
+
+                    if (!navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') {
+                        setFaceStatus('Camera is not supported in this browser.');
+                        return;
+                    }
+
+                    try {
+                        setFaceStatus('Requesting camera access...');
+                        globalFaceModal.classList.add('open');
+                        globalFaceModal.setAttribute('aria-hidden', 'false');
+
+                        faceStream = await navigator.mediaDevices.getUserMedia({
+                            video: {
+                                facingMode: 'user',
+                                width: { ideal: 640 },
+                                height: { ideal: 480 }
+                            },
+                            audio: false
+                        });
+
+                        globalFaceVideo.srcObject = faceStream;
+                        await globalFaceVideo.play();
+                        resetFaceCaptureState();
+                        setFaceStatus('Center your face, then click Capture & Save.');
+                    } catch (error) {
+                        closeFaceModal();
+                        setFaceStatus('Unable to access camera. Please allow permission and try again.');
+                        if (globalFaceIdLabel) {
+                            globalFaceIdLabel.textContent = 'Face Id';
+                        }
+                    }
+                };
+
+                const captureFacePreview = () => {
+                    if (!globalFaceVideo || !globalFaceVideo.videoWidth || !globalFaceVideo.videoHeight) {
+                        setFaceStatus('Camera not ready. Please try again.');
+                        return;
+                    }
+
+                    const canvas = document.createElement('canvas');
+                    const displayWidth = Math.max(1, globalFaceVideo.clientWidth || 0);
+                    const displayHeight = Math.max(1, globalFaceVideo.clientHeight || 0);
+
+                    canvas.width = displayWidth;
+                    canvas.height = displayHeight;
+
+                    const context = canvas.getContext('2d');
+                    if (!context) {
+                        setFaceStatus('Capture failed.');
+                        return;
+                    }
+
+                    context.drawImage(globalFaceVideo, 0, 0, displayWidth, displayHeight);
+                    capturedFaceImageData = canvas.toDataURL('image/jpeg', 0.9);
+
+                    if (globalFacePreview) {
+                        globalFacePreview.src = capturedFaceImageData;
+                        globalFacePreview.style.display = 'block';
+                    }
+
+                    globalFaceVideo.style.display = 'none';
+
+                    if (globalFaceCaptureBtn) {
+                        globalFaceCaptureBtn.style.display = 'none';
+                    }
+
+                    if (globalFaceRetakeBtn) {
+                        globalFaceRetakeBtn.style.display = 'inline-flex';
+                    }
+
+                    if (globalFaceSaveBtn) {
+                        globalFaceSaveBtn.style.display = 'inline-flex';
+                    }
+
+                    setFaceStatus('Preview ready. Save it or retake.');
+                };
+
+                const saveCapturedFace = () => {
+                    if (!capturedFaceImageData) {
+                        setFaceStatus('Capture photo first.');
+                        return;
+                    }
+
+                    if (globalFaceSaveBtn) {
+                        globalFaceSaveBtn.disabled = true;
+                    }
+                    if (globalFaceRetakeBtn) {
+                        globalFaceRetakeBtn.disabled = true;
+                    }
+                    setFaceStatus('Saving face data...');
+
+                    fetch('{{ path('app_panel_capture_face_id') }}', {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({ imageData: capturedFaceImageData })
+                    })
+                        .then((response) => response.json())
+                        .then((payload) => {
+                            if (!payload || !payload.success) {
+                                setFaceStatus('Face save failed. Please retry.');
+                                return;
+                            }
+
+                            setFaceStatus('Face data saved successfully.');
+                            if (globalFaceIdLabel) {
+                                globalFaceIdLabel.textContent = 'Face saved';
+                                window.setTimeout(() => {
+                                    globalFaceIdLabel.textContent = 'Face Id';
+                                }, 2200);
+                            }
+                            window.setTimeout(() => {
+                                closeFaceModal();
+                            }, 500);
+                        })
+                        .catch(() => {
+                            setFaceStatus('Face save failed. Please retry.');
+                        })
+                        .finally(() => {
+                            if (globalFaceSaveBtn) {
+                                globalFaceSaveBtn.disabled = false;
+                            }
+                            if (globalFaceRetakeBtn) {
+                                globalFaceRetakeBtn.disabled = false;
+                            }
+                        });
+                };
+
+                const retakeCapturedFace = () => {
+                    resetFaceCaptureState();
+                    setFaceStatus('Retake ready. Center your face and capture again.');
+                };
+
                 window.showGlobalLoader = showLoader;
                 window.hideGlobalLoader = hideLoader;
 
@@ -1666,6 +2092,44 @@
                     });
                 }
 
+                if (globalFaceIdBtn) {
+                    globalFaceIdBtn.addEventListener('click', function () {
+                        if (globalFaceIdLabel) {
+                            globalFaceIdLabel.textContent = 'Opening camera...';
+                        }
+
+                        openFaceModal().finally(() => {
+                            if (globalFaceIdLabel && globalFaceIdLabel.textContent === 'Opening camera...') {
+                                globalFaceIdLabel.textContent = 'Face Id';
+                            }
+                        });
+                    });
+                }
+
+                if (globalFaceCaptureBtn) {
+                    globalFaceCaptureBtn.addEventListener('click', captureFacePreview);
+                }
+
+                if (globalFaceRetakeBtn) {
+                    globalFaceRetakeBtn.addEventListener('click', retakeCapturedFace);
+                }
+
+                if (globalFaceSaveBtn) {
+                    globalFaceSaveBtn.addEventListener('click', saveCapturedFace);
+                }
+
+                if (globalFaceCancelBtn) {
+                    globalFaceCancelBtn.addEventListener('click', closeFaceModal);
+                }
+
+                if (globalFaceModalBackdrop) {
+                    globalFaceModalBackdrop.addEventListener('click', closeFaceModal);
+                }
+
+                if (globalFaceModalClose) {
+                    globalFaceModalClose.addEventListener('click', closeFaceModal);
+                }
+
                 loadCoinStatus();
                 checkUpgradeButton();
                 loadProfileSummary();
@@ -1674,10 +2138,12 @@
                 window.addEventListener('pageshow', function () {
                     hideLoader();
                     closeGlassPanel();
+                    closeFaceModal();
                 });
                 window.addEventListener('load', function () {
                     hideLoader();
                     closeGlassPanel();
+                    closeFaceModal();
                 });
                 document.addEventListener('visibilitychange', function () {
                     if (document.visibilityState === 'visible') {
@@ -1690,6 +2156,7 @@
                     if (event.key === 'Escape') {
                         closeGlassPanel();
                         closeLogoutConfirm();
+                        closeFaceModal();
                     }
                 });
 

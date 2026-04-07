@@ -199,6 +199,48 @@ class HomeController extends AbstractController
         ]);
     }
 
+    #[Route('/panel/face-id/capture', name: 'app_panel_capture_face_id', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function captureFaceId(Request $request, Connection $connection): JsonResponse
+    {
+        $user = $this->getUser();
+        if (!$user instanceof User || $user->getId() === null) {
+            return $this->json(['success' => false, 'error' => 'Unauthorized'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $payload = json_decode($request->getContent(), true);
+        if (!is_array($payload)) {
+            return $this->json(['success' => false, 'error' => 'Invalid payload'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $imageDataUrl = (string) ($payload['imageData'] ?? '');
+        if ($imageDataUrl === '' || !str_starts_with($imageDataUrl, 'data:image/')) {
+            return $this->json(['success' => false, 'error' => 'Missing face image'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $separatorPos = strpos($imageDataUrl, ',');
+        if ($separatorPos === false) {
+            return $this->json(['success' => false, 'error' => 'Invalid image format'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $base64Data = substr($imageDataUrl, $separatorPos + 1);
+        $binaryImage = base64_decode($base64Data, true);
+        if ($binaryImage === false || $binaryImage === '') {
+            return $this->json(['success' => false, 'error' => 'Image decode failed'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $connection->executeStatement(
+            'UPDATE `user` SET face_data = ? WHERE id = ?',
+            [$binaryImage, (int) $user->getId()],
+            [ParameterType::LARGE_OBJECT, ParameterType::INTEGER]
+        );
+
+        return $this->json([
+            'success' => true,
+            'message' => 'Face data captured successfully.',
+        ]);
+    }
+
     #[Route('/panel/profile-summary', name: 'app_panel_profile_summary', methods: ['GET'])]
     #[IsGranted('ROLE_USER')]
     public function panelProfileSummary(Connection $connection): JsonResponse

@@ -647,6 +647,87 @@
             font-size: 0.9rem;
         }
 
+        .face-scanner-modal {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            z-index: 10001;
+        }
+
+        .face-scanner-modal.open {
+            display: flex;
+        }
+
+        .face-scanner-backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(4, 18, 34, 0.82);
+            backdrop-filter: blur(4px);
+        }
+
+        .face-scanner-card {
+            position: relative;
+            width: min(460px, 96vw);
+            border-radius: 18px;
+            border: 1px solid rgba(10, 160, 159, 0.48);
+            background: linear-gradient(145deg, rgba(248, 252, 255, 0.98), rgba(236, 245, 252, 0.97));
+            box-shadow: 0 20px 50px rgba(1, 35, 65, 0.38);
+            padding: 16px;
+            z-index: 1;
+        }
+
+        .face-scanner-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .face-scanner-title {
+            margin: 0;
+            color: #0a2f57;
+            font-weight: 800;
+            font-size: 1.15rem;
+        }
+
+        .face-scanner-close {
+            width: 32px;
+            height: 32px;
+            border: 0;
+            border-radius: 50%;
+            background: rgba(7, 57, 107, 0.12);
+            color: #07396B;
+            cursor: pointer;
+        }
+
+        .face-scanner-video-wrap {
+            border-radius: 14px;
+            border: 1px solid rgba(10, 160, 159, 0.28);
+            background: #001a2f;
+            overflow: hidden;
+            aspect-ratio: 1 / 1;
+            position: relative;
+        }
+
+        .face-scanner-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .face-scanner-status {
+            margin-top: 10px;
+            margin-bottom: 0;
+            color: #194a76;
+            font-weight: 600;
+            font-size: 0.9rem;
+            min-height: 20px;
+        }
+
         .form-check-label {
             color: #0a2f57 !important;
             font-weight: 500;
@@ -869,7 +950,7 @@
                         
                         <div class="row g-2 mb-4">
                             <div class="col-6">
-                                <button type="button" class="btn biometric-btn w-100">
+                                <button type="button" id="faceIdLoginBtn" class="btn biometric-btn w-100">
                                     <i class="fas fa-face-smile me-2"></i>Face ID
                                 </button>
                             </div>
@@ -962,6 +1043,20 @@
             <p id="qrScannerStatus" class="qr-scanner-status">Point your camera at a QR code containing email and password.</p>
         </div>
     </div>
+
+    <div id="faceScannerModal" class="face-scanner-modal" aria-hidden="true">
+        <div class="face-scanner-backdrop" id="faceScannerBackdrop"></div>
+        <div class="face-scanner-card" role="dialog" aria-modal="true" aria-labelledby="faceScannerTitle">
+            <div class="face-scanner-head">
+                <h3 id="faceScannerTitle" class="face-scanner-title">Face ID Login</h3>
+                <button type="button" id="faceScannerClose" class="face-scanner-close" aria-label="Close scanner">×</button>
+            </div>
+            <div class="face-scanner-video-wrap">
+                <video id="faceScannerVideo" class="face-scanner-video" autoplay playsinline muted></video>
+            </div>
+            <p id="faceScannerStatus" class="face-scanner-status">Center your face. Login starts automatically when a face is detected.</p>
+        </div>
+    </div>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
@@ -1033,15 +1128,28 @@
             const fieldNames = ['name', 'last_name', 'username', 'birth_date', 'email', 'password', 'confirm_password'];
             const initialView = '{{ initial_view|default('login') }}';
             const scanQrBtn = document.getElementById('scanQrBtn');
+            const faceIdLoginBtn = document.getElementById('faceIdLoginBtn');
             const qrScannerModal = document.getElementById('qrScannerModal');
             const qrScannerBackdrop = document.getElementById('qrScannerBackdrop');
             const qrScannerClose = document.getElementById('qrScannerClose');
             const qrScannerVideo = document.getElementById('qrScannerVideo');
             const qrScannerStatus = document.getElementById('qrScannerStatus');
+            const faceScannerModal = document.getElementById('faceScannerModal');
+            const faceScannerBackdrop = document.getElementById('faceScannerBackdrop');
+            const faceScannerClose = document.getElementById('faceScannerClose');
+            const faceScannerVideo = document.getElementById('faceScannerVideo');
+            const faceScannerStatus = document.getElementById('faceScannerStatus');
             let qrScannerStream = null;
             let qrScannerFrameId = null;
             const qrScannerCanvas = document.createElement('canvas');
             const qrScannerContext = qrScannerCanvas.getContext('2d', { willReadFrequently: true });
+            let faceScannerStream = null;
+            let faceScannerFrameId = null;
+            let faceLoginInProgress = false;
+            let lastFaceAttemptAt = 0;
+            let faceDetector = null;
+            const faceScannerCanvas = document.createElement('canvas');
+            const faceScannerContext = faceScannerCanvas.getContext('2d', { willReadFrequently: true });
 
             const isRoleSelected = () => {
                 const checkboxes = document.querySelectorAll('.role-checkbox');
@@ -1418,6 +1526,163 @@
                 }
             };
 
+            const setFaceScannerStatus = (text) => {
+                if (faceScannerStatus) {
+                    faceScannerStatus.textContent = text;
+                }
+            };
+
+            const stopFaceScanner = () => {
+                if (faceScannerFrameId) {
+                    window.cancelAnimationFrame(faceScannerFrameId);
+                    faceScannerFrameId = null;
+                }
+
+                if (faceScannerVideo) {
+                    faceScannerVideo.pause();
+                    faceScannerVideo.srcObject = null;
+                }
+
+                if (faceScannerStream) {
+                    faceScannerStream.getTracks().forEach((track) => track.stop());
+                    faceScannerStream = null;
+                }
+
+                faceLoginInProgress = false;
+            };
+
+            const closeFaceScanner = () => {
+                stopFaceScanner();
+                if (faceScannerModal) {
+                    faceScannerModal.classList.remove('open');
+                    faceScannerModal.setAttribute('aria-hidden', 'true');
+                }
+            };
+
+            const submitFaceFrame = (imageDataUrl) => {
+                faceLoginInProgress = true;
+                setFaceScannerStatus('Checking your face...');
+
+                fetch('{{ path('app_login_face_id') }}', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({ imageData: imageDataUrl })
+                })
+                    .then(async (response) => {
+                        let payload = null;
+                        try {
+                            payload = await response.json();
+                        } catch (error) {
+                            payload = null;
+                        }
+
+                        if (payload && payload.success && payload.redirectUrl) {
+                            showPageLoader('Face recognized. Signing you in...');
+                            window.location.assign(payload.redirectUrl);
+                            return;
+                        }
+
+                        if (payload && payload.message) {
+                            setFaceScannerStatus(payload.message + ' Keep your face centered...');
+                        } else {
+                            setFaceScannerStatus('Face not recognized yet. Keep your face centered...');
+                        }
+
+                        faceLoginInProgress = false;
+                    })
+                    .catch(() => {
+                        setFaceScannerStatus('Unable to verify face right now. Retrying...');
+                        faceLoginInProgress = false;
+                    });
+            };
+
+            const runFaceScannerFrame = async () => {
+                if (!faceScannerVideo || !faceScannerContext) {
+                    return;
+                }
+
+                if (faceScannerVideo.readyState >= 2) {
+                    const width = faceScannerVideo.videoWidth;
+                    const height = faceScannerVideo.videoHeight;
+
+                    if (width > 0 && height > 0) {
+                        faceScannerCanvas.width = width;
+                        faceScannerCanvas.height = height;
+                        faceScannerContext.drawImage(faceScannerVideo, 0, 0, width, height);
+
+                        const now = Date.now();
+                        if (!faceLoginInProgress && now - lastFaceAttemptAt >= 1200) {
+                            let hasFace = true;
+
+                            if (faceDetector) {
+                                try {
+                                    const bitmap = await createImageBitmap(faceScannerCanvas);
+                                    const faces = await faceDetector.detect(bitmap);
+                                    bitmap.close();
+                                    hasFace = Array.isArray(faces) && faces.length > 0;
+                                } catch (error) {
+                                    hasFace = true;
+                                }
+                            }
+
+                            if (hasFace) {
+                                lastFaceAttemptAt = now;
+                                const imageDataUrl = faceScannerCanvas.toDataURL('image/jpeg', 0.9);
+                                submitFaceFrame(imageDataUrl);
+                            } else {
+                                setFaceScannerStatus('No face detected yet. Move your face into the frame.');
+                            }
+                        }
+                    }
+                }
+
+                faceScannerFrameId = window.requestAnimationFrame(() => {
+                    runFaceScannerFrame();
+                });
+            };
+
+            const openFaceScanner = async () => {
+                if (!faceScannerModal || !faceScannerVideo) {
+                    return;
+                }
+
+                if (!navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') {
+                    alert('Camera is not supported in this browser.');
+                    return;
+                }
+
+                try {
+                    setFaceScannerStatus('Opening camera...');
+                    faceScannerModal.classList.add('open');
+                    faceScannerModal.setAttribute('aria-hidden', 'false');
+
+                    faceDetector = 'FaceDetector' in window
+                        ? new window.FaceDetector({ fastMode: true, maxDetectedFaces: 1 })
+                        : null;
+
+                    faceScannerStream = await navigator.mediaDevices.getUserMedia({
+                        video: {
+                            facingMode: 'user'
+                        },
+                        audio: false
+                    });
+
+                    faceScannerVideo.srcObject = faceScannerStream;
+                    await faceScannerVideo.play();
+                    setFaceScannerStatus('Center your face. Detection is automatic...');
+                    faceScannerFrameId = window.requestAnimationFrame(() => {
+                        runFaceScannerFrame();
+                    });
+                } catch (error) {
+                    closeFaceScanner();
+                    alert('Unable to open camera. Please allow camera permission and try again.');
+                }
+            };
+
             if (form) {
                 form.addEventListener('submit', (event) => {
                     const email = form.querySelector('input[name="_username"]').value.trim();
@@ -1439,6 +1704,12 @@
                 });
             }
 
+            if (faceIdLoginBtn) {
+                faceIdLoginBtn.addEventListener('click', () => {
+                    openFaceScanner();
+                });
+            }
+
             if (qrScannerClose) {
                 qrScannerClose.addEventListener('click', closeQrScanner);
             }
@@ -1447,14 +1718,27 @@
                 qrScannerBackdrop.addEventListener('click', closeQrScanner);
             }
 
+            if (faceScannerClose) {
+                faceScannerClose.addEventListener('click', closeFaceScanner);
+            }
+
+            if (faceScannerBackdrop) {
+                faceScannerBackdrop.addEventListener('click', closeFaceScanner);
+            }
+
             document.addEventListener('keydown', (event) => {
                 if (event.key === 'Escape' && qrScannerModal && qrScannerModal.classList.contains('open')) {
                     closeQrScanner();
+                }
+
+                if (event.key === 'Escape' && faceScannerModal && faceScannerModal.classList.contains('open')) {
+                    closeFaceScanner();
                 }
             });
 
             window.addEventListener('beforeunload', () => {
                 stopQrScanner();
+                stopFaceScanner();
             });
 
             if (signupForm) {

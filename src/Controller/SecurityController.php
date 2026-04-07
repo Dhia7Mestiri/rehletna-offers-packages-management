@@ -3,14 +3,18 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Repository\UserRepository;
+use App\Security\LoginFormAuthenticator;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\ParameterType;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Authentication\UserAuthenticatorInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
@@ -55,6 +59,170 @@ class SecurityController extends AbstractController
     public function forgotPassword(): Response
     {
         return $this->render('security/forgot_password.html.twig');
+    }
+
+    #[Route(path: '/login/face-id', name: 'app_login_face_id', methods: ['POST'])]
+    public function loginWithFaceId(
+        Request $request,
+        Connection $connection,
+        UserRepository $userRepository,
+        UserAuthenticatorInterface $userAuthenticator,
+        LoginFormAuthenticator $formAuthenticator
+    ): Response {
+        if ($this->getUser() instanceof User) {
+            return $this->json([
+                'success' => true,
+                'message' => 'Already logged in.',
+                'redirectUrl' => $this->generateUrl('app_mainpage'),
+            ]);
+        }
+
+        $payload = json_decode($request->getContent(), true);
+        if (!is_array($payload)) {
+            return $this->json(['success' => false, 'message' => 'Invalid payload.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $imageData = (string) ($payload['imageData'] ?? '');
+        $capturedImage = $this->decodeDataUrlImage($imageData);
+        if ($capturedImage === null) {
+            return $this->json(['success' => false, 'message' => 'Invalid face image.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        if (!function_exists('imagecreatefromstring')) {
+            return $this->json(['success' => false, 'message' => 'GD extension is required for face matching.'], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
+        $userRows = $connection->executeQuery(
+            'SELECT id, face_data FROM `user` WHERE face_data IS NOT NULL'
+        )->fetchAllAssociative();
+
+        if (!$userRows) {
+            return $this->json(['success' => false, 'message' => 'No enrolled face data found.'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $bestSimilarity = 0.0;
+        $bestUserId = null;
+
+        foreach ($userRows as $row) {
+            $storedFace = $row['face_data'] ?? null;
+            if (is_resource($storedFace)) {
+                $storedFace = stream_get_contents($storedFace);
+            }
+
+            if (!is_string($storedFace) || $storedFace === '') {
+                continue;
+            }
+
+            $similarity = $this->computeFaceSimilarity($capturedImage, $storedFace);
+            if ($similarity > $bestSimilarity) {
+                $bestSimilarity = $similarity;
+                $bestUserId = isset($row['id']) ? (int) $row['id'] : null;
+            }
+        }
+
+        // Similarity tuned for same-user webcam captures; tighten if false positives appear.
+        if ($bestUserId === null || $bestSimilarity < 0.86) {
+            return $this->json(['success' => false, 'message' => 'Face not recognized.'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $matchedUser = $userRepository->find($bestUserId);
+        if (!$matchedUser instanceof User) {
+            return $this->json(['success' => false, 'message' => 'Matched user not found.'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $userAuthenticator->authenticateUser($matchedUser, $formAuthenticator, $request);
+
+        return $this->json([
+            'success' => true,
+            'message' => 'Face recognized. Logging in...',
+            'redirectUrl' => $this->generateUrl('app_mainpage'),
+        ]);
+    }
+
+    private function decodeDataUrlImage(string $imageData): ?string
+    {
+        if ($imageData === '' || !str_starts_with($imageData, 'data:image/')) {
+            return null;
+        }
+
+        $separator = strpos($imageData, ',');
+        if ($separator === false) {
+            return null;
+        }
+
+        $decoded = base64_decode(substr($imageData, $separator + 1), true);
+        if (!is_string($decoded) || $decoded === '') {
+            return null;
+        }
+
+        return $decoded;
+    }
+
+    private function computeFaceSimilarity(string $firstImageBinary, string $secondImageBinary): float
+    {
+        $firstVector = $this->createGrayVector($firstImageBinary, 40);
+        $secondVector = $this->createGrayVector($secondImageBinary, 40);
+
+        if ($firstVector === null || $secondVector === null || count($firstVector) !== count($secondVector)) {
+            return 0.0;
+        }
+
+        $distanceSum = 0.0;
+        $count = count($firstVector);
+
+        for ($index = 0; $index < $count; $index++) {
+            $distanceSum += abs($firstVector[$index] - $secondVector[$index]) / 255.0;
+        }
+
+        $averageDistance = $count > 0 ? ($distanceSum / $count) : 1.0;
+        $similarity = 1.0 - $averageDistance;
+
+        return max(0.0, min(1.0, $similarity));
+    }
+
+    private function createGrayVector(string $imageBinary, int $size): ?array
+    {
+        $source = @imagecreatefromstring($imageBinary);
+        if ($source === false) {
+            return null;
+        }
+
+        $scaled = imagecreatetruecolor($size, $size);
+        if ($scaled === false) {
+            imagedestroy($source);
+            return null;
+        }
+
+        imagecopyresampled(
+            $scaled,
+            $source,
+            0,
+            0,
+            0,
+            0,
+            $size,
+            $size,
+            imagesx($source),
+            imagesy($source)
+        );
+
+        $vector = [];
+        for ($y = 0; $y < $size; $y++) {
+            for ($x = 0; $x < $size; $x++) {
+                $rgb = imagecolorat($scaled, $x, $y);
+                $red = ($rgb >> 16) & 0xFF;
+                $green = ($rgb >> 8) & 0xFF;
+                $blue = $rgb & 0xFF;
+
+                $gray = (int) round(($red * 0.299) + ($green * 0.587) + ($blue * 0.114));
+                $vector[] = $gray;
+            }
+        }
+
+        imagedestroy($scaled);
+        imagedestroy($source);
+
+        return $vector;
     }
 
     #[Route(path: '/two-factor', name: 'app_two_factor_verify', methods: ['GET'])]

@@ -1,0 +1,22 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Offer{% endblock %}
+
+{% block body %}
+
+{% include 'partials/_navbar.html.twig' %}
+
+<div class="th-body">
+    <div class="th-page-header" style="padding-left:0;padding-right:0">
+        <div>
+            <h1 class="th-page-title">Edit Offer</h1>
+            <p class="th-page-sub">Update your offer information.</p>
+        </div>
+    </div>
+
+    <div class="offer-detail-card p-4">
+        {% include 'offer/_form.html.twig' with { form: form, availableServiceDetails: availableServiceDetails } %}
+    </div>
+</div>
+
+{% endblock %}

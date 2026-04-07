@@ -1,0 +1,111 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Archived Offers{% endblock %}
+
+{% block body %}
+
+{% include 'partials/_navbar.html.twig' %}
+
+<div class="th-body">
+
+    <div class="th-page-header" style="padding-left:0;padding-right:0">
+        <div>
+            <h1 class="th-page-title">Archived Offers</h1>
+            <p class="th-page-sub">Restore or permanently delete archived offers.</p>
+        </div>
+        <div class="th-header-actions">
+            <a href="{{ path('app_agency_offer_index') }}" class="th-btn-outline">
+                <i class="bi bi-arrow-left me-1"></i> Back to Active Offers
+            </a>
+        </div>
+    </div>
+
+    {% if offers is empty %}
+        <div class="th-empty">
+            <i class="bi bi-archive th-empty-icon"></i>
+            <h3 class="th-empty-title">No archived offers</h3>
+            <p class="th-empty-sub">Archived offers will appear here.</p>
+        </div>
+    {% else %}
+        <div class="th-grid">
+            {% for offer in offers %}
+                {% set discount = 0 %}
+                {% if offer.originalPrice and offer.originalPrice > 0 and offer.promoPrice %}
+                    {% set discount = (((offer.originalPrice - offer.promoPrice) / offer.originalPrice) * 100)|round %}
+                {% endif %}
+
+                <div class="th-card">
+                    <div class="th-card-img-wrap">
+                        <img
+                            src="{{ offer.imageUrl ?: 'https://via.placeholder.com/600x400?text=Travel+Offer' }}"
+                            alt="{{ offer.title }}"
+                            class="th-card-img"
+                        >
+
+                        {% if discount > 0 %}
+                            <div class="th-discount-badge">-{{ discount }}%</div>
+                        {% endif %}
+
+                        <div class="th-status-badge th-status-archived">
+                            <i class="bi bi-archive-fill"></i> Archived
+                        </div>
+                    </div>
+
+                    <div class="th-card-body">
+                        <h2 class="th-card-title">{{ offer.title }}</h2>
+
+                        <div class="th-card-location">
+                            <i class="bi bi-geo-alt-fill"></i>
+                            {{ offer.location ?: 'Location not specified' }}
+                        </div>
+
+                        <p class="th-card-desc">
+                            {{ offer.description|length > 100 ? offer.description|slice(0, 100) ~ '...' : offer.description }}
+                        </p>
+
+                        <div class="th-card-footer th-card-footer--agency">
+                            <div class="th-price-wrap">
+                                <span class="th-price-label">à partir de</span>
+                                <div class="th-price-row">
+                                    <span class="th-price">{{ offer.promoPrice }}</span>
+                                    <span class="th-price-cur">TND</span>
+                                    {% if offer.originalPrice %}
+                                        <span class="th-price-old">{{ offer.originalPrice }} TND</span>
+                                    {% endif %}
+                                </div>
+
+                                <div class="th-dates">
+                                    <i class="bi bi-calendar3"></i>
+                                    {{ offer.startDate ? offer.startDate|date('d/m/Y') : '—' }}
+                                    &rarr;
+                                    {{ offer.endDate ? offer.endDate|date('d/m/Y') : '—' }}
+                                </div>
+                            </div>
+
+                            <div class="th-card-actions">
+                                <a href="{{ path('app_offer_show', {id: offer.id}) }}" class="th-btn-outline">🔍 Details</a>
+
+                                <form method="post" action="{{ path('app_offer_restore', {id: offer.id}) }}" class="m-0">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('restore_offer_' ~ offer.id) }}">
+                                    <button type="submit" class="th-btn-success">
+                                        ♻️ Restore
+                                    </button>
+                                </form>
+
+                                <form method="post" action="{{ path('app_offer_delete', {id: offer.id}) }}" class="m-0"
+                                      onsubmit="return confirm('Permanently delete this offer? This cannot be undone.');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete_offer_' ~ offer.id) }}">
+                                    <button type="submit" class="th-btn-danger">
+                                        🗑️ Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

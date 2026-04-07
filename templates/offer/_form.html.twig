@@ -1,0 +1,404 @@
+{{ form_start(form, {'attr': {'class': 'offer-form', 'novalidate': 'novalidate', 'id': 'offerForm'}}) }}
+
+{# ── Offer Details ── #}
+<div class="th-form-card">
+    <h3 class="th-form-section-title"><i class="bi bi-info-circle-fill me-2"></i>Offer Details</h3>
+    <div class="row g-4">
+
+        <div class="col-md-6">
+            {{ form_label(form.title) }}
+            {{ form_widget(form.title) }}
+            {{ form_errors(form.title) }}
+            <div class="th-field-error" id="err_title" style="display:none"></div>
+        </div>
+
+        <div class="col-md-6">
+            {{ form_label(form.location) }}
+            {{ form_widget(form.location) }}
+            {{ form_errors(form.location) }}
+            <div class="th-field-error" id="err_location" style="display:none"></div>
+        </div>
+
+        <div class="col-12">
+            {{ form_label(form.description) }}
+            {{ form_widget(form.description) }}
+            {{ form_errors(form.description) }}
+            <div class="th-field-error" id="err_description" style="display:none"></div>
+        </div>
+
+        <div class="col-md-6">
+            {{ form_label(form.promoPrice) }}
+            {{ form_widget(form.promoPrice) }}
+            {{ form_errors(form.promoPrice) }}
+            <div class="th-field-error" id="err_promoPrice" style="display:none"></div>
+        </div>
+
+        <div class="col-md-6">
+            {{ form_label(form.originalPrice) }}
+            {{ form_widget(form.originalPrice) }}
+            {{ form_errors(form.originalPrice) }}
+            <div class="th-field-error" id="err_originalPrice" style="display:none"></div>
+        </div>
+
+        <div class="col-md-6">
+            {{ form_label(form.startDate) }}
+            {{ form_widget(form.startDate) }}
+            {{ form_errors(form.startDate) }}
+            <div class="th-field-error" id="err_startDate" style="display:none"></div>
+        </div>
+
+        <div class="col-md-6">
+            {{ form_label(form.endDate) }}
+            {{ form_widget(form.endDate) }}
+            {{ form_errors(form.endDate) }}
+            <div class="th-field-error" id="err_endDate" style="display:none"></div>
+        </div>
+
+        <div class="col-md-6">
+            {{ form_label(form.capacity) }}
+            {{ form_widget(form.capacity) }}
+            {{ form_errors(form.capacity) }}
+            <div class="th-field-error" id="err_capacity" style="display:none"></div>
+        </div>
+
+        <div class="col-md-6">
+            {{ form_label(form.imageUrl) }}
+            {{ form_widget(form.imageUrl) }}
+            {{ form_errors(form.imageUrl) }}
+            <div class="th-field-error" id="err_imageUrl" style="display:none"></div>
+        </div>
+
+    </div>
+</div>
+
+{# ── Service Picker ── #}
+<div class="th-form-card">
+    <h3 class="th-form-section-title"><i class="bi bi-grid-1x2-fill me-2"></i>Select Services</h3>
+    <p class="th-form-section-sub">Filter, search, and click a card to select it.</p>
+
+    <div class="d-none">
+        {{ form_widget(form.services, {'attr': {'class': 'js-service-select'}}) }}
+    </div>
+    {{ form_errors(form.services) }}
+    <div class="th-field-error" id="err_services" style="display:none"></div>
+
+    <div class="th-picker-toolbar">
+        <div class="th-picker-tabs">
+            <button type="button" class="th-picker-tab active" data-filter="ALL">
+                <i class="bi bi-grid-3x3-gap"></i> All
+            </button>
+            <button type="button" class="th-picker-tab" data-filter="HOTEL">
+                <i class="bi bi-building"></i> Hotels
+            </button>
+            <button type="button" class="th-picker-tab" data-filter="VOL">
+                <i class="bi bi-airplane"></i> Flights
+            </button>
+        </div>
+        <div class="th-picker-search-wrap">
+            <i class="bi bi-search th-picker-search-icon"></i>
+            <input type="text" id="svcSearch" class="th-picker-search" placeholder="Search by name or location…">
+        </div>
+    </div>
+
+    <div class="th-service-picker" id="servicePicker">
+        {% for service in availableServiceDetails %}
+            {% set searchText = (service.name ~ ' ' ~ (service.location ?? '') ~ ' ' ~ (service.roomType ?? '') ~ ' ' ~ (service.departureCity ?? '') ~ ' ' ~ (service.arrivalCity ?? '') ~ ' ' ~ (service.flightNumber ?? ''))|lower %}
+            <div class="th-svc-card"
+                 data-value="{{ service.idService }}"
+                 data-type="{{ service.kind }}"
+                 data-search="{{ searchText }}">
+                <div class="th-svc-card-top">
+                    <span class="service-type-badge {% if service.kind == 'HOTEL' %}th-badge-hotel{% elseif service.kind == 'VOL' %}th-badge-vol{% else %}th-badge-default{% endif %}">
+                        <i class="bi {% if service.kind == 'HOTEL' %}bi-building{% elseif service.kind == 'VOL' %}bi-airplane{% else %}bi-box{% endif %}"></i>
+                        {{ service.kind }}
+                    </span>
+                    <span class="th-svc-check"><i class="bi bi-check2"></i></span>
+                </div>
+                <div class="th-svc-card-name">{{ service.name }}</div>
+                {% if service.description %}
+                    <div class="th-svc-card-extra">
+                        {{ service.description|length > 80 ? service.description|slice(0, 80) ~ '…' : service.description }}
+                    </div>
+                {% endif %}
+                <div class="th-svc-card-meta">
+                    {% if service.kind == 'HOTEL' %}
+                        {% if service.location %}<span><i class="bi bi-geo-alt"></i> {{ service.location }}</span>{% endif %}
+                        {% if service.stars %}<span><i class="bi bi-star-fill"></i> {{ service.stars }} stars</span>{% endif %}
+                        {% if service.roomType %}<span><i class="bi bi-door-open"></i> {{ service.roomType }}</span>{% endif %}
+                    {% elseif service.kind == 'VOL' %}
+                        {% if service.departureCity and service.arrivalCity %}
+                            <span><i class="bi bi-airplane"></i> {{ service.departureCity }} → {{ service.arrivalCity }}</span>
+                        {% endif %}
+                        {% if service.flightNumber %}<span><i class="bi bi-hash"></i> {{ service.flightNumber }}</span>{% endif %}
+                        {% if service.departureAt %}<span><i class="bi bi-clock"></i> {{ service.departureAt|date('d/m/Y H:i') }}</span>{% endif %}
+                    {% endif %}
+                    {% if service.price %}
+                        <span class="th-svc-card-price"><i class="bi bi-tag-fill"></i> {{ service.price }} TND</span>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="th-picker-empty" id="pickerEmpty" style="display:none">
+        <i class="bi bi-search"></i> No services match your search.
+    </div>
+
+    <div class="th-selected-summary" id="selectedSummary" style="display:none">
+        <i class="bi bi-check-circle-fill"></i>
+        <span id="selectedCount">0</span> service(s) selected
+    </div>
+</div>
+
+<div class="d-flex gap-2 mb-4">
+    <button type="submit" class="th-btn-primary" id="submitBtn">
+        <i class="bi bi-check-lg me-1"></i> Save Offer
+    </button>
+    <a href="{{ path('app_agency_offer_index') }}" class="th-btn-outline">Cancel</a>
+</div>
+
+{{ form_end(form) }}
+
+<div class="th-toast" id="validationToast">
+    <div class="th-toast-icon" id="toastIcon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+    <span id="toastMsg">Please fix the errors before submitting.</span>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    /* ── Find fields by name pattern (handles Symfony's nested naming) ── */
+    function findInput(namePart) {
+        return document.querySelector(
+            'input[name*="[' + namePart + ']"], textarea[name*="[' + namePart + ']"], select[name*="[' + namePart + ']"]'
+        );
+    }
+
+    /* Map logical names to actual DOM inputs */
+    const F = {
+        title:         findInput('title'),
+        location:      findInput('location'),
+        description:   findInput('description') || document.querySelector('textarea[name*="description"]'),
+        promoPrice:    findInput('promoPrice'),
+        originalPrice: findInput('originalPrice'),
+        startDate:     findInput('startDate'),
+        endDate:       findInput('endDate'),
+        capacity:      findInput('capacity'),
+        imageUrl:      findInput('imageUrl'),
+    };
+
+    /* ── Error helpers ─────────────────────────────────── */
+    function showError(id, msg) {
+        const errEl = document.getElementById('err_' + id);
+        if (errEl) { errEl.textContent = msg; errEl.style.display = 'flex'; }
+        if (F[id]) { F[id].classList.add('is-invalid'); F[id].classList.remove('is-valid'); }
+    }
+
+    function clearError(id) {
+        const errEl = document.getElementById('err_' + id);
+        if (errEl) { errEl.textContent = ''; errEl.style.display = 'none'; }
+        if (F[id]) {
+            F[id].classList.remove('is-invalid');
+            if (F[id].value.trim()) F[id].classList.add('is-valid');
+            else F[id].classList.remove('is-valid');
+        }
+    }
+
+    function clearAll() {
+        Object.keys(F).forEach(clearError);
+        const svcErr = document.getElementById('err_services');
+        if (svcErr) { svcErr.textContent = ''; svcErr.style.display = 'none'; }
+    }
+
+    function val(key) { return F[key] ? F[key].value.trim() : ''; }
+
+    /* ── Toast ─────────────────────────────────────────── */
+    function showToast(msg, ok) {
+        const t = document.getElementById('validationToast');
+        const i = document.getElementById('toastIcon');
+        document.getElementById('toastMsg').textContent = msg;
+        i.className = 'th-toast-icon' + (ok ? ' success' : '');
+        i.innerHTML = ok ? '<i class="bi bi-check-lg"></i>' : '<i class="bi bi-exclamation-triangle-fill"></i>';
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 3500);
+    }
+
+    /* ── Individual validators (return true = valid) ───── */
+    const today = new Date(); today.setHours(0,0,0,0);
+
+    function vTitle() {
+        const v = val('title');
+        if (!v)           return showError('title', 'Title is required.'), false;
+        if (v.length < 3) return showError('title', 'Title must be at least 3 characters.'), false;
+        return clearError('title'), true;
+    }
+
+    function vLocation() {
+        const v = val('location');
+        if (v.length > 150) return showError('location', 'Location cannot exceed 150 characters.'), false;
+        return clearError('location'), true;
+    }
+
+    function vDescription() {
+        const v = val('description');
+        if (!v)            return showError('description', 'Description is required.'), false;
+        if (v.length < 10) return showError('description', 'Description must be at least 10 characters.'), false;
+        return clearError('description'), true;
+    }
+
+    function vPromoPrice() {
+        const v = parseFloat(val('promoPrice'));
+        if (!val('promoPrice'))  return showError('promoPrice', 'Promotional price is required.'), false;
+        if (isNaN(v) || v <= 0) return showError('promoPrice', 'Price must be greater than 0.'), false;
+        if (v < 0)              return showError('promoPrice', 'Price cannot be negative.'), false;
+        return clearError('promoPrice'), true;
+    }
+
+    function vOriginalPrice() {
+        const raw = val('originalPrice');
+        if (!raw) return clearError('originalPrice'), true;
+        const v     = parseFloat(raw);
+        const promo = parseFloat(val('promoPrice'));
+        if (isNaN(v) || v <= 0)                  return showError('originalPrice', 'Price must be greater than 0.'), false;
+        if (v < 0)                                return showError('originalPrice', 'Price cannot be negative.'), false;
+        if (!isNaN(promo) && v <= promo)          return showError('originalPrice', 'Must be higher than the promotional price.'), false;
+        return clearError('originalPrice'), true;
+    }
+
+    function vStartDate() {
+        const raw = val('startDate');
+        if (!raw) return showError('startDate', 'Start date is required.'), false;
+        const d = new Date(raw); d.setHours(0,0,0,0);
+        if (d < today) return showError('startDate', 'Start date cannot be in the past.'), false;
+        return clearError('startDate'), true;
+    }
+
+    function vEndDate() {
+        const raw = val('endDate');
+        if (!raw) return showError('endDate', 'End date is required.'), false;
+        const startRaw = val('startDate');
+        if (startRaw) {
+            const s = new Date(startRaw); s.setHours(0,0,0,0);
+            const e = new Date(raw);      e.setHours(0,0,0,0);
+            if (e <= s) return showError('endDate', 'End date must be after the start date.'), false;
+        }
+        return clearError('endDate'), true;
+    }
+
+    function vCapacity() {
+        const raw = val('capacity');
+        if (!raw) return clearError('capacity'), true;
+        const v = parseInt(raw, 10);
+        if (isNaN(v) || v < 1)  return showError('capacity', 'Capacity must be at least 1.'), false;
+        if (v > 10000)           return showError('capacity', 'Capacity cannot exceed 10,000.'), false;
+        return clearError('capacity'), true;
+    }
+
+    function vImageUrl() {
+        const raw = val('imageUrl');
+        if (!raw) return clearError('imageUrl'), true;
+        if (!/^https?:\/\/.+\..+/.test(raw)) return showError('imageUrl', 'Must start with http:// or https://'), false;
+        return clearError('imageUrl'), true;
+    }
+
+    function vServices() {
+        const n = document.querySelectorAll('.th-svc-card--selected').length;
+        const el = document.getElementById('err_services');
+        if (n === 0) {
+            if (el) { el.textContent = 'Please select at least one service.'; el.style.display = 'flex'; }
+            return false;
+        }
+        if (el) { el.textContent = ''; el.style.display = 'none'; }
+        return true;
+    }
+
+    /* ── Real-time listeners ───────────────────────────── */
+    if (F.title)         F.title.addEventListener('input', vTitle);
+    if (F.location)      F.location.addEventListener('input', vLocation);
+    if (F.description)   F.description.addEventListener('input', vDescription);
+    if (F.promoPrice)    F.promoPrice.addEventListener('input', () => { vPromoPrice(); vOriginalPrice(); });
+    if (F.originalPrice) F.originalPrice.addEventListener('input', vOriginalPrice);
+    if (F.startDate)     F.startDate.addEventListener('change', () => { vStartDate(); vEndDate(); });
+    if (F.endDate)       F.endDate.addEventListener('change', vEndDate);
+    if (F.capacity)      F.capacity.addEventListener('input', vCapacity);
+    if (F.imageUrl)      F.imageUrl.addEventListener('input', vImageUrl);
+
+    /* ── Service picker ────────────────────────────────── */
+    const select   = document.querySelector('.js-service-select');
+    const cards    = document.querySelectorAll('.th-svc-card');
+    const summary  = document.getElementById('selectedSummary');
+    const countEl  = document.getElementById('selectedCount');
+    const searchEl = document.getElementById('svcSearch');
+    const emptyEl  = document.getElementById('pickerEmpty');
+    const tabs     = document.querySelectorAll('.th-picker-tab');
+    let activeFilter = 'ALL', searchQuery = '';
+
+    function syncCardsFromSelect() {
+        if (!select) return;
+        const sel = Array.from(select.options).filter(o => o.selected).map(o => o.value);
+        cards.forEach(c => c.classList.toggle('th-svc-card--selected', sel.includes(c.dataset.value)));
+    }
+
+    function syncSelectFromCards() {
+        if (!select) return;
+        const sel = Array.from(document.querySelectorAll('.th-svc-card--selected')).map(c => c.dataset.value);
+        Array.from(select.options).forEach(o => { o.selected = sel.includes(o.value); });
+    }
+
+    function updateSummary() {
+        const n = document.querySelectorAll('.th-svc-card--selected').length;
+        countEl.textContent = n;
+        summary.style.display = n > 0 ? 'flex' : 'none';
+    }
+
+    function applyFilters() {
+        let visible = 0;
+        cards.forEach(card => {
+            const tm = activeFilter === 'ALL' || (card.dataset.type||'').toUpperCase() === activeFilter;
+            const sm = !searchQuery || (card.dataset.search||'').includes(searchQuery);
+            card.classList.toggle('th-hidden', !(tm && sm));
+            if (tm && sm) visible++;
+        });
+        emptyEl.style.display = visible === 0 ? 'block' : 'none';
+    }
+
+    tabs.forEach(tab => tab.addEventListener('click', function() {
+        tabs.forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+        activeFilter = (this.dataset.filter||'ALL').toUpperCase();
+        applyFilters();
+    }));
+
+    if (searchEl) searchEl.addEventListener('input', function() {
+        searchQuery = this.value.toLowerCase().trim();
+        applyFilters();
+    });
+
+    cards.forEach(card => card.addEventListener('click', function() {
+        this.classList.toggle('th-svc-card--selected');
+        syncSelectFromCards();
+        updateSummary();
+        vServices();
+    }));
+
+    if (select) syncCardsFromSelect();
+    updateSummary();
+    applyFilters();
+
+    /* ── Submit ────────────────────────────────────────── */
+    document.getElementById('offerForm')?.addEventListener('submit', function(e) {
+        clearAll();
+        const validators = [vTitle, vLocation, vDescription, vPromoPrice, vOriginalPrice, vStartDate, vEndDate, vCapacity, vImageUrl, vServices];
+        const results    = validators.map(fn => ({ ok: fn() }));
+        const allValid   = results.every(r => r.ok);
+
+        if (!allValid) {
+            e.preventDefault();
+            showToast('Please fix the errors before saving.', false);
+            // Scroll to first invalid field
+            const firstErr = document.querySelector('.is-invalid, .th-field-error[style*="flex"]');
+            if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    });
+});
+</script>

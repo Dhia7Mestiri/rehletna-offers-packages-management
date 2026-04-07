@@ -1,0 +1,152 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ offer.title }}{% endblock %}
+
+{% block body %}
+
+{% include 'partials/_navbar.html.twig' %}
+
+<div class="th-body">
+
+    <div class="th-detail-grid">
+
+        <div class="th-detail-img-wrap">
+            <img
+                src="{{ offer.imageUrl ?: 'https://via.placeholder.com/900x500?text=Travel+Offer' }}"
+                alt="{{ offer.title }}"
+                class="th-detail-img"
+            >
+
+            {% set discount = 0 %}
+            {% if offer.originalPrice and offer.originalPrice > 0 and offer.promoPrice %}
+                {% set discount = (((offer.originalPrice - offer.promoPrice) / offer.originalPrice) * 100)|round %}
+            {% endif %}
+
+            {% if discount > 0 %}
+                <div class="th-discount-badge">-{{ discount }}%</div>
+            {% endif %}
+
+            {% if offer.status == 'ACTIVE' %}
+                <div class="th-status-badge th-status-active">
+                    <i class="bi bi-lightning-fill"></i> Active
+                </div>
+            {% elseif offer.status == 'ARCHIVED' %}
+                <div class="th-status-badge th-status-archived">Archived</div>
+            {% endif %}
+        </div>
+
+        <div class="th-detail-panel">
+
+            <h1 class="th-detail-title">{{ offer.title }}</h1>
+
+            <div class="th-detail-location">
+                <i class="bi bi-geo-alt-fill"></i>
+                {{ offer.location ?: 'Location not specified' }}
+            </div>
+
+            <div class="th-detail-price-block">
+                <span class="th-price-label">à partir de</span>
+                <div class="th-price-row">
+                    <span class="th-price">{{ offer.promoPrice }}</span>
+                    <span class="th-price-cur">TND</span>
+                    {% if offer.originalPrice %}
+                        <span class="th-price-old">{{ offer.originalPrice }} TND</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="th-detail-meta-grid">
+                <div class="th-meta-item">
+                    <span class="th-meta-label"><i class="bi bi-calendar3"></i> Start</span>
+                    <span class="th-meta-value">{{ offer.startDate ? offer.startDate|date('d/m/Y') : '—' }}</span>
+                </div>
+                <div class="th-meta-item">
+                    <span class="th-meta-label"><i class="bi bi-calendar-check"></i> End</span>
+                    <span class="th-meta-value">{{ offer.endDate ? offer.endDate|date('d/m/Y') : '—' }}</span>
+                </div>
+                <div class="th-meta-item">
+                    <span class="th-meta-label"><i class="bi bi-people-fill"></i> Capacity</span>
+                    <span class="th-meta-value">{{ offer.capacity ?: 'Not specified' }}</span>
+                </div>
+            </div>
+
+            <p class="th-detail-desc">{{ offer.description }}</p>
+
+            <div class="th-detail-actions">
+                {% if is_granted('ROLE_AGENCY') and offer.user and offer.user.id == app.user.id %}
+                    <a href="{{ path('app_offer_edit', {id: offer.id}) }}" class="th-btn-primary">
+                        <i class="bi bi-pencil me-1"></i> Edit Offer
+                    </a>
+                {% elseif app.user %}
+                    <a href="#" class="th-btn-gold">
+                        <i class="bi bi-calendar2-check me-1"></i> Reserve Now
+                    </a>
+                {% endif %}
+
+                <a href="{{ path('app_offer_index') }}" class="th-btn-outline">
+                    <i class="bi bi-arrow-left me-1"></i> Back to offers
+                </a>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="th-services-card">
+        <h3 class="th-services-title">
+            <i class="bi bi-grid-1x2-fill me-2"></i> Included services
+        </h3>
+
+        {% if serviceDetails is empty %}
+            <p class="th-services-empty">No services linked to this offer yet.</p>
+        {% else %}
+            <div class="service-list">
+                {% for service in serviceDetails %}
+                    <div class="service-item">
+
+                        <div class="th-service-badge-wrap">
+                            <span class="service-type-badge {% if service.kind == 'HOTEL' %}th-badge-hotel{% elseif service.kind == 'VOL' %}th-badge-vol{% endif %}">
+                                {% if service.kind == 'HOTEL' %}
+                                    <i class="bi bi-building"></i>
+                                {% elseif service.kind == 'VOL' %}
+                                    <i class="bi bi-airplane"></i>
+                                {% endif %}
+                                {{ service.kind }}
+                            </span>
+                        </div>
+
+                        <div class="flex-grow-1">
+                            <div class="service-name">{{ service.name }}</div>
+                            <div class="service-description">
+                                {{ service.description ?: 'No description available.' }}
+                            </div>
+
+                            {% if service.price %}
+                                <div class="th-service-price">
+                                    <i class="bi bi-tag-fill"></i> {{ service.price }} TND
+                                </div>
+                            {% endif %}
+
+                            {% if service.kind == 'HOTEL' %}
+                                <div class="th-service-meta">
+                                    <span><i class="bi bi-geo-alt"></i> {{ service.location ?: '—' }}</span>
+                                    <span><i class="bi bi-star-fill"></i> {{ service.stars ?: '—' }} stars</span>
+                                    <span><i class="bi bi-door-open"></i> {{ service.roomType ?: '—' }}</span>
+                                </div>
+                            {% elseif service.kind == 'VOL' %}
+                                <div class="th-service-meta">
+                                    <span><i class="bi bi-hash"></i> {{ service.flightNumber ?: '—' }}</span>
+                                    <span><i class="bi bi-airplane"></i> {{ service.departureCity ?: '—' }} → {{ service.arrivalCity ?: '—' }}</span>
+                                    <span><i class="bi bi-clock"></i> {{ service.departureAt ? service.departureAt|date('d/m/Y H:i') : '—' }}</span>
+                                    <span><i class="bi bi-clock-history"></i> {{ service.arrivalAt ? service.arrivalAt|date('d/m/Y H:i') : '—' }}</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+
+{% endblock %}

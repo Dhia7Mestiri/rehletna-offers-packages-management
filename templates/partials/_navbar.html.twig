@@ -1,0 +1,73 @@
+<nav class="navbar navbar-expand-lg app-navbar">
+    <div class="container">
+        <a class="navbar-brand fw-bold text-white" href="{{ path('app_offer_index') }}">
+            <i class="bi bi-airplane-engines me-2"></i>
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="mainNavbar">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="{{ path('app_offer_index') }}">
+                        <i class="bi bi-compass me-1"></i>Offers
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white back-main-btn" href="{{ path('app_mainpage') }}">
+                        <i class="bi bi-arrow-left-circle me-1"></i>Back to Main
+                    </a>
+                </li>
+
+                {% if app.user %}
+                    {% if is_granted('ROLE_AGENCY') %}
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="{{ path('app_agency_offer_index') }}">
+                                <i class="bi bi-briefcase me-1"></i>My Offers
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="{{ path('app_offer_new') }}">
+                                <i class="bi bi-plus-circle me-1"></i>Create Offer
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="{{ path('app_agency_offer_archived') }}">
+                                <i class="bi bi-archive me-1"></i>Archived Offers
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="#">
+                                <i class="bi bi-bookmark-heart me-1"></i>My Reservations
+                            </a>
+                        </li>
+                    {% endif %}
+                {% endif %}
+            </ul>
+
+            <div class="d-flex align-items-center gap-2">
+                {% if app.user %}
+                    <span class="badge bg-light text-dark px-3 py-2">
+                        {% if is_granted('ROLE_AGENCY') %}
+                            AGENCY
+                        {% else %}
+                            USER
+                        {% endif %}
+                    </span>
+
+                    <a href="{{ path('app_logout') }}" class="btn btn-light btn-sm">
+                        <i class="bi bi-box-arrow-right me-1"></i>Logout
+                    </a>
+                {% else %}
+                    <a href="{{ path('app_login') }}" class="btn btn-light btn-sm">
+                        <i class="bi bi-box-arrow-in-right me-1"></i>Login
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</nav>

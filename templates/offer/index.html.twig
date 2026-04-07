@@ -1,0 +1,160 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Offers{% endblock %}
+
+{% block body %}
+
+{% include 'partials/_navbar.html.twig' %}
+
+<div class="th-hero">
+    <div class="th-search-bar">
+        <form method="get" action="{{ path('app_offer_index') }}" class="th-search-form">
+
+            <div class="th-search-field">
+                <span class="th-sf-label">Search</span>
+                <input type="text" name="q" value="{{ filters.q|default('') }}" class="th-sf-input" placeholder="Title or destination...">
+            </div>
+
+            <div class="th-search-field">
+                <span class="th-sf-label">Location</span>
+                <input type="text" name="location" value="{{ filters.location|default('') }}" class="th-sf-input" placeholder="City">
+            </div>
+
+            <div class="th-search-field">
+                <span class="th-sf-label">Service Type</span>
+                <select name="type" class="th-sf-input">
+                    <option value="">All types</option>
+                    <option value="HOTEL" {{ filters.type|default('') == 'HOTEL' ? 'selected' : '' }}>Hotel</option>
+                    <option value="VOL" {{ filters.type|default('') == 'VOL' ? 'selected' : '' }}>Vol</option>
+                </select>
+            </div>
+
+            <div class="th-search-field">
+                <span class="th-sf-label">Min Price</span>
+                <input type="number" step="0.01" name="minPrice" value="{{ filters.minPrice|default('') }}" class="th-sf-input" placeholder="0">
+            </div>
+
+            <div class="th-search-field">
+                <span class="th-sf-label">Max Price</span>
+                <input type="number" step="0.01" name="maxPrice" value="{{ filters.maxPrice|default('') }}" class="th-sf-input" placeholder="1000">
+            </div>
+
+            <button type="submit" class="th-search-btn">
+                <i class="bi bi-search"></i>
+            </button>
+        </form>
+    </div>
+
+    <div class="th-adv-row">
+        <a href="{{ path('app_offer_index') }}" class="th-reset-link">
+            <i class="bi bi-arrow-clockwise me-1"></i> Reset filters
+        </a>
+    </div>
+</div>
+
+<div class="th-body">
+    <h1 class="th-section-title">Explore Our Offers</h1>
+    <p class="th-section-sub">Discover travel experiences from multiple agencies in one place.</p>
+
+    {% if offers is empty %}
+        <div class="th-empty">
+            <i class="bi bi-search-heart th-empty-icon"></i>
+            <h3 class="th-empty-title">No offers found</h3>
+            <p class="th-empty-sub">Try changing your filters or search keywords.</p>
+        </div>
+    {% else %}
+        <div class="th-grid">
+            {% for offer in offers %}
+                {% set serviceTypes = [] %}
+                {% for offerService in offer.offerServices %}
+                    {% if offerService.service and offerService.service.type not in serviceTypes %}
+                        {% set serviceTypes = serviceTypes|merge([offerService.service.type]) %}
+                    {% endif %}
+                {% endfor %}
+
+                {% set discount = 0 %}
+                {% if offer.originalPrice and offer.originalPrice > 0 and offer.promoPrice %}
+                    {% set discount = (((offer.originalPrice - offer.promoPrice) / offer.originalPrice) * 100)|round %}
+                {% endif %}
+
+                <div class="th-card">
+                    <div class="th-card-img-wrap">
+                        <img
+                            src="{{ offer.imageUrl ?: 'https://via.placeholder.com/600x400?text=Travel+Offer' }}"
+                            alt="{{ offer.title }}"
+                            class="th-card-img"
+                        >
+
+                        {% if discount > 0 %}
+                            <div class="th-discount-badge">-{{ discount }}%</div>
+                        {% endif %}
+
+                        {% if offer.status == 'ACTIVE' %}
+                            <div class="th-status-badge th-status-active">
+                                <i class="bi bi-lightning-fill"></i> Active
+                            </div>
+                        {% elseif offer.status == 'ARCHIVED' %}
+                            <div class="th-status-badge th-status-archived">Archived</div>
+                        {% endif %}
+
+                        {% if serviceTypes is not empty %}
+                            <div class="th-chip-row">
+                                {% for type in serviceTypes %}
+                                    <span class="th-chip {% if type == 'HOTEL' %}th-chip-hotel{% elseif type == 'VOL' %}th-chip-vol{% else %}th-chip-default{% endif %}">
+                                        {{ type }}
+                                    </span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="th-card-body">
+                        <h2 class="th-card-title">{{ offer.title }}</h2>
+                        <div class="th-card-location">
+                            <i class="bi bi-geo-alt-fill"></i>
+                            {{ offer.location ?: 'Location not specified' }}
+                        </div>
+
+                        <p class="th-card-desc">
+                            {{ offer.description|length > 100 ? offer.description|slice(0, 100) ~ '...' : offer.description }}
+                        </p>
+
+                        <div class="th-card-footer">
+                            <div class="th-price-wrap">
+                                <span class="th-price-label">à partir de</span>
+                                <div class="th-price-row">
+                                    <span class="th-price">{{ offer.promoPrice }}</span>
+                                    <span class="th-price-cur">TND</span>
+                                    {% if offer.originalPrice %}
+                                        <span class="th-price-old">{{ offer.originalPrice }} TND</span>
+                                    {% endif %}
+                                </div>
+
+                                <div class="th-dates">
+                                    <i class="bi bi-calendar3"></i>
+                                    {{ offer.startDate ? offer.startDate|date('d/m/Y') : '—' }}
+                                    &rarr;
+                                    {{ offer.endDate ? offer.endDate|date('d/m/Y') : '—' }}
+                                </div>
+                            </div>
+
+                            <div class="th-card-actions">
+                                <a href="{{ path('app_offer_show', {id: offer.id}) }}" class="th-btn-outline">Details</a>
+
+                                {% if is_granted('ROLE_AGENCY') and offer.user and offer.user.id == app.user.id %}
+                                    <a href="{{ path('app_offer_edit', {id: offer.id}) }}" class="th-btn-primary">Edit</a>
+                                {% elseif app.user %}
+                                    <a href="{{ path('app_offer_show', {id: offer.id}) }}" class="th-btn-primary">Reserve</a>
+                                {% else %}
+                                    <a href="{{ path('app_offer_show', {id: offer.id}) }}" class="th-btn-primary">Discover</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+
+{% endblock %}

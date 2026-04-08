@@ -1423,7 +1423,7 @@
                 } else if (action === 'my-orders') {
                     window.location.href = '{{ path('app_my_orders') }}';
                 } else if (action === 'offers-grid') {
-                    window.location.href = '{{ path('app_offers_grid') }}';
+                    window.location.href = '{{ path('app_offer_index') }}';
                 }
             });
 
@@ -1534,8 +1534,9 @@
                 <button class="nav-tab" data-view="activities">🏞 {{ 'main.tab.activities'|trans }}</button>
                 <button class="nav-tab" data-view="shop">🛒 {{ 'main.tab.shop'|trans }}</button>
                 <button class="nav-tab" data-view="ai-guide">🤖 {{ 'main.tab.ai_guide'|trans }}</button>
-                <button class="nav-tab" data-view="offers">🔖 {{ 'main.tab.offers'|trans }}</button>
-                {% if is_granted('ROLE_ADMIN') %}
+<button class="nav-tab" type="button" onclick="window.location.href='{{ path('app_offer_index') }}'">
+    🔖 {{ 'main.tab.offers'|trans }}
+</button>                {% if is_granted('ROLE_ADMIN') %}
                     <a class="nav-tab" href="{{ path('app_admin_stats') }}">📊 {{ 'main.tab.stats'|trans }}</a>
                 {% endif %}
             </div>

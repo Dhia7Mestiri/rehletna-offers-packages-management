@@ -1,0 +1,33 @@
+{% set route = app.request.attributes.get('_route') %}
+<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:24px;padding:10px 14px;background:rgba(255,255,255,0.85);border-radius:14px;box-shadow:0 4px 12px rgba(7,57,107,0.07);">
+
+    <a href="{{ path('app_mainpage') }}" style="padding:8px 16px;border-radius:999px;background:rgba(255,255,255,0.75);border:1px solid rgba(80,149,198,0.2);color:#49617a;font-size:13px;font-weight:600;text-decoration:none;">
+        ← Back to Main
+    </a>
+
+    <a href="{{ path('app_offer_index') }}"
+       style="padding:8px 16px;border-radius:999px;text-decoration:none;font-size:13px;font-weight:600;border:1px solid transparent;
+              {% if route == 'app_offer_index' %}background:linear-gradient(135deg,#0FA5A2,#1788b6);color:white;{% else %}background:rgba(255,255,255,0.75);border-color:rgba(80,149,198,0.2);color:#49617a;{% endif %}">
+        🔖 All Offers
+    </a>
+
+    {% if is_granted('ROLE_AGENCY') %}
+        <a href="{{ path('app_agency_offer_index') }}"
+           style="padding:8px 16px;border-radius:999px;text-decoration:none;font-size:13px;font-weight:600;border:1px solid transparent;
+                  {% if route == 'app_agency_offer_index' %}background:linear-gradient(135deg,#0FA5A2,#1788b6);color:white;{% else %}background:rgba(255,255,255,0.75);border-color:rgba(80,149,198,0.2);color:#49617a;{% endif %}">
+            💼 My Offers
+        </a>
+
+        <a href="{{ path('app_offer_new') }}"
+           style="padding:8px 16px;border-radius:999px;text-decoration:none;font-size:13px;font-weight:600;border:1px solid transparent;
+                  {% if route in ['app_offer_new', 'app_offer_edit'] %}background:linear-gradient(135deg,#0FA5A2,#1788b6);color:white;{% else %}background:rgba(255,255,255,0.75);border-color:rgba(80,149,198,0.2);color:#49617a;{% endif %}">
+            ➕ Create Offer
+        </a>
+
+        <a href="{{ path('app_agency_offer_archived') }}"
+           style="padding:8px 16px;border-radius:999px;text-decoration:none;font-size:13px;font-weight:600;border:1px solid transparent;
+                  {% if route == 'app_agency_offer_archived' %}background:linear-gradient(135deg,#0FA5A2,#1788b6);color:white;{% else %}background:rgba(255,255,255,0.75);border-color:rgba(80,149,198,0.2);color:#49617a;{% endif %}">
+            🗃️ Archived
+        </a>
+    {% endif %}
+</div>

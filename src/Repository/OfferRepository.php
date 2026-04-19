@@ -50,4 +50,26 @@ class OfferRepository extends ServiceEntityRepository
 
         return $qb->getQuery()->getResult();
     }
+    public function findAllWithFilters(array $filters): array
+    {
+        $qb = $this->createQueryBuilder('o')
+            ->leftJoin('o.user', 'u');
+ 
+        if (!empty($filters['q'])) {
+            $qb->andWhere('o.title LIKE :q OR o.description LIKE :q OR o.location LIKE :q')
+               ->setParameter('q', '%' . $filters['q'] . '%');
+        }
+ 
+        if (!empty($filters['status'])) {
+            $qb->andWhere('o.status = :status')
+               ->setParameter('status', strtoupper($filters['status']));
+        }
+ 
+        if (!empty($filters['agency'])) {
+            $qb->andWhere('u.id = :agency')
+               ->setParameter('agency', $filters['agency']);
+        }
+ 
+        return $qb->orderBy('o.createdAt', 'DESC')->getQuery()->getResult();
+    }
 }

@@ -1,0 +1,238 @@
+{% extends 'base.html.twig' %}
+{% block title %}Admin — Offers Monitor{% endblock %}
+
+{% block body %}
+{% include 'partials/_offer_subnav.html.twig' %}
+
+<div class="th-body">
+
+    <div class="th-page-header" style="padding-left:0;padding-right:0">
+        <div>
+            <h1 class="th-page-title">🛡️ Admin — Offers Monitor</h1>
+            <p class="th-page-sub">Global overview of all offers, agencies and reservations.</p>
+        </div>
+    </div>
+
+    {# ── Global stat cards ── #}
+    <div class="th-stats-grid" style="grid-template-columns:repeat(auto-fill,minmax(140px,1fr))">
+        <div class="th-stat-card">
+            <div class="th-stat-icon" style="background:var(--teal-light);color:var(--teal)">💰</div>
+            <div class="th-stat-value">{{ stats.total_revenue|number_format(0) }}</div>
+            <div class="th-stat-label">Total Revenue (TND)</div>
+        </div>
+        <div class="th-stat-card">
+            <div class="th-stat-icon" style="background:var(--navy-light);color:var(--navy)">🏢</div>
+            <div class="th-stat-value">{{ stats.total_agencies }}</div>
+            <div class="th-stat-label">Agencies</div>
+        </div>
+        <div class="th-stat-card">
+            <div class="th-stat-icon" style="background:var(--teal-light);color:var(--teal)">🔖</div>
+            <div class="th-stat-value">{{ stats.total_offers }}</div>
+            <div class="th-stat-label">Total Offers</div>
+        </div>
+        <div class="th-stat-card">
+            <div class="th-stat-icon" style="background:#eaf7f0;color:#065f46">✅</div>
+            <div class="th-stat-value">{{ stats.active_offers }}</div>
+            <div class="th-stat-label">Active Offers</div>
+        </div>
+        <div class="th-stat-card">
+            <div class="th-stat-icon" style="background:var(--teal-light);color:var(--teal)">📋</div>
+            <div class="th-stat-value">{{ stats.total_reservations }}</div>
+            <div class="th-stat-label">Total Bookings</div>
+        </div>
+        <div class="th-stat-card">
+            <div class="th-stat-icon" style="background:#eaf7f0;color:#065f46">💳</div>
+            <div class="th-stat-value">{{ stats.confirmed }}</div>
+            <div class="th-stat-label">Confirmed</div>
+        </div>
+        <div class="th-stat-card">
+            <div class="th-stat-icon" style="background:#fef6e7;color:#92400e">⏳</div>
+            <div class="th-stat-value">{{ stats.pending }}</div>
+            <div class="th-stat-label">Pending</div>
+        </div>
+        <div class="th-stat-card">
+            <div class="th-stat-icon" style="background:var(--navy-light);color:var(--navy)">👥</div>
+            <div class="th-stat-value">{{ stats.total_travellers }}</div>
+            <div class="th-stat-label">Travellers</div>
+        </div>
+    </div>
+
+    {# ── Charts ── #}
+    <div class="th-charts-grid" style="grid-template-columns:1fr 1fr">
+        <div class="th-chart-card">
+            <h3 class="th-chart-title">📈 Global Revenue (last 6 months)</h3>
+            <canvas id="revenueChart" height="200"></canvas>
+        </div>
+        <div class="th-chart-card">
+            <h3 class="th-chart-title">📊 Global Bookings (last 6 months)</h3>
+            <canvas id="bookingsChart" height="200"></canvas>
+        </div>
+    </div>
+
+    {# ── Filters ── #}
+    <div class="th-form-card" style="margin-bottom:1.5rem">
+        <form method="get" action="{{ path('app_admin_offers') }}" class="th-search-form" style="border-radius:12px;overflow:hidden">
+            <div class="th-search-field">
+                <span class="th-sf-label">Search</span>
+                <input type="text" name="q" value="{{ filters.q }}" class="th-sf-input" placeholder="Title, location...">
+            </div>
+            <div class="th-search-field">
+                <span class="th-sf-label">Status</span>
+                <select name="status" class="th-sf-input">
+                    <option value="">All</option>
+                    <option value="ACTIVE" {{ filters.status == 'ACTIVE' ? 'selected' : '' }}>Active</option>
+                    <option value="ARCHIVED" {{ filters.status == 'ARCHIVED' ? 'selected' : '' }}>Archived</option>
+                </select>
+            </div>
+            <div class="th-search-field">
+                <span class="th-sf-label">Agency</span>
+                <select name="agency" class="th-sf-input">
+                    <option value="">All agencies</option>
+                    {% for agency in agencies %}
+                        <option value="{{ agency.id }}" {{ filters.agency == agency.id ? 'selected' : '' }}>
+                            {{ agency.fullName }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="th-search-btn" style="border-radius:0 12px 12px 0">
+                <i class="bi bi-search"></i>
+            </button>
+        </form>
+        {% if filters.q or filters.status or filters.agency %}
+            <div style="margin-top:10px">
+                <a href="{{ path('app_admin_offers') }}" class="th-btn-outline" style="font-size:12px">
+                    ↺ Reset filters
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+    {# ── Offers table ── #}
+    {% if offers is empty %}
+        <div class="th-empty">
+            <i class="bi bi-search th-empty-icon"></i>
+            <h3 class="th-empty-title">No offers found</h3>
+            <p class="th-empty-sub">Try changing your filters.</p>
+        </div>
+    {% else %}
+        <div class="th-admin-table-wrap">
+            <table class="th-admin-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Offer</th>
+                        <th>Agency</th>
+                        <th>Location</th>
+                        <th>Price</th>
+                        <th>Dates</th>
+                        <th>Status</th>
+                        <th>Bookings</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for offer in offers %}
+                        {% set confirmed = offer.reservations|filter(r => r.status == 'CONFIRMED')|length %}
+                        <tr>
+                            <td class="th-admin-td-muted">{{ offer.id }}</td>
+                            <td>
+                                <div style="display:flex;align-items:center;gap:10px">
+                                    <img src="{{ offer.imageUrl ?: 'https://via.placeholder.com/48x36' }}"
+                                         style="width:48px;height:36px;object-fit:cover;border-radius:6px;flex-shrink:0">
+                                    <div>
+                                        <div style="font-weight:700;color:var(--navy);font-size:13.5px">{{ offer.title }}</div>
+                                        <div style="font-size:11px;color:var(--text-muted)">{{ offer.description|slice(0,50) }}...</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="font-size:13px;font-weight:600;color:var(--navy)">
+                                {{ offer.user ? offer.user.fullName : '—' }}
+                            </td>
+                            <td class="th-admin-td-muted">{{ offer.location ?: '—' }}</td>
+                            <td style="font-weight:700;color:var(--teal)">{{ offer.promoPrice }} TND</td>
+                            <td class="th-admin-td-muted" style="font-size:12px">
+                                {{ offer.startDate|date('d/m/Y') }}<br>{{ offer.endDate|date('d/m/Y') }}
+                            </td>
+                            <td>
+                                <span class="th-rsv-status-badge th-rsv-status-{{ offer.status|lower }}"
+                                      style="font-size:11px">
+                                    {{ offer.status }}
+                                </span>
+                            </td>
+                            <td style="text-align:center">
+                                <span style="font-weight:700;color:var(--navy)">{{ confirmed }}</span>
+                                <span class="th-admin-td-muted"> / {{ offer.reservations|length }}</span>
+                            </td>
+                            <td>
+                                <a href="{{ path('app_admin_offer_show', {id: offer.id}) }}"
+                                   class="th-btn-outline" style="font-size:11px;white-space:nowrap">
+                                    🔍 View
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+const monthlyData = {{ monthlyData|json_encode|raw }};
+const labels   = monthlyData.map(d => d.month);
+const revenues = monthlyData.map(d => d.revenue);
+const bookings = monthlyData.map(d => d.bookings);
+const teal = '#1dbcaa', navy = '#1b3a6b';
+
+new Chart(document.getElementById('revenueChart'), {
+    type: 'line',
+    data: {
+        labels,
+        datasets: [{
+            label: 'Revenue (TND)',
+            data: revenues,
+            borderColor: teal,
+            backgroundColor: 'rgba(29,188,170,0.12)',
+            borderWidth: 2.5,
+            pointBackgroundColor: teal,
+            pointRadius: 5,
+            fill: true,
+            tension: 0.4,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+            x: { grid: { display: false } }
+        }
+    }
+});
+
+new Chart(document.getElementById('bookingsChart'), {
+    type: 'bar',
+    data: {
+        labels,
+        datasets: [{
+            label: 'Bookings',
+            data: bookings,
+            backgroundColor: navy,
+            borderRadius: 8,
+            borderSkipped: false,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: 'rgba(0,0,0,0.05)' } },
+            x: { grid: { display: false } }
+        }
+    }
+});
+</script>
+{% endblock %}

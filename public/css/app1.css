@@ -1412,3 +1412,668 @@ main.container > .th-page-header {
 .th-btn-success .bi {
     display: none;
 }
+
+/* ─── Integration with Rehletna mainpage layout ─────────── */
+
+/* His layout doesn't use .app-navbar — hide ours if his top-bar is present */
+.top-bar ~ * .app-navbar,
+body:has(.top-bar) .app-navbar {
+    display: none !important;
+}
+
+/* When rendered inside his content-area tab (no full page wrapper) */
+.content-area .th-hero {
+    margin: -22px -28px 0;
+    border-radius: 0;
+}
+
+.content-area .th-body {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.content-area main.container {
+    max-width: 100% !important;
+    padding: 0 !important;
+}
+
+/* His feature-card hover shouldn't bleed into our cards */
+.th-card:hover {
+    transform: translateY(-5px) !important;
+}
+
+/* Role-specific Reserve button — gold for regular users */
+.th-btn-gold {
+    display: inline-block;
+    background: var(--gold);
+    color: #7a3a00;
+    border: none;
+    border-radius: 10px;
+    padding: 9px 16px;
+    font-size: 12px;
+    font-weight: 800;
+    font-family: inherit;
+    text-decoration: none;
+    text-align: center;
+    cursor: pointer;
+    transition: background 0.18s ease, transform 0.14s ease;
+    white-space: nowrap;
+}
+
+.th-btn-gold:hover {
+    background: var(--gold-dark);
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+/* ─── Hide old Bootstrap navbar everywhere ──────────────── */
+.app-navbar { display: none !important; }
+
+/* ─── Remove top padding from main since rh-top-bar is sticky ── */
+main.container { padding-top: 0 !important; }
+
+/* ─── Adjust th-hero to sit flush under new top bar ────── */
+.th-hero { margin-top: 0; }
+
+/* ─── Remove any navbar remnants ────────────────────────── */
+.app-navbar { display: none !important; }
+
+/* ─── Our pages sit inside his content-area or full page ── */
+/* No top padding needed since his top-bar handles spacing  */
+main.container { padding-top: 0 !important; }
+
+/* ─── Reservation workflow ──────────────────────────────── */
+
+/* Offer summary in booking form */
+.th-rsv-offer-summary {
+    background: var(--navy-light);
+    border-radius: 14px;
+    padding: 1rem 1.25rem;
+    display: grid;
+    gap: 8px;
+}
+
+.th-rsv-summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13.5px;
+    color: var(--text-muted);
+}
+
+.th-rsv-summary-row strong { color: var(--navy); font-weight: 700; }
+.th-rsv-price { color: var(--teal) !important; font-size: 16px; }
+
+.th-rsv-field { margin-bottom: 1.1rem; }
+
+/* Live total block */
+.th-rsv-total-block {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--teal-light);
+    border: 1px solid rgba(29,188,170,0.2);
+    border-radius: 12px;
+    padding: 0.9rem 1.25rem;
+    margin: 1rem 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--teal-dark);
+}
+
+.th-rsv-total {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--navy);
+}
+
+/* Status badges */
+.th-rsv-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+}
+
+.th-rsv-status-pending  { background: #fef6e7; color: #92400e; border: 1px solid rgba(245,166,35,0.3); }
+.th-rsv-status-confirmed { background: var(--teal-light); color: var(--teal-dark); border: 1px solid rgba(29,188,170,0.25); }
+.th-rsv-status-cancelled { background: #f5f5f5; color: #64748b; border: 1px solid #e2e8f0; }
+.th-rsv-status-rejected  { background: #fff0f0; color: #a32d2d; border: 1px solid rgba(229,62,62,0.2); }
+
+/* Payment badge */
+.th-rsv-payment-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+}
+.th-rsv-pay-unpaid  { background: #fff0f0; color: #a32d2d; border: 1px solid rgba(229,62,62,0.2); }
+.th-rsv-pay-paid    { background: var(--teal-light); color: var(--teal-dark); border: 1px solid rgba(29,188,170,0.25); }
+
+/* Status message */
+.th-rsv-status-msg {
+    font-size: 13.5px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin: 0.75rem 0;
+    padding: 0.85rem 1rem;
+    background: var(--bg);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+}
+
+/* Status card (left panel on my_show) */
+.th-rsv-status-card {
+    background: var(--surface);
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    padding: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+/* Special request block */
+.th-rsv-special {
+    background: var(--bg);
+    border-radius: 12px;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--border);
+}
+.th-rsv-special p { margin: 6px 0 0; font-size: 13.5px; color: var(--text-muted); line-height: 1.6; }
+
+/* Reservation list rows */
+.th-rsv-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.th-rsv-row {
+    background: var(--surface);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    padding: 1.1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    transition: box-shadow 0.18s ease;
+}
+
+.th-rsv-row:hover {
+    box-shadow: 0 6px 20px rgba(27,58,107,0.09);
+}
+
+.th-rsv-row-img {
+    width: 90px;
+    height: 65px;
+    border-radius: 10px;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: var(--teal-light);
+}
+.th-rsv-row-img img { width: 100%; height: 100%; object-fit: cover; }
+
+.th-rsv-row-info { flex: 1; min-width: 0; }
+
+.th-rsv-row-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.th-rsv-row-client {
+    font-size: 13px;
+    color: var(--teal-dark);
+    font-weight: 600;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.th-rsv-row-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.th-rsv-row-meta span { display: flex; align-items: center; gap: 4px; }
+.th-rsv-row-meta i { color: var(--teal); font-size: 11px; }
+
+.th-rsv-row-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    flex-shrink: 0;
+    min-width: 130px;
+}
+
+.th-rsv-row-amount {
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--navy);
+    letter-spacing: -0.02em;
+}
+
+/* Pending badge in header */
+.th-rsv-pending-badge {
+    background: #fef6e7;
+    color: #92400e;
+    border: 1px solid rgba(245,166,35,0.3);
+    border-radius: 999px;
+    padding: 5px 14px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+/* Filter tabs */
+.th-rsv-filter-tabs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+}
+
+.th-rsv-tab {
+    padding: 7px 16px;
+    border-radius: 999px;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.th-rsv-tab:hover { border-color: var(--teal); color: var(--teal-dark); }
+.th-rsv-tab.active { background: var(--teal); border-color: var(--teal); color: #fff; }
+
+/* Client card in agency_show */
+.th-rsv-client-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0.85rem 1rem;
+    background: var(--navy-light);
+    border-radius: 12px;
+    margin-bottom: 0.5rem;
+}
+
+.th-rsv-client-avatar {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--navy);
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 700;
+    flex-shrink: 0;
+}
+
+.th-rsv-client-name { font-size: 14px; font-weight: 700; color: var(--navy); }
+.th-rsv-client-email { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+/* ─── Spots remaining color classes ─────────────────────── */
+.th-rsv-spots-low { color: #e53e3e; font-weight: 700; }
+.th-rsv-spots-ok  { color: var(--teal); font-weight: 700; }
+
+/* ─── Reservation status timeline ───────────────────────── */
+.th-rsv-timeline {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin-bottom: 1.5rem;
+    background: var(--surface);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    padding: 1.25rem 2rem;
+}
+
+.th-rsv-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    opacity: 0.35;
+}
+
+.th-rsv-step.done     { opacity: 1; }
+.th-rsv-step.rejected { opacity: 1; }
+.th-rsv-step.cancelled{ opacity: 1; }
+
+.th-rsv-step-dot {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    transition: all 0.2s;
+}
+
+.th-rsv-step.done .th-rsv-step-dot {
+    background: var(--teal-light);
+    border-color: var(--teal);
+}
+
+.th-rsv-step.rejected .th-rsv-step-dot,
+.th-rsv-step.cancelled .th-rsv-step-dot {
+    background: #fff0f0;
+    border-color: #e53e3e;
+}
+
+.th-rsv-step-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.th-rsv-step.done .th-rsv-step-label { color: var(--teal-dark); }
+.th-rsv-step.rejected .th-rsv-step-label,
+.th-rsv-step.cancelled .th-rsv-step-label { color: #e53e3e; }
+
+.th-rsv-step-line {
+    flex: 1;
+    height: 2px;
+    background: var(--border);
+    min-width: 40px;
+    max-width: 80px;
+    margin-bottom: 18px;
+    transition: background 0.2s;
+}
+
+.th-rsv-step-line.done { background: var(--teal); }
+
+/* ─── Status banner ─────────────────────────────────────── */
+.th-rsv-banner {
+    border-radius: 14px;
+    padding: 1rem 1.25rem;
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.th-rsv-banner strong { display: block; margin-bottom: 3px; }
+
+.th-rsv-banner-pending {
+    background: #fef6e7;
+    color: #92400e;
+    border: 1px solid rgba(245,166,35,0.3);
+}
+
+.th-rsv-banner-confirmed {
+    background: var(--teal-light);
+    color: var(--teal-dark);
+    border: 1px solid rgba(29,188,170,0.25);
+}
+
+.th-rsv-banner-confirmed-paid {
+    background: #eaf7f0;
+    color: #065f46;
+    border: 1px solid rgba(16,185,129,0.25);
+}
+
+.th-rsv-banner-cancelled {
+    background: #f5f5f5;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+}
+
+.th-rsv-banner-rejected {
+    background: #fff0f0;
+    color: #a32d2d;
+    border: 1px solid rgba(229,62,62,0.2);
+}
+
+/* ─── Agency stats grid ─────────────────────────────────── */
+.th-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.75rem;
+}
+
+.th-stat-card {
+    background: var(--surface);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    padding: 1.25rem 1rem;
+    text-align: center;
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.th-stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(27,58,107,0.1);
+}
+
+.th-stat-icon {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    margin: 0 auto 10px;
+}
+
+.th-stat-value {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--navy);
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    margin-bottom: 4px;
+}
+
+.th-stat-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+/* ─── Charts grid ───────────────────────────────────────── */
+.th-charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+}
+
+@media (max-width: 900px) {
+    .th-charts-grid { grid-template-columns: 1fr; }
+}
+
+.th-chart-card {
+    background: var(--surface);
+    border-radius: 18px;
+    border: 1px solid var(--border);
+    padding: 1.25rem 1.5rem;
+}
+
+.th-chart-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 1rem;
+}
+
+/* ─── Booking flow - what happens next box ──────────────── */
+.th-rsv-next-info {
+    background: var(--navy-light);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    margin: 1rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.th-rsv-next-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+.th-rsv-next-num {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--navy);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+/* Step indicator numbers override */
+.th-rsv-step-dot {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+/* ─── Admin table ───────────────────────────────────────── */
+.th-admin-table-wrap {
+    overflow-x: auto;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+}
+
+.th-admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.th-admin-table thead tr {
+    background: var(--navy-light);
+}
+
+.th-admin-table th {
+    padding: 11px 14px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--navy);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+}
+
+.th-admin-table tbody tr {
+    border-top: 1px solid var(--border);
+    transition: background 0.15s;
+}
+
+.th-admin-table tbody tr:hover {
+    background: var(--bg);
+}
+
+.th-admin-table td {
+    padding: 11px 14px;
+    vertical-align: middle;
+}
+
+.th-admin-td-muted {
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
+/* ─── Currency converter widget ─────────────────────────── */
+.th-currency-widget {
+    background: var(--navy-light);
+    border-radius: 14px;
+    padding: 1rem 1.25rem;
+    border: 1px solid rgba(27,58,107,0.12);
+}
+
+.th-currency-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.th-currency-select {
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 5px 10px;
+    font-size: 13px;
+    font-family: inherit;
+    font-weight: 600;
+    color: var(--navy);
+    background: var(--surface);
+    cursor: pointer;
+    outline: none;
+}
+
+.th-currency-select:focus {
+    border-color: var(--teal);
+}
+
+.th-currency-loading {
+    font-size: 13px;
+    color: var(--text-muted);
+    padding: 4px 0;
+}
+
+.th-currency-amount {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+    margin-bottom: 4px;
+}
+
+.th-currency-sym {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--teal);
+}
+
+.th-currency-val {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--navy);
+    letter-spacing: -0.03em;
+}
+
+.th-currency-code {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-muted);
+}
+
+.th-currency-rate {
+    font-size: 11.5px;
+    color: var(--text-muted);
+    font-weight: 500;
+}

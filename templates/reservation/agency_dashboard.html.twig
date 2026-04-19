@@ -1,0 +1,234 @@
+{% extends 'base.html.twig' %}
+{% block title %}Reservations Dashboard{% endblock %}
+
+{% block body %}
+{% include 'partials/_offer_subnav.html.twig' %}
+
+<div class="th-body">
+
+    <div class="th-page-header" style="padding-left:0;padding-right:0">
+        <div>
+            <h1 class="th-page-title">Reservations Dashboard</h1>
+            <p class="th-page-sub">Overview of all bookings for your offers.</p>
+        </div>
+        <a href="{{ path('app_agency_offer_index') }}" class="th-btn-outline">← My Offers</a>
+    </div>
+
+    {# ── Stat cards ── #}
+    <div class="th-stats-grid">
+        <div class="th-stat-card">
+            <div class="th-stat-icon" style="background:var(--teal-light);color:var(--teal)">💰</div>
+            <div class="th-stat-value">{{ stats.revenue|number_format(2) }} TND</div>
+            <div class="th-stat-label">Total Revenue</div>
+        </div>
+        <div class="th-stat-card">
+            <div class="th-stat-icon" style="background:var(--teal-light);color:var(--teal)">✅</div>
+            <div class="th-stat-value">{{ stats.confirmed }}</div>
+            <div class="th-stat-label">Confirmed</div>
+        </div>
+        <div class="th-stat-card">
+            <div class="th-stat-icon" style="background:#fef6e7;color:#92400e">⏳</div>
+            <div class="th-stat-value">{{ stats.pending }}</div>
+            <div class="th-stat-label">Pending Payment</div>
+        </div>
+        <div class="th-stat-card">
+            <div class="th-stat-icon" style="background:#fff0f0;color:#a32d2d">❌</div>
+            <div class="th-stat-value">{{ stats.cancelled }}</div>
+            <div class="th-stat-label">Cancelled</div>
+        </div>
+        <div class="th-stat-card">
+            <div class="th-stat-icon" style="background:var(--navy-light);color:var(--navy)">👥</div>
+            <div class="th-stat-value">{{ stats.persons }}</div>
+            <div class="th-stat-label">Total Travellers</div>
+        </div>
+        <div class="th-stat-card">
+            <div class="th-stat-icon" style="background:var(--navy-light);color:var(--navy)">📋</div>
+            <div class="th-stat-value">{{ stats.total }}</div>
+            <div class="th-stat-label">Total Bookings</div>
+        </div>
+    </div>
+
+    {# ── Charts ── #}
+    <div class="th-charts-grid">
+
+        <div class="th-chart-card">
+            <h3 class="th-chart-title">📈 Monthly Revenue (last 6 months)</h3>
+            <canvas id="revenueChart" height="220"></canvas>
+        </div>
+
+        <div class="th-chart-card">
+            <h3 class="th-chart-title">📊 Monthly Bookings (last 6 months)</h3>
+            <canvas id="bookingsChart" height="220"></canvas>
+        </div>
+
+        <div class="th-chart-card" style="grid-column:span 1">
+            <h3 class="th-chart-title">🍩 Reservation Status</h3>
+            <div style="max-width:260px;margin:0 auto">
+                <canvas id="statusChart" height="220"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+    {# ── Reservations list ── #}
+    {% if reservations is empty %}
+        <div class="th-empty">
+            <i class="bi bi-inbox th-empty-icon"></i>
+            <h3 class="th-empty-title">No reservations yet</h3>
+            <p class="th-empty-sub">Bookings for your offers will appear here.</p>
+        </div>
+    {% else %}
+
+        <div class="th-rsv-filter-tabs" id="rsvTabs">
+            <button class="th-rsv-tab active" data-filter="ALL">All ({{ reservations|length }})</button>
+            <button class="th-rsv-tab" data-filter="CONFIRMED">✅ Confirmed ({{ reservations|filter(r => r.status == 'CONFIRMED')|length }})</button>
+            <button class="th-rsv-tab" data-filter="PENDING">⏳ Pending ({{ reservations|filter(r => r.status == 'PENDING')|length }})</button>
+            <button class="th-rsv-tab" data-filter="CANCELLED">❌ Cancelled ({{ reservations|filter(r => r.status == 'CANCELLED')|length }})</button>
+        </div>
+
+        <div class="th-rsv-list" id="rsvList">
+            {% for reservation in reservations %}
+                <div class="th-rsv-row" data-status="{{ reservation.status }}">
+
+                    <div class="th-rsv-row-img">
+                        <img src="{{ reservation.offer.imageUrl ?: 'https://via.placeholder.com/120x80?text=Offer' }}"
+                             alt="{{ reservation.offer.title }}">
+                    </div>
+
+                    <div class="th-rsv-row-info">
+                        <div class="th-rsv-row-title">{{ reservation.offer.title }}</div>
+                        <div class="th-rsv-row-client">
+                            <i class="bi bi-person-fill"></i>
+                            {{ reservation.user.fullName }} — {{ reservation.user.email }}
+                        </div>
+                        <div class="th-rsv-row-meta">
+                            <span><i class="bi bi-people"></i> {{ reservation.numberOfPersons }} person(s)</span>
+                            <span><i class="bi bi-calendar3"></i> {{ reservation.offer.startDate|date('d/m/Y') }} → {{ reservation.offer.endDate|date('d/m/Y') }}</span>
+                            <span><i class="bi bi-clock"></i> Booked {{ reservation.createdAt|date('d/m/Y H:i') }}</span>
+                            <span>💳 {{ reservation.paymentStatus }}</span>
+                        </div>
+                    </div>
+
+                    <div class="th-rsv-row-right">
+                        <div class="th-rsv-status-badge th-rsv-status-{{ reservation.status|lower }}">
+                            {% if reservation.status == 'CONFIRMED' %}✅
+                            {% elseif reservation.status == 'PENDING' %}⏳
+                            {% elseif reservation.status == 'CANCELLED' %}❌
+                            {% endif %}
+                            {{ reservation.status }}
+                        </div>
+                        <div class="th-rsv-row-amount">{{ reservation.totalAmount }} TND</div>
+                        <a href="{{ path('app_reservation_agency_show', {id: reservation.id}) }}"
+                           class="th-btn-outline" style="font-size:12px;text-align:center">
+                            🔍 View
+                        </a>
+                    </div>
+
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+const monthlyData = {{ monthlyData|json_encode|raw }};
+const labels   = monthlyData.map(d => d.month);
+const revenues = monthlyData.map(d => d.revenue);
+const bookings = monthlyData.map(d => d.bookings);
+
+const teal  = '#1dbcaa';
+const navy  = '#1b3a6b';
+const gold  = '#f5a623';
+const red   = '#ef4444';
+const tealA = 'rgba(29,188,170,0.15)';
+const navyA = 'rgba(27,58,107,0.12)';
+
+// Revenue line chart
+new Chart(document.getElementById('revenueChart'), {
+    type: 'line',
+    data: {
+        labels,
+        datasets: [{
+            label: 'Revenue (TND)',
+            data: revenues,
+            borderColor: teal,
+            backgroundColor: tealA,
+            borderWidth: 2.5,
+            pointBackgroundColor: teal,
+            pointRadius: 5,
+            fill: true,
+            tension: 0.4,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+            x: { grid: { display: false } }
+        }
+    }
+});
+
+// Bookings bar chart
+new Chart(document.getElementById('bookingsChart'), {
+    type: 'bar',
+    data: {
+        labels,
+        datasets: [{
+            label: 'Bookings',
+            data: bookings,
+            backgroundColor: navy,
+            borderRadius: 8,
+            borderSkipped: false,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: 'rgba(0,0,0,0.05)' } },
+            x: { grid: { display: false } }
+        }
+    }
+});
+
+// Status doughnut
+new Chart(document.getElementById('statusChart'), {
+    type: 'doughnut',
+    data: {
+        labels: ['Confirmed', 'Pending', 'Cancelled'],
+        datasets: [{
+            data: [{{ stats.confirmed }}, {{ stats.pending }}, {{ stats.cancelled }}],
+            backgroundColor: [teal, gold, red],
+            borderWidth: 0,
+            hoverOffset: 6,
+        }]
+    },
+    options: {
+        responsive: true,
+        cutout: '68%',
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: { padding: 16, font: { size: 13 } }
+            }
+        }
+    }
+});
+
+// Filter tabs
+document.querySelectorAll('.th-rsv-tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+        document.querySelectorAll('.th-rsv-tab').forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+        const filter = this.dataset.filter;
+        document.querySelectorAll('.th-rsv-row').forEach(function(row) {
+            row.style.display = (filter === 'ALL' || row.dataset.status === filter) ? '' : 'none';
+        });
+    });
+});
+</script>
+{% endblock %}

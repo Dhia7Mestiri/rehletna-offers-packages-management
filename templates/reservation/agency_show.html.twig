@@ -1,0 +1,101 @@
+{% extends 'base.html.twig' %}
+{% block title %}Reservation #{{ reservation.id }}{% endblock %}
+
+{% block body %}
+{% include 'partials/_offer_subnav.html.twig' %}
+
+<div class="th-body">
+
+    <div class="th-page-header" style="padding-left:0;padding-right:0">
+        <div>
+            <h1 class="th-page-title">Reservation #{{ reservation.id }}</h1>
+            <p class="th-page-sub">{{ reservation.offer.title }}</p>
+        </div>
+        <a href="{{ path('app_reservation_agency_list') }}" class="th-btn-outline">← Dashboard</a>
+    </div>
+
+    <div class="th-detail-grid">
+
+        <div class="th-detail-panel">
+            <h2 class="th-detail-title" style="font-size:1.1rem">Client</h2>
+
+            <div class="th-rsv-client-card">
+                <div class="th-rsv-client-avatar">
+                    {{ reservation.user.name|first|upper }}{{ reservation.user.lastName|first|upper }}
+                </div>
+                <div>
+                    <div class="th-rsv-client-name">{{ reservation.user.fullName }}</div>
+                    <div class="th-rsv-client-email">{{ reservation.user.email }}</div>
+                </div>
+            </div>
+
+            <div style="margin-top:1.25rem;display:flex;flex-direction:column;gap:8px">
+                <div class="th-rsv-status-badge th-rsv-status-{{ reservation.status|lower }}">
+                    {% if reservation.status == 'CONFIRMED' %}✅
+                    {% elseif reservation.status == 'PENDING' %}⏳
+                    {% elseif reservation.status == 'CANCELLED' %}❌
+                    {% endif %}
+                    {{ reservation.status }}
+                </div>
+                <div class="th-rsv-payment-badge th-rsv-pay-{{ reservation.paymentStatus|lower }}">
+                    💳 Payment: {{ reservation.paymentStatus }}
+                </div>
+            </div>
+
+            <a href="{{ path('app_offer_show', {id: reservation.offer.id}) }}"
+               class="th-btn-outline" style="display:block;text-align:center;margin-top:1.5rem">
+                🔍 View Offer
+            </a>
+        </div>
+
+        <div class="th-detail-panel">
+            <h2 class="th-detail-title" style="font-size:1.1rem">Booking Details</h2>
+
+            <div class="th-detail-meta-grid" style="grid-template-columns:1fr 1fr">
+                <div class="th-meta-item">
+                    <span class="th-meta-label">📅 Booked on</span>
+                    <span class="th-meta-value">{{ reservation.reservationDate|date('d/m/Y H:i') }}</span>
+                </div>
+                <div class="th-meta-item">
+                    <span class="th-meta-label">👥 Persons</span>
+                    <span class="th-meta-value">{{ reservation.numberOfPersons }}</span>
+                </div>
+                <div class="th-meta-item">
+                    <span class="th-meta-label">🗓️ Trip start</span>
+                    <span class="th-meta-value">{{ reservation.offer.startDate|date('d/m/Y') }}</span>
+                </div>
+                <div class="th-meta-item">
+                    <span class="th-meta-label">🗓️ Trip end</span>
+                    <span class="th-meta-value">{{ reservation.offer.endDate|date('d/m/Y') }}</span>
+                </div>
+                <div class="th-meta-item">
+                    <span class="th-meta-label">📍 Location</span>
+                    <span class="th-meta-value">{{ reservation.offer.location ?: '—' }}</span>
+                </div>
+                <div class="th-meta-item">
+                    <span class="th-meta-label">💰 Price/person</span>
+                    <span class="th-meta-value">{{ reservation.offer.promoPrice }} TND</span>
+                </div>
+            </div>
+
+            {% if reservation.specialRequest %}
+                <div class="th-rsv-special" style="margin-top:1rem">
+                    <span class="th-meta-label">💬 Special Requests</span>
+                    <p>{{ reservation.specialRequest }}</p>
+                </div>
+            {% endif %}
+
+            <div class="th-detail-price-block" style="margin-top:1rem">
+                <span class="th-price-label">Total Amount</span>
+                <div class="th-price-row">
+                    <span class="th-price">{{ reservation.totalAmount }}</span>
+                    <span class="th-price-cur">TND</span>
+                </div>
+                <div style="font-size:12px;color:var(--text-muted);margin-top:4px">
+                    {{ reservation.numberOfPersons }} person(s) × {{ reservation.offer.promoPrice }} TND
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

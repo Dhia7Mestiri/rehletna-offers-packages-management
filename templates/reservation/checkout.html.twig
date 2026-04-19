@@ -1,0 +1,128 @@
+{% extends 'base.html.twig' %}
+{% block title %}Payment — Reservation #{{ reservation.id }}{% endblock %}
+
+{% block body %}
+{% include 'partials/_offer_subnav.html.twig' %}
+
+<div class="th-body">
+
+    {# Step indicator #}
+    <div class="th-rsv-timeline" style="margin-bottom:2rem">
+        <div class="th-rsv-step done">
+            <div class="th-rsv-step-dot">✓</div>
+            <div class="th-rsv-step-label">Booking Details</div>
+        </div>
+        <div class="th-rsv-step-line done"></div>
+        <div class="th-rsv-step done">
+            <div class="th-rsv-step-dot">2</div>
+            <div class="th-rsv-step-label">Payment</div>
+        </div>
+        <div class="th-rsv-step-line"></div>
+        <div class="th-rsv-step">
+            <div class="th-rsv-step-dot">3</div>
+            <div class="th-rsv-step-label">Confirmed</div>
+        </div>
+    </div>
+
+    <div class="th-detail-grid">
+
+        {# Left — Order summary #}
+        <div class="th-detail-panel">
+            <h2 class="th-detail-title" style="font-size:1.1rem">Order Summary</h2>
+
+            <div class="th-rsv-offer-summary">
+                <div class="th-rsv-summary-row">
+                    <span>Offer</span>
+                    <strong>{{ reservation.offer.title }}</strong>
+                </div>
+                <div class="th-rsv-summary-row">
+                    <span>Location</span>
+                    <strong>{{ reservation.offer.location ?: '—' }}</strong>
+                </div>
+                <div class="th-rsv-summary-row">
+                    <span>Trip dates</span>
+                    <strong>{{ reservation.offer.startDate|date('d/m/Y') }} → {{ reservation.offer.endDate|date('d/m/Y') }}</strong>
+                </div>
+                <div class="th-rsv-summary-row">
+                    <span>Persons</span>
+                    <strong>{{ reservation.numberOfPersons }}</strong>
+                </div>
+                <div class="th-rsv-summary-row">
+                    <span>Price/person</span>
+                    <strong>{{ reservation.offer.promoPrice }} TND</strong>
+                </div>
+            </div>
+
+            {% if reservation.specialRequest %}
+                <div class="th-rsv-special" style="margin-top:1rem">
+                    <span class="th-meta-label">💬 Special Requests</span>
+                    <p>{{ reservation.specialRequest }}</p>
+                </div>
+            {% endif %}
+
+            <div class="th-rsv-total-block" style="margin-top:1.25rem">
+                <span>Total</span>
+                <div class="th-rsv-total">
+                    <span>{{ reservation.totalAmount }}</span>
+                    <span class="th-price-cur">TND</span>
+                </div>
+            </div>
+        </div>
+
+        {# Right — Payment redirect panel #}
+        <div class="th-detail-panel" style="text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem">
+
+            <div style="font-size:56px">💳</div>
+
+            <div>
+                <h1 class="th-detail-title" style="font-size:1.2rem;text-align:center">Step 2 — Secure Payment</h1>
+                <p style="font-size:13px;color:var(--text-muted);margin-top:6px;text-align:center">
+                    You'll be taken to Stripe's secure checkout page to complete your payment.
+                    Your reservation will be confirmed immediately after.
+                </p>
+            </div>
+
+            {# Stripe features #}
+            <div style="display:flex;flex-direction:column;gap:8px;width:100%">
+                <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text-muted)">
+                    <span style="color:var(--teal);font-size:16px">🔒</span> 256-bit SSL encryption
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text-muted)">
+                    <span style="color:var(--teal);font-size:16px">🛡️</span> PCI DSS compliant — card data never touches our servers
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text-muted)">
+                    <span style="color:var(--teal);font-size:16px">📧</span> Confirmation email + PDF ticket sent instantly after payment
+                </div>
+            </div>
+
+            {# Auto-redirect button #}
+            <a href="{{ stripeUrl }}" id="stripeBtn" class="th-btn-gold" style="width:100%;text-align:center;font-size:15px;padding:14px 24px">
+                💳 Pay {{ reservation.totalAmount }} TND securely
+            </a>
+
+            <p style="font-size:11px;color:var(--text-soft)">
+                You will be redirected to Stripe. Redirecting in <span id="countdown">5</span>s...
+            </p>
+
+            <a href="{{ path('app_reservation_my_list') }}" class="th-btn-outline" style="width:100%;text-align:center">
+                ← Cancel & go back
+            </a>
+        </div>
+
+    </div>
+</div>
+
+<script>
+// Auto-redirect countdown
+let seconds = 5;
+const countdownEl = document.getElementById('countdown');
+const timer = setInterval(function() {
+    seconds--;
+    if (countdownEl) countdownEl.textContent = seconds;
+    if (seconds <= 0) {
+        clearInterval(timer);
+        window.location.href = '{{ stripeUrl }}';
+    }
+}, 1000);
+</script>
+{% endblock %}

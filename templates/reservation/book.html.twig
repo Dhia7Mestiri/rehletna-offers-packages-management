@@ -1,0 +1,181 @@
+{% extends 'base.html.twig' %}
+{% block title %}Book — {{ offer.title }}{% endblock %}
+
+{% block body %}
+{% include 'partials/_offer_subnav.html.twig' %}
+
+<div class="th-body">
+
+    {# ── Step indicator ── #}
+    <div class="th-rsv-timeline" style="margin-bottom:2rem">
+        <div class="th-rsv-step done">
+            <div class="th-rsv-step-dot">1</div>
+            <div class="th-rsv-step-label">Booking Details</div>
+        </div>
+        <div class="th-rsv-step-line"></div>
+        <div class="th-rsv-step">
+            <div class="th-rsv-step-dot">2</div>
+            <div class="th-rsv-step-label">Payment</div>
+        </div>
+        <div class="th-rsv-step-line"></div>
+        <div class="th-rsv-step">
+            <div class="th-rsv-step-dot">3</div>
+            <div class="th-rsv-step-label">Confirmed</div>
+        </div>
+    </div>
+
+    <div class="th-detail-grid">
+
+        {# Left — Offer image #}
+        <div class="th-detail-img-wrap">
+            <img src="{{ offer.imageUrl ?: 'https://via.placeholder.com/900x500?text=Travel+Offer' }}"
+                 alt="{{ offer.title }}" class="th-detail-img">
+            <div class="th-status-badge th-status-active">
+                <i class="bi bi-lightning-fill"></i> Active
+            </div>
+        </div>
+
+        {# Right — Booking form #}
+        <div class="th-detail-panel">
+            <h1 class="th-detail-title">Step 1 — Booking Details</h1>
+
+            <div class="th-detail-location">
+                <i class="bi bi-geo-alt-fill"></i> {{ offer.location ?: 'Location not specified' }}
+            </div>
+
+            <div class="th-rsv-offer-summary">
+                <div class="th-rsv-summary-row">
+                    <span>Offer</span>
+                    <strong>{{ offer.title }}</strong>
+                </div>
+                <div class="th-rsv-summary-row">
+                    <span>Dates</span>
+                    <strong>{{ offer.startDate|date('d/m/Y') }} → {{ offer.endDate|date('d/m/Y') }}</strong>
+                </div>
+                <div class="th-rsv-summary-row">
+                    <span>Price per person</span>
+                    <strong class="th-rsv-price">{{ offer.promoPrice }} TND</strong>
+                </div>
+                <div class="th-rsv-summary-row">
+                    <span>Spots remaining</span>
+                    {% if remainingCapacity <= 5 %}
+                        <strong class="th-rsv-spots-low">{{ remainingCapacity }}</strong>
+                    {% else %}
+                        <strong class="th-rsv-spots-ok">{{ remainingCapacity }}</strong>
+                    {% endif %}
+                </div>
+            </div>
+
+            {{ form_start(form, {'attr': {'id': 'bookingForm', 'novalidate': 'novalidate', 'class': 'offer-form'}}) }}
+
+            <div class="th-rsv-field">
+                {{ form_label(form.numberOfPersons) }}
+                {{ form_widget(form.numberOfPersons, {'attr': {'id': 'field_persons', 'min': 1, 'max': remainingCapacity}}) }}
+                {{ form_errors(form.numberOfPersons) }}
+                <div class="th-field-error" id="err_persons" style="display:none"></div>
+            </div>
+
+            <div class="th-rsv-field">
+                {{ form_label(form.specialRequest) }}
+                {{ form_widget(form.specialRequest) }}
+                {{ form_errors(form.specialRequest) }}
+            </div>
+
+            <div class="th-rsv-total-block">
+                <div>
+                    <div style="font-size:13px;font-weight:600;color:var(--teal-dark)">Estimated Total</div>
+                    <div style="font-size:11px;color:var(--text-muted);margin-top:2px">
+                        Secure payment via Stripe
+                    </div>
+                </div>
+                <div class="th-rsv-total">
+                    <span id="totalAmount">{{ offer.promoPrice }}</span>
+                    <span class="th-price-cur">TND</span>
+                </div>
+            </div>
+
+            {# What happens next #}
+            <div class="th-rsv-next-info">
+                <div class="th-rsv-next-step">
+                    <span class="th-rsv-next-num">1</span>
+                    <span>Fill in your booking details above</span>
+                </div>
+                <div class="th-rsv-next-step">
+                    <span class="th-rsv-next-num">2</span>
+                    <span>Click "Proceed to Payment" — you'll go to Stripe's secure hosted checkout</span>
+                </div>
+                <div class="th-rsv-next-step">
+                    <span class="th-rsv-next-num">3</span>
+                    <span>Payment confirmed → reservation instantly confirmed + confirmation email sent</span>
+                </div>
+            </div>
+
+            <div class="th-detail-actions">
+                <button type="submit" class="th-btn-gold">
+                    💳 Proceed to Payment
+                </button>
+                <a href="{{ path('app_offer_show', {id: offer.id}) }}" class="th-btn-outline">
+                    ← Back
+                </a>
+            </div>
+
+            {{ form_end(form) }}
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const personsInput   = document.getElementById('field_persons');
+    const totalEl        = document.getElementById('totalAmount');
+    const pricePerPerson = parseFloat('{{ offer.promoPrice|replace({',': '.'}) }}');
+    const errEl          = document.getElementById('err_persons');
+    const max            = parseInt('{{ remainingCapacity }}', 10);
+
+    function updateTotal() {
+        const n = parseInt(personsInput.value, 10);
+        totalEl.textContent = (isNaN(n) || n < 1 ? pricePerPerson : pricePerPerson * n).toFixed(2);
+    }
+
+    function validatePersons() {
+        const n = parseInt(personsInput.value, 10);
+        if (!personsInput.value || isNaN(n)) {
+            errEl.textContent = 'Please enter the number of persons.';
+            errEl.style.display = 'flex';
+            personsInput.classList.add('is-invalid');
+            personsInput.classList.remove('is-valid');
+            return false;
+        }
+        if (n < 1) {
+            errEl.textContent = 'Must be at least 1 person.';
+            errEl.style.display = 'flex';
+            personsInput.classList.add('is-invalid');
+            personsInput.classList.remove('is-valid');
+            return false;
+        }
+        if (n > max) {
+            errEl.textContent = 'Only ' + max + ' spot(s) remaining.';
+            errEl.style.display = 'flex';
+            personsInput.classList.add('is-invalid');
+            personsInput.classList.remove('is-valid');
+            return false;
+        }
+        errEl.style.display = 'none';
+        personsInput.classList.remove('is-invalid');
+        personsInput.classList.add('is-valid');
+        return true;
+    }
+
+    personsInput.addEventListener('input', function() {
+        updateTotal();
+        validatePersons();
+    });
+
+    document.getElementById('bookingForm').addEventListener('submit', function(e) {
+        if (!validatePersons()) e.preventDefault();
+    });
+
+    updateTotal();
+});
+</script>
+{% endblock %}

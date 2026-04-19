@@ -1,0 +1,107 @@
+{% extends 'base.html.twig' %}
+{% block title %}Reservation #{{ reservation.id }}{% endblock %}
+
+{% block body %}
+<div class="th-body">
+{% include 'partials/_offer_subnav.html.twig' %}
+
+    <div class="th-page-header" style="padding-left:0;padding-right:0">
+        <div>
+            <h1 class="th-page-title">Reservation #{{ reservation.id }}</h1>
+            <p class="th-page-sub">{{ reservation.offer.title }}</p>
+        </div>
+        <div class="th-header-actions">
+            <a href="{{ path('app_reservation_my_list') }}" class="th-btn-outline">← My Reservations</a>
+        </div>
+    </div>
+
+    <div class="th-detail-grid">
+
+        {# Left — Status card #}
+        <div class="th-rsv-status-card">
+            <div class="th-rsv-status-badge th-rsv-status-{{ reservation.status|lower }}">
+                {% if reservation.status == 'PENDING' %}⏳
+                {% elseif reservation.status == 'CONFIRMED' %}✅
+                {% elseif reservation.status == 'CANCELLED' %}❌
+                {% elseif reservation.status == 'REJECTED' %}🚫
+                {% endif %}
+                {{ reservation.status }}
+            </div>
+
+            <div class="th-rsv-status-msg">
+                {% if reservation.status == 'PENDING' %}
+                    Your reservation is waiting for agency confirmation.
+                {% elseif reservation.status == 'CONFIRMED' %}
+                    Your reservation is confirmed! Get ready for your trip.
+                {% elseif reservation.status == 'CANCELLED' %}
+                    This reservation was cancelled.
+                {% elseif reservation.status == 'REJECTED' %}
+                    Unfortunately the agency could not accommodate this reservation.
+                {% endif %}
+            </div>
+
+            {% if reservation.status == 'PENDING' %}
+                <form method="post" action="{{ path('app_reservation_cancel', {id: reservation.id}) }}"
+                      onsubmit="return confirm('Cancel this reservation?')">
+                    <input type="hidden" name="_token" value="{{ csrf_token('cancel_reservation_' ~ reservation.id) }}">
+                    <button type="submit" class="th-btn-danger" style="width:100%;margin-top:1rem">
+                        ❌ Cancel Reservation
+                    </button>
+                </form>
+            {% endif %}
+
+            <div class="th-rsv-payment-badge th-rsv-pay-{{ reservation.paymentStatus|lower }}">
+                💳 Payment: {{ reservation.paymentStatus }}
+            </div>
+        </div>
+
+        {# Right — Details #}
+        <div class="th-detail-panel">
+            <h2 class="th-detail-title" style="font-size:1.2rem">Booking Details</h2>
+
+            <div class="th-detail-meta-grid" style="grid-template-columns:1fr 1fr">
+                <div class="th-meta-item">
+                    <span class="th-meta-label">📅 Reserved on</span>
+                    <span class="th-meta-value">{{ reservation.reservationDate|date('d/m/Y H:i') }}</span>
+                </div>
+                <div class="th-meta-item">
+                    <span class="th-meta-label">👥 Persons</span>
+                    <span class="th-meta-value">{{ reservation.numberOfPersons }}</span>
+                </div>
+                <div class="th-meta-item">
+                    <span class="th-meta-label">📍 Location</span>
+                    <span class="th-meta-value">{{ reservation.offer.location ?: '—' }}</span>
+                </div>
+                <div class="th-meta-item">
+                    <span class="th-meta-label">🗓️ Trip dates</span>
+                    <span class="th-meta-value">
+                        {{ reservation.offer.startDate|date('d/m/Y') }} →
+                        {{ reservation.offer.endDate|date('d/m/Y') }}
+                    </span>
+                </div>
+            </div>
+
+            {% if reservation.specialRequest %}
+                <div class="th-rsv-special">
+                    <span class="th-meta-label">💬 Special Requests</span>
+                    <p>{{ reservation.specialRequest }}</p>
+                </div>
+            {% endif %}
+
+            <div class="th-detail-price-block" style="margin-top:1rem">
+                <span class="th-price-label">Total Amount</span>
+                <div class="th-price-row">
+                    <span class="th-price">{{ reservation.totalAmount }}</span>
+                    <span class="th-price-cur">TND</span>
+                </div>
+            </div>
+
+            <div class="th-detail-actions" style="margin-top:1rem">
+                <a href="{{ path('app_offer_show', {id: reservation.offer.id}) }}" class="th-btn-outline">
+                    🔍 View Offer
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

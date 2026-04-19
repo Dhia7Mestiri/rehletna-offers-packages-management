@@ -1,0 +1,64 @@
+{% extends 'base.html.twig' %}
+{% block title %}My Reservations{% endblock %}
+
+{% block body %}
+<div class="th-body">
+{% include 'partials/_offer_subnav.html.twig' %}
+
+    <div class="th-page-header" style="padding-left:0;padding-right:0">
+        <div>
+            <h1 class="th-page-title">My Reservations</h1>
+            <p class="th-page-sub">Track all your travel bookings.</p>
+        </div>
+        <a href="{{ path('app_offer_index') }}" class="th-btn-primary">🔖 Browse Offers</a>
+    </div>
+
+    {% if reservations is empty %}
+        <div class="th-empty">
+            <i class="bi bi-calendar2-x th-empty-icon"></i>
+            <h3 class="th-empty-title">No reservations yet</h3>
+            <p class="th-empty-sub">Browse our offers and book your next adventure!</p>
+            <a href="{{ path('app_offer_index') }}" class="th-btn-gold" style="margin-top:1rem;display:inline-block">
+                🔖 Explore Offers
+            </a>
+        </div>
+    {% else %}
+        <div class="th-rsv-list">
+            {% for reservation in reservations %}
+                <div class="th-rsv-row">
+                    <div class="th-rsv-row-img">
+                        <img src="{{ reservation.offer.imageUrl ?: 'https://via.placeholder.com/120x80?text=Offer' }}"
+                             alt="{{ reservation.offer.title }}">
+                    </div>
+
+                    <div class="th-rsv-row-info">
+                        <div class="th-rsv-row-title">{{ reservation.offer.title }}</div>
+                        <div class="th-rsv-row-meta">
+                            <span><i class="bi bi-geo-alt"></i> {{ reservation.offer.location ?: '—' }}</span>
+                            <span><i class="bi bi-calendar3"></i> {{ reservation.offer.startDate|date('d/m/Y') }} → {{ reservation.offer.endDate|date('d/m/Y') }}</span>
+                            <span><i class="bi bi-people"></i> {{ reservation.numberOfPersons }} person(s)</span>
+                            <span><i class="bi bi-clock"></i> Booked {{ reservation.createdAt|date('d/m/Y') }}</span>
+                        </div>
+                    </div>
+
+                    <div class="th-rsv-row-right">
+                        <div class="th-rsv-status-badge th-rsv-status-{{ reservation.status|lower }}">
+                            {% if reservation.status == 'PENDING' %}⏳
+                            {% elseif reservation.status == 'CONFIRMED' %}✅
+                            {% elseif reservation.status == 'CANCELLED' %}❌
+                            {% elseif reservation.status == 'REJECTED' %}🚫
+                            {% endif %}
+                            {{ reservation.status }}
+                        </div>
+                        <div class="th-rsv-row-amount">{{ reservation.totalAmount }} TND</div>
+                        <a href="{{ path('app_reservation_my_show', {id: reservation.id}) }}" class="th-btn-outline" style="font-size:12px">
+                            View Details
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

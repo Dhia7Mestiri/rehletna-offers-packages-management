@@ -16,16 +16,13 @@
                 alt="{{ offer.title }}"
                 class="th-detail-img"
             >
-
             {% set discount = 0 %}
             {% if offer.originalPrice and offer.originalPrice > 0 and offer.promoPrice %}
                 {% set discount = (((offer.originalPrice - offer.promoPrice) / offer.originalPrice) * 100)|round %}
             {% endif %}
-
             {% if discount > 0 %}
                 <div class="th-discount-badge">-{{ discount }}%</div>
             {% endif %}
-
             {% if offer.status == 'ACTIVE' %}
                 <div class="th-status-badge th-status-active">
                     <i class="bi bi-lightning-fill"></i> Active
@@ -75,16 +72,20 @@
             <div class="th-detail-actions">
                 {% if is_granted('ROLE_AGENCY') and offer.user and offer.user.id == app.user.id %}
                     <a href="{{ path('app_offer_edit', {id: offer.id}) }}" class="th-btn-primary">
-                        <i class="bi bi-pencil me-1"></i> Edit Offer
+                        ✏️ Edit Offer
                     </a>
-                {% elseif app.user %}
-                    <a href="#" class="th-btn-gold">
-                        <i class="bi bi-calendar2-check me-1"></i> Reserve Now
+                {% elseif app.user and not is_granted('ROLE_AGENCY') and not is_granted('ROLE_ADMIN') %}
+                    <a href="{{ path('app_reservation_book', {id: offer.id}) }}" class="th-btn-gold">
+                        🗓️ Reserve Now
+                    </a>
+                {% elseif not app.user %}
+                    <a href="{{ path('app_login') }}" class="th-btn-primary">
+                        🔐 Login to Reserve
                     </a>
                 {% endif %}
 
                 <a href="{{ path('app_offer_index') }}" class="th-btn-outline">
-                    <i class="bi bi-arrow-left me-1"></i> Back to offers
+                    ← Back to offers
                 </a>
             </div>
 
@@ -102,30 +103,24 @@
             <div class="service-list">
                 {% for service in serviceDetails %}
                     <div class="service-item">
-
                         <div class="th-service-badge-wrap">
                             <span class="service-type-badge {% if service.kind == 'HOTEL' %}th-badge-hotel{% elseif service.kind == 'VOL' %}th-badge-vol{% endif %}">
-                                {% if service.kind == 'HOTEL' %}
-                                    <i class="bi bi-building"></i>
-                                {% elseif service.kind == 'VOL' %}
-                                    <i class="bi bi-airplane"></i>
+                                {% if service.kind == 'HOTEL' %}<i class="bi bi-building"></i>
+                                {% elseif service.kind == 'VOL' %}<i class="bi bi-airplane"></i>
                                 {% endif %}
                                 {{ service.kind }}
                             </span>
                         </div>
-
                         <div class="flex-grow-1">
                             <div class="service-name">{{ service.name }}</div>
                             <div class="service-description">
                                 {{ service.description ?: 'No description available.' }}
                             </div>
-
                             {% if service.price %}
                                 <div class="th-service-price">
                                     <i class="bi bi-tag-fill"></i> {{ service.price }} TND
                                 </div>
                             {% endif %}
-
                             {% if service.kind == 'HOTEL' %}
                                 <div class="th-service-meta">
                                     <span><i class="bi bi-geo-alt"></i> {{ service.location ?: '—' }}</span>

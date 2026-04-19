@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            color: #0d1f1e;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .ticket {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 0;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1dbcaa, #1b3a6b);
+            padding: 28px 32px;
+            color: white;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .logo span { color: #f5a623; }
+
+        .ticket-badge {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.4);
+            border-radius: 8px;
+            padding: 6px 14px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+        }
+
+        .header-title {
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .header-sub {
+            font-size: 13px;
+            opacity: 0.8;
+        }
+
+        /* Status row */
+        .status-row {
+            background: #f0f4f3;
+            padding: 14px 32px;
+            display: flex;
+            gap: 24px;
+            align-items: center;
+            border-bottom: 2px dashed #c8dedd;
+        }
+
+        .status-badge {
+            background: #1dbcaa;
+            color: white;
+            border-radius: 999px;
+            padding: 5px 16px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+        }
+
+        .status-id {
+            font-size: 13px;
+            color: #6b8282;
+            font-weight: 600;
+        }
+
+        .status-date {
+            font-size: 12px;
+            color: #9bbfbc;
+            margin-left: auto;
+        }
+
+        /* Body */
+        .body { padding: 24px 32px; }
+
+        /* Section */
+        .section { margin-bottom: 20px; }
+
+        .section-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #1dbcaa;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 10px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #e6eeec;
+        }
+
+        /* Info grid */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .info-item { }
+
+        .info-label {
+            font-size: 11px;
+            color: #9bbfbc;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 2px;
+        }
+
+        .info-value {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: #0d1f1e;
+        }
+
+        /* Price block */
+        .price-block {
+            background: #f0f4f3;
+            border-radius: 10px;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .price-label { font-size: 13px; color: #6b8282; font-weight: 600; }
+        .price-value { font-size: 26px; font-weight: 800; color: #1b3a6b; }
+        .price-cur { font-size: 14px; font-weight: 700; color: #1dbcaa; margin-left: 4px; }
+
+        .paid-badge {
+            background: #1dbcaa;
+            color: white;
+            border-radius: 8px;
+            padding: 6px 14px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        /* Special request */
+        .special-box {
+            background: #fef6e7;
+            border-left: 3px solid #f5a623;
+            border-radius: 0 8px 8px 0;
+            padding: 10px 14px;
+            margin-top: 12px;
+            font-size: 12.5px;
+            color: #92400e;
+        }
+
+        /* Footer */
+        .footer {
+            background: #f0f4f3;
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 2px dashed #c8dedd;
+        }
+
+        .footer-note { font-size: 11px; color: #9bbfbc; }
+        .footer-contact { font-size: 11px; color: #1dbcaa; font-weight: 600; }
+
+        /* Divider with scissors */
+        .cut-line {
+            text-align: center;
+            color: #c8dedd;
+            font-size: 11px;
+            letter-spacing: 4px;
+            padding: 8px 0;
+            border-top: 1px dashed #c8dedd;
+        }
+    </style>
+</head>
+<body>
+<div class="ticket">
+
+    <!-- Header -->
+    <div class="header">
+        <div class="header-top">
+            <div class="logo">Rehletna<span>.tn</span></div>
+            <div class="ticket-badge">✈ BOOKING TICKET</div>
+        </div>
+        <div class="header-title">{{ reservation.offer.title }}</div>
+        <div class="header-sub">{{ reservation.offer.location ?: 'Tunisia' }}</div>
+    </div>
+
+    <!-- Status row -->
+    <div class="status-row">
+        <div class="status-badge">✅ CONFIRMED &nbsp;·&nbsp; 💳 PAID</div>
+        <div class="status-id">Reservation #{{ reservation.id }}</div>
+        <div class="status-date">Issued {{ reservation.createdAt|date('d/m/Y') }}</div>
+    </div>
+
+    <!-- Body -->
+    <div class="body">
+
+        <!-- Traveller info -->
+        <div class="section">
+            <div class="section-title">👤 Traveller</div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Full Name</div>
+                    <div class="info-value">{{ reservation.user.fullName }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Email</div>
+                    <div class="info-value">{{ reservation.user.email }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Number of Persons</div>
+                    <div class="info-value">{{ reservation.numberOfPersons }} person(s)</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Booking Date</div>
+                    <div class="info-value">{{ reservation.reservationDate|date('d/m/Y H:i') }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trip info -->
+        <div class="section">
+            <div class="section-title">🗓️ Trip Details</div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Departure</div>
+                    <div class="info-value">{{ reservation.offer.startDate|date('d/m/Y') }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Return</div>
+                    <div class="info-value">{{ reservation.offer.endDate|date('d/m/Y') }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Destination</div>
+                    <div class="info-value">{{ reservation.offer.location ?: '—' }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Capacity</div>
+                    <div class="info-value">{{ reservation.offer.capacity ?: 'Open' }}</div>
+                </div>
+            </div>
+        </div>
+
+        {% if reservation.specialRequest %}
+        <div class="special-box">
+            <strong>Special Requests:</strong> {{ reservation.specialRequest }}
+        </div>
+        {% endif %}
+
+        <!-- Price -->
+        <div class="price-block">
+            <div>
+                <div class="price-label">Total Paid</div>
+                <div>
+                    <span class="price-value">{{ reservation.totalAmount }}</span>
+                    <span class="price-cur">TND</span>
+                </div>
+                <div style="font-size:11px;color:#9bbfbc;margin-top:2px">
+                    {{ reservation.numberOfPersons }} person(s) × {{ reservation.offer.promoPrice }} TND
+                </div>
+            </div>
+            <div class="paid-badge">💳 PAID</div>
+        </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="cut-line">✂ - - - - - - - - - - - - - - - - - - - - - - - - - - - -</div>
+    <div class="footer">
+        <div class="footer-note">
+            Present this ticket at check-in · Reservation #{{ reservation.id }}
+        </div>
+        <div class="footer-contact">rehletna.tn</div>
+    </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,43 @@
+{% extends 'base.html.twig' %}
+{% block title %}Payment Confirmed{% endblock %}
+
+{% block body %}
+{% include 'partials/_offer_subnav.html.twig' %}
+<div class="th-body" style="max-width:600px;margin:0 auto;text-align:center;padding-top:2rem">
+
+    <div style="font-size:72px;margin-bottom:1rem">🎉</div>
+    <h1 class="th-page-title">Payment Successful!</h1>
+    <p class="th-page-sub" style="margin-bottom:2rem">
+        Your reservation for <strong>{{ reservation.offer.title }}</strong> is confirmed.
+        A confirmation email has been sent to <strong>{{ reservation.user.email }}</strong>.
+    </p>
+
+    <div class="th-rsv-offer-summary" style="text-align:left;margin-bottom:2rem">
+        <div class="th-rsv-summary-row">
+            <span>Reservation</span>
+            <strong>#{{ reservation.id }}</strong>
+        </div>
+        <div class="th-rsv-summary-row">
+            <span>Offer</span>
+            <strong>{{ reservation.offer.title }}</strong>
+        </div>
+        <div class="th-rsv-summary-row">
+            <span>Persons</span>
+            <strong>{{ reservation.numberOfPersons }}</strong>
+        </div>
+        <div class="th-rsv-summary-row">
+            <span>Total Paid</span>
+            <strong style="color:var(--teal)">{{ reservation.totalAmount }} TND</strong>
+        </div>
+    </div>
+
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+        <a href="{{ path('app_reservation_my_show', {id: reservation.id}) }}" class="th-btn-primary">
+            📋 View Reservation
+        </a>
+        <a href="{{ path('app_reservation_my_list') }}" class="th-btn-outline">
+            🗓️ My Reservations
+        </a>
+    </div>
+</div>
+{% endblock %}

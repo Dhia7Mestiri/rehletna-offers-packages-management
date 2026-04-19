@@ -1,0 +1,30 @@
+{% extends 'base.html.twig' %}
+{% block title %}Payment Cancelled{% endblock %}
+
+{% block body %}
+{% include 'partials/_offer_subnav.html.twig' %}
+<div class="th-body" style="max-width:600px;margin:0 auto;text-align:center;padding-top:2rem">
+
+    <div style="font-size:72px;margin-bottom:1rem">😕</div>
+    <h1 class="th-page-title">Payment Cancelled</h1>
+    <p class="th-page-sub" style="margin-bottom:2rem">
+        You cancelled the payment. Your reservation is still pending — you can retry payment anytime.
+    </p>
+
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+        {% if reservation %}
+            <a href="{{ path('app_reservation_checkout', {id: reservation.id}) }}" class="th-btn-gold">
+                💳 Retry Payment
+            </a>
+            <a href="{{ path('app_reservation_cancel', {id: reservation.id}) }}" class="th-btn-danger"
+               onclick="return confirm('Cancel this reservation?')"
+               style="display:inline-block;text-align:center">
+                ❌ Cancel Reservation
+            </a>
+        {% endif %}
+        <a href="{{ path('app_offer_index') }}" class="th-btn-outline">
+            🔖 Browse Offers
+        </a>
+    </div>
+</div>
+{% endblock %}

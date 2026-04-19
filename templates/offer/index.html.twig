@@ -84,11 +84,9 @@
                             alt="{{ offer.title }}"
                             class="th-card-img"
                         >
-
                         {% if discount > 0 %}
                             <div class="th-discount-badge">-{{ discount }}%</div>
                         {% endif %}
-
                         {% if offer.status == 'ACTIVE' %}
                             <div class="th-status-badge th-status-active">
                                 <i class="bi bi-lightning-fill"></i> Active
@@ -96,7 +94,6 @@
                         {% elseif offer.status == 'ARCHIVED' %}
                             <div class="th-status-badge th-status-archived">Archived</div>
                         {% endif %}
-
                         {% if serviceTypes is not empty %}
                             <div class="th-chip-row">
                                 {% for type in serviceTypes %}
@@ -114,7 +111,6 @@
                             <i class="bi bi-geo-alt-fill"></i>
                             {{ offer.location ?: 'Location not specified' }}
                         </div>
-
                         <p class="th-card-desc">
                             {{ offer.description|length > 100 ? offer.description|slice(0, 100) ~ '...' : offer.description }}
                         </p>
@@ -129,7 +125,6 @@
                                         <span class="th-price-old">{{ offer.originalPrice }} TND</span>
                                     {% endif %}
                                 </div>
-
                                 <div class="th-dates">
                                     <i class="bi bi-calendar3"></i>
                                     {{ offer.startDate ? offer.startDate|date('d/m/Y') : '—' }}
@@ -139,14 +134,16 @@
                             </div>
 
                             <div class="th-card-actions">
-                                <a href="{{ path('app_offer_show', {id: offer.id}) }}" class="th-btn-outline">Details</a>
+                                <a href="{{ path('app_offer_show', {id: offer.id}) }}" class="th-btn-outline">🔍 Details</a>
 
                                 {% if is_granted('ROLE_AGENCY') and offer.user and offer.user.id == app.user.id %}
-                                    <a href="{{ path('app_offer_edit', {id: offer.id}) }}" class="th-btn-primary">Edit</a>
-                                {% elseif app.user %}
-                                    <a href="{{ path('app_offer_show', {id: offer.id}) }}" class="th-btn-primary">Reserve</a>
+                                    <a href="{{ path('app_offer_edit', {id: offer.id}) }}" class="th-btn-primary">✏️ Edit</a>
+                                {% elseif app.user and not is_granted('ROLE_AGENCY') and not is_granted('ROLE_ADMIN') %}
+                                    <a href="{{ path('app_reservation_book', {id: offer.id}) }}" class="th-btn-gold">🗓️ Reserve</a>
+                                {% elseif not app.user %}
+                                    <a href="{{ path('app_login') }}" class="th-btn-primary">🔐 Login to Reserve</a>
                                 {% else %}
-                                    <a href="{{ path('app_offer_show', {id: offer.id}) }}" class="th-btn-primary">Discover</a>
+                                    <a href="{{ path('app_offer_show', {id: offer.id}) }}" class="th-btn-primary">🔎 Discover</a>
                                 {% endif %}
                             </div>
                         </div>

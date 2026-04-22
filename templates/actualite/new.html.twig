@@ -1,0 +1,130 @@
+{% extends 'base.html.twig' %}
+{% block title %}New Banner{% endblock %}
+
+{% block body %}
+{% include 'partials/_offer_subnav.html.twig' %}
+
+<div class="th-body" style="max-width:680px;margin:0 auto">
+
+    <div class="th-page-header" style="padding-left:0;padding-right:0">
+        <div>
+            <h1 class="th-page-title">📢 Create Banner</h1>
+            <p class="th-page-sub">Upload a promotional banner for the offers page.</p>
+        </div>
+        <a href="{{ path('app_actualite_index') }}" class="th-btn-outline">← Back</a>
+    </div>
+
+    {% if errors is defined and errors is not empty %}
+        <div style="background:#fff0f0;border:1px solid rgba(229,62,62,0.2);border-radius:12px;padding:1rem;margin-bottom:1.25rem">
+            {% for error in errors %}
+                <div style="color:#e53e3e;font-size:13px">⚠️ {{ error }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="th-form-card">
+        <form method="post" enctype="multipart/form-data" id="bannerForm">
+
+            <div class="th-rsv-field">
+                <label style="display:block;font-size:13px;font-weight:700;color:var(--navy);margin-bottom:6px">
+                    Banner Title *
+                </label>
+                <input type="text" name="titre" class="form-control app-input"
+                       placeholder="e.g. Summer Promo -40%, Early Booking Deal..."
+                       maxlength="255" required>
+            </div>
+
+            <div class="th-rsv-field">
+    <label style="display:block;font-size:13px;font-weight:700;color:var(--navy);margin-bottom:6px">
+        Banner Image URL * 
+        <span style="font-weight:400;color:var(--text-muted)">(paste your Cloudinary URL)</span>
+    </label>
+    <input type="url" name="bannerUrl" class="form-control app-input"
+           placeholder="https://res.cloudinary.com/..."
+           required id="bannerUrlInput">
+    <div id="urlPreview" style="margin-top:10px;display:none">
+        <img id="previewImg" src="" style="max-width:100%;border-radius:10px;max-height:200px;object-fit:cover">
+    </div>
+</div>
+
+            <div class="th-rsv-field">
+                <label style="display:block;font-size:13px;font-weight:700;color:var(--navy);margin-bottom:6px">
+                    Link to Offer <span style="font-weight:400;color:var(--text-muted)">(optional)</span>
+                </label>
+                <select name="offerId" class="form-control app-input">
+                    <option value="">— No linked offer —</option>
+                    {% for offer in offers %}
+                        <option value="{{ offer.id }}">{{ offer.title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="th-rsv-field">
+                <label style="display:block;font-size:13px;font-weight:700;color:var(--navy);margin-bottom:6px">
+                    Expiry Date <span style="font-weight:400;color:var(--text-muted)">(optional — leave empty for no expiry)</span>
+                </label>
+                <input type="date" name="endsAt" class="form-control app-input"
+                       min="{{ 'now'|date('Y-m-d') }}">
+            </div>
+
+            <div style="display:flex;gap:10px;margin-top:1.5rem">
+                <button type="submit" class="th-btn-gold" style="flex:1">
+                    📢 Publish Banner
+                </button>
+                <a href="{{ path('app_actualite_index') }}" class="th-btn-outline" style="flex:1;text-align:center">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var dropZone   = document.getElementById('dropZone');
+    var fileInput  = document.getElementById('bannerFile');
+    var preview    = document.getElementById('imagePreview');
+    var dropContent = document.getElementById('dropZoneContent');
+
+    dropZone.addEventListener('click', function() { fileInput.click(); });
+
+    dropZone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        dropZone.style.borderColor = '#0a7a70';
+        dropZone.style.background  = '#b2f0ea';
+    });
+
+    dropZone.addEventListener('dragleave', function() {
+        dropZone.style.borderColor = '#1dbcaa';
+        dropZone.style.background  = 'var(--teal-light)';
+    });
+
+    dropZone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        dropZone.style.borderColor = '#1dbcaa';
+        dropZone.style.background  = 'var(--teal-light)';
+        var file = e.dataTransfer.files[0];
+        if (file) showPreview(file);
+    });
+
+    fileInput.addEventListener('change', function() {
+        if (this.files[0]) showPreview(this.files[0]);
+    });
+
+    function showPreview(file) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+            dropContent.style.display = 'none';
+
+            // Transfer file to input
+            var dt = new DataTransfer();
+            dt.items.add(file);
+            fileInput.files = dt.files;
+        };
+        reader.readAsDataURL(file);
+    }
+});
+</script>
+{% endblock %}

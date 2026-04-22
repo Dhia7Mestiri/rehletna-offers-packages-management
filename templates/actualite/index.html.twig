@@ -1,0 +1,90 @@
+{% extends 'base.html.twig' %}
+{% block title %}My Banners{% endblock %}
+
+{% block body %}
+{% include 'partials/_offer_subnav.html.twig' %}
+
+<div class="th-body">
+    <div class="th-page-header" style="padding-left:0;padding-right:0">
+        <div>
+            <h1 class="th-page-title">📢 My Promotional Banners</h1>
+            <p class="th-page-sub">Manage your banners displayed on the offers page.</p>
+        </div>
+        <a href="{{ path('app_actualite_new') }}" class="th-btn-gold">
+            ➕ New Banner
+        </a>
+    </div>
+
+    {% for msg in app.flashes('success') %}
+        <div class="alert alert-success" style="border-radius:12px;margin-bottom:1rem">✅ {{ msg }}</div>
+    {% endfor %}
+
+    {% if banners is empty %}
+        <div class="th-empty">
+            <i class="bi bi-image th-empty-icon"></i>
+            <h3 class="th-empty-title">No banners yet</h3>
+            <p class="th-empty-sub">Create your first promotional banner to appear on the offers page.</p>
+            <a href="{{ path('app_actualite_new') }}" class="th-btn-gold" style="margin-top:1rem">➕ Create Banner</a>
+        </div>
+    {% else %}
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1.25rem">
+            {% for banner in banners %}
+                <div class="th-form-card" style="padding:0;overflow:hidden">
+                    {# Banner preview #}
+                    <div style="position:relative;height:180px;background:#f0f4f3;overflow:hidden">
+                        {% if banner.bannerUrl %}
+                            <img src="{{ banner.bannerUrl }}" alt="{{ banner.titre }}"
+                                 style="width:100%;height:100%;object-fit:cover">
+                        {% else %}
+                            <div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted)">
+                                <i class="bi bi-image" style="font-size:2rem"></i>
+                            </div>
+                        {% endif %}
+                        <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(27,58,107,0.7),transparent);display:flex;align-items:flex-end;padding:1rem">
+                            <span style="color:#fff;font-size:15px;font-weight:700">{{ banner.titre }}</span>
+                        </div>
+                        <div style="position:absolute;top:10px;right:10px">
+                            {% if banner.isCurrentlyActive %}
+                                <span style="background:#1dbcaa;color:#fff;border-radius:999px;padding:3px 10px;font-size:11px;font-weight:700">✅ Active</span>
+                            {% else %}
+                                <span style="background:#e53e3e;color:#fff;border-radius:999px;padding:3px 10px;font-size:11px;font-weight:700">⏸ Inactive</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {# Banner info #}
+                    <div style="padding:1rem">
+                        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);margin-bottom:10px">
+                            <span>📅 Created {{ banner.createdAt|date('d/m/Y') }}</span>
+                            <span>👆 {{ banner.clickCount }} clicks</span>
+                        </div>
+                        {% if banner.offer %}
+                            <div style="font-size:12px;color:var(--teal-dark);margin-bottom:10px">
+                                🔗 Linked to: <strong>{{ banner.offer.title }}</strong>
+                            </div>
+                        {% endif %}
+                        {% if banner.endsAt %}
+                            <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px">
+                                ⏰ Expires: {{ banner.endsAt|date('d/m/Y') }}
+                            </div>
+                        {% endif %}
+
+                        <div style="display:flex;gap:8px;flex-wrap:wrap">
+                            <form method="post" action="{{ path('app_actualite_toggle', {id: banner.id}) }}" style="flex:1">
+                                <button type="submit" class="th-btn-outline" style="width:100%;font-size:12px">
+                                    {% if banner.isActive %}⏸ Deactivate{% else %}▶️ Activate{% endif %}
+                                </button>
+                            </form>
+                            <form method="post" action="{{ path('app_actualite_delete', {id: banner.id}) }}"
+                                  onsubmit="return confirm('Delete this banner?')" style="flex:1">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete_banner_' ~ banner.id) }}">
+                                <button type="submit" class="th-btn-danger" style="width:100%;font-size:12px">🗑 Delete</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

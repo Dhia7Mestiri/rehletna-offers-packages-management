@@ -13,27 +13,35 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Knp\Component\Pager\PaginatorInterface;
 
 final class OfferController extends AbstractController
 {
     #[Route('/offers', name: 'app_offer_index')]
-    public function index(Request $request, OfferRepository $offerRepository): Response
-    {
-        $filters = [
-            'q' => trim((string) $request->query->get('q', '')),
-            'location' => trim((string) $request->query->get('location', '')),
-            'type' => trim((string) $request->query->get('type', '')),
-            'minPrice' => trim((string) $request->query->get('minPrice', '')),
-            'maxPrice' => trim((string) $request->query->get('maxPrice', '')),
-        ];
+public function index(Request $request, OfferRepository $offerRepository, PaginatorInterface $paginator): Response
+{
+    $filters = [
+        'q'        => trim((string) $request->query->get('q', '')),
+        'location' => trim((string) $request->query->get('location', '')),
+        'type'     => trim((string) $request->query->get('type', '')),
+        'minPrice' => trim((string) $request->query->get('minPrice', '')),
+        'maxPrice' => trim((string) $request->query->get('maxPrice', '')),
+    ];
 
-        $offers = $offerRepository->findActiveWithFilters($filters);
+    $offers = $paginator->paginate(
+        $offerRepository->findActiveWithFiltersQuery($filters),
+        $request->query->getInt('page', 1),
+        8
+    );
 
-        return $this->render('offer/index.html.twig', [
-            'offers' => $offers,
-            'filters' => $filters,
-        ]);
-    }
+    $topDestinations = $offerRepository->findTopDestinations(6);
+
+    return $this->render('offer/index.html.twig', [
+        'offers'          => $offers,
+        'filters'         => $filters,
+        'topDestinations' => $topDestinations,
+    ]);
+}
 
     #[Route('/offers/{id}', name: 'app_offer_show', requirements: ['id' => '\d+'])]
 public function show(Offer $offer, ServiceRepository $serviceRepository): Response

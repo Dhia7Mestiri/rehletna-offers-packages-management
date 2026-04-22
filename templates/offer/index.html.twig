@@ -151,7 +151,19 @@
                 </div>
             {% endfor %}
         </div>
+
+        {# Pagination #}
+        <div style="display:flex;justify-content:center;margin-top:2rem;margin-bottom:1rem">
+            {{ knp_pagination_render(offers) }}
+        </div>
     {% endif %}
 </div>
+<style>
+.pagination { display:flex;justify-content:center;align-items:center;gap:6px;flex-wrap:wrap;list-style:none;padding:0;margin:1.5rem 0; }
+.pagination .page-item .page-link { border-radius:10px!important;border:1.5px solid #dde8f0;color:#1b3a6b;font-weight:600;font-size:13px;padding:8px 14px;background:#fff;text-decoration:none;display:block;transition:all 0.15s ease; }
+.pagination .page-item.active .page-link { background:linear-gradient(135deg,#1dbcaa,#1b3a6b)!important;border-color:transparent!important;color:#fff!important;box-shadow:0 4px 12px rgba(29,188,170,0.3); }
+.pagination .page-item .page-link:hover { background:#e6f8f6!important;border-color:#1dbcaa!important;color:#0a7a70!important; }
+.pagination .page-item.disabled .page-link { opacity:0.4;pointer-events:none; }
+</style>
 
 {% endblock %}

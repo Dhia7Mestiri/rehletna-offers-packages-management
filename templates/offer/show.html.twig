@@ -8,8 +8,10 @@
 
 <div class="th-body">
 
+    {# ── Top grid: Image + Panel ── #}
     <div class="th-detail-grid">
 
+        {# Left — Image #}
         <div class="th-detail-img-wrap">
             <img
                 src="{{ offer.imageUrl ?: 'https://via.placeholder.com/900x500?text=Travel+Offer' }}"
@@ -32,6 +34,7 @@
             {% endif %}
         </div>
 
+        {# Right — Info panel #}
         <div class="th-detail-panel">
 
             <h1 class="th-detail-title">{{ offer.title }}</h1>
@@ -41,6 +44,7 @@
                 {{ offer.location ?: 'Location not specified' }}
             </div>
 
+            {# Price #}
             <div class="th-detail-price-block">
                 <span class="th-price-label">à partir de</span>
                 <div class="th-price-row">
@@ -52,7 +56,28 @@
                 </div>
             </div>
 
-            <div class="th-detail-meta-grid">
+            {# Currency converter widget #}
+            <div class="th-currency-widget">
+                <div class="th-currency-header">
+                    <span style="font-size:13px;font-weight:600;color:var(--navy)">💱 Price in other currencies</span>
+                    <select id="currencySelect" class="th-currency-select">
+                        <option value="EUR">🇪🇺 EUR</option>
+                        <option value="USD">🇺🇸 USD</option>
+                        <option value="GBP">🇬🇧 GBP</option>
+                        <option value="SAR">🇸🇦 SAR</option>
+                        <option value="MAD">🇲🇦 MAD</option>
+                        <option value="DZD">🇩🇿 DZD</option>
+                        <option value="CAD">🇨🇦 CAD</option>
+                        <option value="JPY">🇯🇵 JPY</option>
+                    </select>
+                </div>
+                <div class="th-currency-result" id="currencyResult">
+                    <div class="th-currency-loading">Loading rates...</div>
+                </div>
+            </div>
+
+            {# Dates #}
+            <div class="th-detail-meta-grid" style="margin-bottom:0.75rem">
                 <div class="th-meta-item">
                     <span class="th-meta-label"><i class="bi bi-calendar3"></i> Start</span>
                     <span class="th-meta-value">{{ offer.startDate ? offer.startDate|date('d/m/Y') : '—' }}</span>
@@ -61,29 +86,56 @@
                     <span class="th-meta-label"><i class="bi bi-calendar-check"></i> End</span>
                     <span class="th-meta-value">{{ offer.endDate ? offer.endDate|date('d/m/Y') : '—' }}</span>
                 </div>
-                <div class="th-meta-item">
-                    <span class="th-meta-label"><i class="bi bi-people-fill"></i> Capacity</span>
-                    <span class="th-meta-value">{{ offer.capacity ?: 'Not specified' }}</span>
-                </div>
             </div>
 
-            <p class="th-detail-desc">{{ offer.description }}</p>
+            {# Capacity bar #}
+            {% if capacity is defined and capacity > 0 %}
+                <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:0.875rem 1.25rem;margin-bottom:0.75rem;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:6px;">
+                        <span style="font-size:13px;font-weight:700;color:var(--navy)">
+                            <i class="bi bi-people-fill"></i> Availability
+                        </span>
+                        {% if remainingCapacity <= 0 %}
+                            <span style="background:#fff0f0;color:#a32d2d;font-size:12px;font-weight:700;border-radius:999px;padding:3px 12px;">🚫 Fully Booked</span>
+                        {% elseif remainingCapacity <= 5 %}
+                            <span style="background:#fff4e6;color:#c05621;font-size:12px;font-weight:700;border-radius:999px;padding:3px 12px;">🔥 Only {{ remainingCapacity }} spot(s) left!</span>
+                        {% elseif percentageFull >= 50 %}
+                            <span style="background:#fef6e7;color:#92400e;font-size:12px;font-weight:700;border-radius:999px;padding:3px 12px;">⚡ {{ remainingCapacity }} spots remaining</span>
+                        {% else %}
+                            <span style="background:var(--teal-light);color:var(--teal-dark);font-size:12px;font-weight:700;border-radius:999px;padding:3px 12px;">✅ {{ remainingCapacity }} of {{ capacity }} spots available</span>
+                        {% endif %}
+                    </div>
+                    <div style="background:#e8f0ef;border-radius:999px;height:10px;overflow:hidden;margin-bottom:6px;">
+                        <div style="height:100%;border-radius:999px;width:{{ percentageFull > 100 ? 100 : percentageFull }}%;background:{% if percentageFull >= 100 %}linear-gradient(90deg,#ef4444,#f87171){% elseif percentageFull >= 75 %}linear-gradient(90deg,#f97316,#fb923c){% elseif percentageFull >= 40 %}linear-gradient(90deg,#f59e0b,#fbbf24){% else %}linear-gradient(90deg,#1dbcaa,#2dd4bf){% endif %};min-width:{% if percentageFull > 0 %}8px{% else %}0{% endif %};"></div>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);font-weight:600">
+                        <span>{{ bookedSpots }} booked</span>
+                        <span>{{ percentageFull }}% full · {{ capacity }} total</span>
+                    </div>
+                </div>
+            {% endif %}
 
+            {# Actions #}
             <div class="th-detail-actions">
                 {% if is_granted('ROLE_AGENCY') and offer.user and offer.user.id == app.user.id %}
                     <a href="{{ path('app_offer_edit', {id: offer.id}) }}" class="th-btn-primary">
                         ✏️ Edit Offer
                     </a>
                 {% elseif app.user and not is_granted('ROLE_AGENCY') and not is_granted('ROLE_ADMIN') %}
-                    <a href="{{ path('app_reservation_book', {id: offer.id}) }}" class="th-btn-gold">
-                        🗓️ Reserve Now
-                    </a>
+                    {% if remainingCapacity is defined and remainingCapacity <= 0 %}
+                        <button class="th-btn-primary" disabled style="opacity:0.5;cursor:not-allowed">
+                            🚫 Fully Booked
+                        </button>
+                    {% else %}
+                        <a href="{{ path('app_reservation_book', {id: offer.id}) }}" class="th-btn-gold">
+                            🗓️ Reserve Now
+                        </a>
+                    {% endif %}
                 {% elseif not app.user %}
                     <a href="{{ path('app_login') }}" class="th-btn-primary">
                         🔐 Login to Reserve
                     </a>
                 {% endif %}
-
                 <a href="{{ path('app_offer_index') }}" class="th-btn-outline">
                     ← Back to offers
                 </a>
@@ -92,6 +144,17 @@
         </div>
     </div>
 
+    {# ── Description (full width) ── #}
+    <div class="th-services-card" style="margin-bottom:1.5rem">
+        <h3 class="th-services-title">
+            <i class="bi bi-file-text-fill me-2"></i> About this offer
+        </h3>
+        <p style="font-size:15px;line-height:1.75;color:var(--text-body);margin:0">
+            {{ offer.description ?: 'No description available.' }}
+        </p>
+    </div>
+
+    {# ── Included services (full width) ── #}
     <div class="th-services-card">
         <h3 class="th-services-title">
             <i class="bi bi-grid-1x2-fill me-2"></i> Included services
@@ -143,5 +206,66 @@
     </div>
 
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var select   = document.getElementById('currencySelect');
+    var resultEl = document.getElementById('currencyResult');
+
+    if (!select || !resultEl) return;
+
+    var amount = {{ offer.promoPrice }};
+
+    function loadRate(currency) {
+        resultEl.innerHTML = '<div class="th-currency-loading">🔄 Converting to ' + currency + '...</div>';
+        fetch('/api/exchange/convert?amount=' + amount + '&currencies=' + currency)
+            .then(function(r) {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.json();
+            })
+            .then(function(data) {
+                if (data.error) {
+                    resultEl.innerHTML = '<div class="th-currency-loading" style="color:#e53e3e">⚠️ Rate unavailable</div>';
+                    return;
+                }
+                var conv = data.conversions[currency];
+                if (!conv) return;
+                resultEl.innerHTML =
+                    '<div class="th-currency-amount">' +
+                        '<span class="th-currency-sym">' + conv.symbol + '</span>' +
+                        '<span class="th-currency-val">' + conv.amount.toFixed(2) + '</span>' +
+                        '<span class="th-currency-code">' + currency + '</span>' +
+                    '</div>' +
+                    '<div class="th-currency-rate">1 TND = ' + conv.rate.toFixed(4) + ' ' + currency + '</div>';
+            })
+            .catch(function() {
+                setTimeout(function() {
+                    fetch('/api/exchange/convert?amount=' + amount + '&currencies=' + currency)
+                        .then(function(r) { return r.json(); })
+                        .then(function(data) {
+                            if (data.error || !data.conversions[currency]) {
+                                resultEl.innerHTML = '<div class="th-currency-loading" style="color:#e53e3e">⚠️ Unable to load rates</div>';
+                                return;
+                            }
+                            var conv = data.conversions[currency];
+                            resultEl.innerHTML =
+                                '<div class="th-currency-amount">' +
+                                    '<span class="th-currency-sym">' + conv.symbol + '</span>' +
+                                    '<span class="th-currency-val">' + conv.amount.toFixed(2) + '</span>' +
+                                    '<span class="th-currency-code">' + currency + '</span>' +
+                                '</div>' +
+                                '<div class="th-currency-rate">1 TND = ' + conv.rate.toFixed(4) + ' ' + currency + '</div>';
+                        })
+                        .catch(function() {
+                            resultEl.innerHTML = '<div class="th-currency-loading" style="color:#e53e3e">⚠️ Unable to load rates</div>';
+                        });
+                }, 1000);
+            });
+    }
+
+    select.addEventListener('change', function() { loadRate(select.value); });
+    setTimeout(function() { loadRate('EUR'); }, 300);
+});
+</script>
 
 {% endblock %}

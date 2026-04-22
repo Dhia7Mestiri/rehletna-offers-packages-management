@@ -36,15 +36,30 @@ final class OfferController extends AbstractController
     }
 
     #[Route('/offers/{id}', name: 'app_offer_show', requirements: ['id' => '\d+'])]
-    public function show(Offer $offer, ServiceRepository $serviceRepository): Response
-    {
-        $serviceDetails = $serviceRepository->findDetailsByOfferId($offer->getId());
+public function show(Offer $offer, ServiceRepository $serviceRepository): Response
+{
+    $serviceDetails = $serviceRepository->findDetailsByOfferId($offer->getId());
 
-        return $this->render('offer/show.html.twig', [
-            'offer' => $offer,
-            'serviceDetails' => $serviceDetails,
-        ]);
+    // Calculate remaining capacity
+    $bookedSpots = 0;
+    foreach ($offer->getReservations() as $r) {
+        if ($r->getStatus() === 'CONFIRMED') {
+            $bookedSpots += $r->getNumberOfPersons();
+        }
     }
+    $capacity          = $offer->getCapacity() ?? 0;
+    $remainingCapacity = max(0, $capacity - $bookedSpots);
+    $percentageFull    = $capacity > 0 ? round(($bookedSpots / $capacity) * 100) : 0;
+
+    return $this->render('offer/show.html.twig', [
+        'offer'             => $offer,
+        'serviceDetails'    => $serviceDetails,
+        'remainingCapacity' => $remainingCapacity,
+        'bookedSpots'       => $bookedSpots,
+        'capacity'          => $capacity,
+        'percentageFull'    => $percentageFull,
+    ]);
+}
 
     #[Route('/agency/offers', name: 'app_agency_offer_index')]
     public function myOffers(OfferRepository $offerRepository): Response

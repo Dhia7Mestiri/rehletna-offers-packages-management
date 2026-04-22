@@ -30,3 +30,7 @@ services:
         arguments:
             $apiKey:       '%env(EXCHANGE_RATE_API_KEY)%'
             $baseCurrency: '%env(EXCHANGE_RATE_BASE_CURRENCY)%'
+
+    App\Service\AiOfferService:
+        arguments:
+            $apiKey: '%env(GROQ_API_KEY)%'

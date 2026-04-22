@@ -131,102 +131,115 @@
 
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-const monthlyData = {{ monthlyData|json_encode|raw }};
-const labels   = monthlyData.map(d => d.month);
-const revenues = monthlyData.map(d => d.revenue);
-const bookings = monthlyData.map(d => d.bookings);
+// Inline Chart.js data from server
+var monthlyData = {{ monthlyData|json_encode|raw }};
+var confirmedCount = {{ stats.confirmed }};
+var pendingCount   = {{ stats.pending }};
+var cancelledCount = {{ stats.cancelled }};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"
+        onload="initCharts()"></script>
+<script>
+function initCharts() {
+    var labels   = monthlyData.map(function(d) { return d.month; });
+    var revenues = monthlyData.map(function(d) { return d.revenue; });
+    var bookings = monthlyData.map(function(d) { return d.bookings; });
 
-const teal  = '#1dbcaa';
-const navy  = '#1b3a6b';
-const gold  = '#f5a623';
-const red   = '#ef4444';
-const tealA = 'rgba(29,188,170,0.15)';
-const navyA = 'rgba(27,58,107,0.12)';
+    var teal  = '#1dbcaa';
+    var navy  = '#1b3a6b';
+    var gold  = '#f5a623';
+    var red   = '#ef4444';
+    var tealA = 'rgba(29,188,170,0.15)';
 
-// Revenue line chart
-new Chart(document.getElementById('revenueChart'), {
-    type: 'line',
-    data: {
-        labels,
-        datasets: [{
-            label: 'Revenue (TND)',
-            data: revenues,
-            borderColor: teal,
-            backgroundColor: tealA,
-            borderWidth: 2.5,
-            pointBackgroundColor: teal,
-            pointRadius: 5,
-            fill: true,
-            tension: 0.4,
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: { legend: { display: false } },
-        scales: {
-            y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
-            x: { grid: { display: false } }
-        }
-    }
-});
-
-// Bookings bar chart
-new Chart(document.getElementById('bookingsChart'), {
-    type: 'bar',
-    data: {
-        labels,
-        datasets: [{
-            label: 'Bookings',
-            data: bookings,
-            backgroundColor: navy,
-            borderRadius: 8,
-            borderSkipped: false,
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: { legend: { display: false } },
-        scales: {
-            y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: 'rgba(0,0,0,0.05)' } },
-            x: { grid: { display: false } }
-        }
-    }
-});
-
-// Status doughnut
-new Chart(document.getElementById('statusChart'), {
-    type: 'doughnut',
-    data: {
-        labels: ['Confirmed', 'Pending', 'Cancelled'],
-        datasets: [{
-            data: [{{ stats.confirmed }}, {{ stats.pending }}, {{ stats.cancelled }}],
-            backgroundColor: [teal, gold, red],
-            borderWidth: 0,
-            hoverOffset: 6,
-        }]
-    },
-    options: {
-        responsive: true,
-        cutout: '68%',
-        plugins: {
-            legend: {
-                position: 'bottom',
-                labels: { padding: 16, font: { size: 13 } }
+    // Revenue line chart
+    new Chart(document.getElementById('revenueChart'), {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Revenue (TND)',
+                data: revenues,
+                borderColor: teal,
+                backgroundColor: tealA,
+                borderWidth: 2.5,
+                pointBackgroundColor: teal,
+                pointRadius: 5,
+                fill: true,
+                tension: 0.4,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+                x: { grid: { display: false } }
             }
         }
-    }
-});
+    });
+
+    // Bookings bar chart
+    new Chart(document.getElementById('bookingsChart'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Bookings',
+                data: bookings,
+                backgroundColor: navy,
+                borderRadius: 8,
+                borderSkipped: false,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: 'rgba(0,0,0,0.05)' } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+
+    // Status doughnut
+    new Chart(document.getElementById('statusChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Confirmed', 'Pending', 'Cancelled'],
+            datasets: [{
+                data: [confirmedCount, pendingCount, cancelledCount],
+                backgroundColor: [teal, gold, red],
+                borderWidth: 0,
+                hoverOffset: 6,
+            }]
+        },
+        options: {
+            responsive: true,
+            cutout: '68%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { padding: 16, font: { size: 13 } }
+                }
+            }
+        }
+    });
+}
+
+// Fallback: if onload already fired before script parsed
+if (typeof Chart !== 'undefined') { initCharts(); }
 
 // Filter tabs
-document.querySelectorAll('.th-rsv-tab').forEach(function(tab) {
-    tab.addEventListener('click', function() {
-        document.querySelectorAll('.th-rsv-tab').forEach(t => t.classList.remove('active'));
-        this.classList.add('active');
-        const filter = this.dataset.filter;
-        document.querySelectorAll('.th-rsv-row').forEach(function(row) {
-            row.style.display = (filter === 'ALL' || row.dataset.status === filter) ? '' : 'none';
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.th-rsv-tab').forEach(function(tab) {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.th-rsv-tab').forEach(function(t) { t.classList.remove('active'); });
+            this.classList.add('active');
+            var filter = this.dataset.filter;
+            document.querySelectorAll('.th-rsv-row').forEach(function(row) {
+                row.style.display = (filter === 'ALL' || row.dataset.status === filter) ? '' : 'none';
+            });
         });
     });
 });

@@ -179,60 +179,67 @@
 
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-const monthlyData = {{ monthlyData|json_encode|raw }};
-const labels   = monthlyData.map(d => d.month);
-const revenues = monthlyData.map(d => d.revenue);
-const bookings = monthlyData.map(d => d.bookings);
-const teal = '#1dbcaa', navy = '#1b3a6b';
+var monthlyData = {{ monthlyData|json_encode|raw }};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"
+        onload="initAdminCharts()"></script>
+<script>
+function initAdminCharts() {
+    var labels   = monthlyData.map(function(d) { return d.month; });
+    var revenues = monthlyData.map(function(d) { return d.revenue; });
+    var bookings = monthlyData.map(function(d) { return d.bookings; });
+    var teal = '#1dbcaa', navy = '#1b3a6b';
 
-new Chart(document.getElementById('revenueChart'), {
-    type: 'line',
-    data: {
-        labels,
-        datasets: [{
-            label: 'Revenue (TND)',
-            data: revenues,
-            borderColor: teal,
-            backgroundColor: 'rgba(29,188,170,0.12)',
-            borderWidth: 2.5,
-            pointBackgroundColor: teal,
-            pointRadius: 5,
-            fill: true,
-            tension: 0.4,
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: { legend: { display: false } },
-        scales: {
-            y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
-            x: { grid: { display: false } }
+    new Chart(document.getElementById('revenueChart'), {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Revenue (TND)',
+                data: revenues,
+                borderColor: teal,
+                backgroundColor: 'rgba(29,188,170,0.12)',
+                borderWidth: 2.5,
+                pointBackgroundColor: teal,
+                pointRadius: 5,
+                fill: true,
+                tension: 0.4,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+                x: { grid: { display: false } }
+            }
         }
-    }
-});
+    });
 
-new Chart(document.getElementById('bookingsChart'), {
-    type: 'bar',
-    data: {
-        labels,
-        datasets: [{
-            label: 'Bookings',
-            data: bookings,
-            backgroundColor: navy,
-            borderRadius: 8,
-            borderSkipped: false,
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: { legend: { display: false } },
-        scales: {
-            y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: 'rgba(0,0,0,0.05)' } },
-            x: { grid: { display: false } }
+    new Chart(document.getElementById('bookingsChart'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Bookings',
+                data: bookings,
+                backgroundColor: navy,
+                borderRadius: 8,
+                borderSkipped: false,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: 'rgba(0,0,0,0.05)' } },
+                x: { grid: { display: false } }
+            }
         }
-    }
-});
+    });
+}
+
+if (typeof Chart !== 'undefined') { initAdminCharts(); }
 </script>
 {% endblock %}

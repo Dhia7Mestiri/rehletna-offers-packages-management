@@ -72,10 +72,15 @@ class ReservationRepository extends ServiceEntityRepository
 
         return $result;
     }
+
+
+    /**
+     * Global monthly revenue across all agencies.
+     */
     public function getMonthlyRevenueGlobal(int $months = 6): array
     {
         $start = new \DateTimeImmutable("-{$months} months midnight first day of this month");
- 
+
         $rows = $this->createQueryBuilder('r')
             ->where('r.status = :status')
             ->andWhere('r.createdAt >= :start')
@@ -83,7 +88,7 @@ class ReservationRepository extends ServiceEntityRepository
             ->setParameter('start', $start)
             ->getQuery()
             ->getResult();
- 
+
         $grouped = [];
         foreach ($rows as $r) {
             $key = $r->getCreatedAt()->format('Y-n');
@@ -93,7 +98,7 @@ class ReservationRepository extends ServiceEntityRepository
             $grouped[$key]['revenue']  += (float) $r->getTotalAmount();
             $grouped[$key]['bookings'] += 1;
         }
- 
+
         $result = [];
         for ($i = $months - 1; $i >= 0; $i--) {
             $date  = new \DateTimeImmutable("-{$i} months");
@@ -104,7 +109,19 @@ class ReservationRepository extends ServiceEntityRepository
                 'bookings' => $grouped[$key]['bookings'] ?? 0,
             ];
         }
- 
+
         return $result;
     }
-}
+
+    /**
+     * Returns Query for paginator — reservations by agency.
+     */
+    public function findByAgencyQuery(User $agencyUser): \Doctrine\ORM\Query
+    {
+        return $this->createQueryBuilder('r')
+            ->join('r.offer', 'o')
+            ->where('o.user = :agency')
+            ->setParameter('agency', $agencyUser)
+            ->orderBy('r.createdAt', 'DESC')
+            ->getQuery();
+    }}

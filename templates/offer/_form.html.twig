@@ -3,6 +3,30 @@
 {# ── Offer Details ── #}
 <div class="th-form-card">
     <h3 class="th-form-section-title"><i class="bi bi-info-circle-fill me-2"></i>Offer Details</h3>
+
+    {# AI Assistant bar #}
+    <div class="th-ai-bar">
+        <span class="th-ai-badge">🤖 AI Assistant</span>
+        <span style="font-size:12px;color:var(--text-muted)">Let AI help you create a better offer</span>
+        <div style="display:flex;gap:8px;margin-left:auto;flex-wrap:wrap">
+            <button type="button" class="th-ai-btn" id="btnAiTitle">
+                ✨ Generate Title
+            </button>
+            <button type="button" class="th-ai-btn" id="btnAiDesc">
+                📝 Generate Description
+            </button>
+            <button type="button" class="th-ai-btn th-ai-btn-suggest" id="btnAiSuggest">
+                🎯 Suggest Services
+            </button>
+        </div>
+    </div>
+
+    {# AI loading indicator #}
+    <div class="th-ai-loading" id="aiLoading" style="display:none">
+        <div class="th-ai-spinner"></div>
+        <span id="aiLoadingText">AI is thinking...</span>
+    </div>
+
     <div class="row g-4">
 
         <div class="col-md-6">
@@ -74,7 +98,7 @@
 {# ── Service Picker ── #}
 <div class="th-form-card">
     <h3 class="th-form-section-title"><i class="bi bi-grid-1x2-fill me-2"></i>Select Services</h3>
-    <p class="th-form-section-sub">Filter, search, and click a card to select it.</p>
+    <p class="th-form-section-sub">Filter, search, and click a card to select it. Use AI to get suggestions.</p>
 
     <div class="d-none">
         {{ form_widget(form.services, {'attr': {'class': 'js-service-select'}}) }}
@@ -167,161 +191,161 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
-    /* ── Find fields by name pattern (handles Symfony's nested naming) ── */
-    function findInput(namePart) {
-        return document.querySelector(
-            'input[name*="[' + namePart + ']"], textarea[name*="[' + namePart + ']"], select[name*="[' + namePart + ']"]'
-        );
-    }
+    /* ── Field finder ──────────────────────────────────── */
+// NEW - fixed
+function findInput(namePart) {
+    return document.querySelector('input[name*="[' + namePart + ']"]')
+        || document.querySelector('textarea[name*="[' + namePart + ']"]')
+        || document.querySelector('select[name*="[' + namePart + ']"]');
+}
 
-    /* Map logical names to actual DOM inputs */
-    const F = {
-        title:         findInput('title'),
-        location:      findInput('location'),
-        description:   findInput('description') || document.querySelector('textarea[name*="description"]'),
-        promoPrice:    findInput('promoPrice'),
-        originalPrice: findInput('originalPrice'),
+function findMoneyInput(namePart) {
+    return document.querySelector('input[name*="[' + namePart + '][amount]"]')
+        || document.querySelector('input[name*="[' + namePart + ']"]');
+}
+
+const F = {
+    title:         findInput('title'),
+    location:      findInput('location'),
+    description:   findInput('description') || document.querySelector('textarea'),
+    promoPrice:    findMoneyInput('promoPrice'),
+    originalPrice: findMoneyInput('originalPrice'),
         startDate:     findInput('startDate'),
         endDate:       findInput('endDate'),
         capacity:      findInput('capacity'),
         imageUrl:      findInput('imageUrl'),
     };
 
-    /* ── Error helpers ─────────────────────────────────── */
-    function showError(id, msg) {
-        const errEl = document.getElementById('err_' + id);
-        if (errEl) { errEl.textContent = msg; errEl.style.display = 'flex'; }
-        if (F[id]) { F[id].classList.add('is-invalid'); F[id].classList.remove('is-valid'); }
+    /* ── AI Features ───────────────────────────────────── */
+    const aiLoading     = document.getElementById('aiLoading');
+    const aiLoadingText = document.getElementById('aiLoadingText');
+
+    function showAiLoading(msg) {
+        aiLoadingText.textContent = msg || 'AI is thinking...';
+        aiLoading.style.display = 'flex';
     }
 
-    function clearError(id) {
-        const errEl = document.getElementById('err_' + id);
-        if (errEl) { errEl.textContent = ''; errEl.style.display = 'none'; }
-        if (F[id]) {
-            F[id].classList.remove('is-invalid');
-            if (F[id].value.trim()) F[id].classList.add('is-valid');
-            else F[id].classList.remove('is-valid');
+    function hideAiLoading() {
+        aiLoading.style.display = 'none';
+    }
+
+    function getSelectedServiceIds() {
+        return Array.from(document.querySelectorAll('.th-svc-card--selected'))
+            .map(c => parseInt(c.dataset.value));
+    }
+
+    // Generate Description
+    document.getElementById('btnAiDesc')?.addEventListener('click', function() {
+        const title    = F.title?.value?.trim();
+        const location = F.location?.value?.trim();
+
+        if (!title) {
+            alert('Please enter a title first.');
+            return;
         }
-    }
 
-    function clearAll() {
-        Object.keys(F).forEach(clearError);
-        const svcErr = document.getElementById('err_services');
-        if (svcErr) { svcErr.textContent = ''; svcErr.style.display = 'none'; }
-    }
+        showAiLoading('📝 Generating description...');
 
-    function val(key) { return F[key] ? F[key].value.trim() : ''; }
+        fetch('/api/ai/description', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                title:      title,
+                location:   location || '',
+                serviceIds: getSelectedServiceIds(),
+            })
+        })
+        .then(r => r.json())
+        .then(data => {
+            hideAiLoading();
+            if (data.error) { alert('AI error: ' + data.error); return; }
+            if (F.description) {
+                F.description.value = data.description;
+                F.description.classList.add('th-ai-filled');
+                setTimeout(() => F.description.classList.remove('th-ai-filled'), 2000);
+            }
+        })
+        .catch(() => { hideAiLoading(); alert('AI service unavailable.'); });
+    });
 
-    /* ── Toast ─────────────────────────────────────────── */
-    function showToast(msg, ok) {
-        const t = document.getElementById('validationToast');
-        const i = document.getElementById('toastIcon');
-        document.getElementById('toastMsg').textContent = msg;
-        i.className = 'th-toast-icon' + (ok ? ' success' : '');
-        i.innerHTML = ok ? '<i class="bi bi-check-lg"></i>' : '<i class="bi bi-exclamation-triangle-fill"></i>';
-        t.classList.add('show');
-        setTimeout(() => t.classList.remove('show'), 3500);
-    }
+    // Generate Title
+    document.getElementById('btnAiTitle')?.addEventListener('click', function() {
+        const location = F.location?.value?.trim();
 
-    /* ── Individual validators (return true = valid) ───── */
-    const today = new Date(); today.setHours(0,0,0,0);
-
-    function vTitle() {
-        const v = val('title');
-        if (!v)           return showError('title', 'Title is required.'), false;
-        if (v.length < 3) return showError('title', 'Title must be at least 3 characters.'), false;
-        return clearError('title'), true;
-    }
-
-    function vLocation() {
-        const v = val('location');
-        if (v.length > 150) return showError('location', 'Location cannot exceed 150 characters.'), false;
-        return clearError('location'), true;
-    }
-
-    function vDescription() {
-        const v = val('description');
-        if (!v)            return showError('description', 'Description is required.'), false;
-        if (v.length < 10) return showError('description', 'Description must be at least 10 characters.'), false;
-        return clearError('description'), true;
-    }
-
-    function vPromoPrice() {
-        const v = parseFloat(val('promoPrice'));
-        if (!val('promoPrice'))  return showError('promoPrice', 'Promotional price is required.'), false;
-        if (isNaN(v) || v <= 0) return showError('promoPrice', 'Price must be greater than 0.'), false;
-        if (v < 0)              return showError('promoPrice', 'Price cannot be negative.'), false;
-        return clearError('promoPrice'), true;
-    }
-
-    function vOriginalPrice() {
-        const raw = val('originalPrice');
-        if (!raw) return clearError('originalPrice'), true;
-        const v     = parseFloat(raw);
-        const promo = parseFloat(val('promoPrice'));
-        if (isNaN(v) || v <= 0)                  return showError('originalPrice', 'Price must be greater than 0.'), false;
-        if (v < 0)                                return showError('originalPrice', 'Price cannot be negative.'), false;
-        if (!isNaN(promo) && v <= promo)          return showError('originalPrice', 'Must be higher than the promotional price.'), false;
-        return clearError('originalPrice'), true;
-    }
-
-    function vStartDate() {
-        const raw = val('startDate');
-        if (!raw) return showError('startDate', 'Start date is required.'), false;
-        const d = new Date(raw); d.setHours(0,0,0,0);
-        if (d < today) return showError('startDate', 'Start date cannot be in the past.'), false;
-        return clearError('startDate'), true;
-    }
-
-    function vEndDate() {
-        const raw = val('endDate');
-        if (!raw) return showError('endDate', 'End date is required.'), false;
-        const startRaw = val('startDate');
-        if (startRaw) {
-            const s = new Date(startRaw); s.setHours(0,0,0,0);
-            const e = new Date(raw);      e.setHours(0,0,0,0);
-            if (e <= s) return showError('endDate', 'End date must be after the start date.'), false;
+        if (!location) {
+            alert('Please enter a location first.');
+            return;
         }
-        return clearError('endDate'), true;
-    }
 
-    function vCapacity() {
-        const raw = val('capacity');
-        if (!raw) return clearError('capacity'), true;
-        const v = parseInt(raw, 10);
-        if (isNaN(v) || v < 1)  return showError('capacity', 'Capacity must be at least 1.'), false;
-        if (v > 10000)           return showError('capacity', 'Capacity cannot exceed 10,000.'), false;
-        return clearError('capacity'), true;
-    }
+        showAiLoading('✨ Generating title...');
 
-    function vImageUrl() {
-        const raw = val('imageUrl');
-        if (!raw) return clearError('imageUrl'), true;
-        if (!/^https?:\/\/.+\..+/.test(raw)) return showError('imageUrl', 'Must start with http:// or https://'), false;
-        return clearError('imageUrl'), true;
-    }
+        const serviceTypes = Array.from(document.querySelectorAll('.th-svc-card--selected'))
+            .map(c => c.dataset.type);
 
-    function vServices() {
-        const n = document.querySelectorAll('.th-svc-card--selected').length;
-        const el = document.getElementById('err_services');
-        if (n === 0) {
-            if (el) { el.textContent = 'Please select at least one service.'; el.style.display = 'flex'; }
-            return false;
+        fetch('/api/ai/title', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ location: location, serviceTypes: serviceTypes })
+        })
+        .then(r => r.json())
+        .then(data => {
+            hideAiLoading();
+            if (data.error) { alert('AI error: ' + data.error); return; }
+            if (F.title) {
+                F.title.value = data.title;
+                F.title.classList.add('th-ai-filled');
+                setTimeout(() => F.title.classList.remove('th-ai-filled'), 2000);
+            }
+        })
+        .catch(() => { hideAiLoading(); alert('AI service unavailable.'); });
+    });
+
+    // Suggest Services
+    document.getElementById('btnAiSuggest')?.addEventListener('click', function() {
+        const title    = F.title?.value?.trim();
+        const location = F.location?.value?.trim();
+
+        if (!title) {
+            alert('Please enter a title first.');
+            return;
         }
-        if (el) { el.textContent = ''; el.style.display = 'none'; }
-        return true;
-    }
 
-    /* ── Real-time listeners ───────────────────────────── */
-    if (F.title)         F.title.addEventListener('input', vTitle);
-    if (F.location)      F.location.addEventListener('input', vLocation);
-    if (F.description)   F.description.addEventListener('input', vDescription);
-    if (F.promoPrice)    F.promoPrice.addEventListener('input', () => { vPromoPrice(); vOriginalPrice(); });
-    if (F.originalPrice) F.originalPrice.addEventListener('input', vOriginalPrice);
-    if (F.startDate)     F.startDate.addEventListener('change', () => { vStartDate(); vEndDate(); });
-    if (F.endDate)       F.endDate.addEventListener('change', vEndDate);
-    if (F.capacity)      F.capacity.addEventListener('input', vCapacity);
-    if (F.imageUrl)      F.imageUrl.addEventListener('input', vImageUrl);
+        showAiLoading('🎯 AI is finding the best services...');
+
+        fetch('/api/ai/suggest-services', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title: title, location: location || '' })
+        })
+        .then(r => r.json())
+        .then(data => {
+            hideAiLoading();
+            if (data.error) { alert('AI error: ' + data.error); return; }
+
+            const suggestedIds = data.suggestedIds.map(String);
+
+            // Deselect all first
+            document.querySelectorAll('.th-svc-card--selected').forEach(c => c.classList.remove('th-svc-card--selected'));
+
+            // Select suggested ones
+            suggestedIds.forEach(id => {
+                const card = document.querySelector('.th-svc-card[data-value="' + id + '"]');
+                if (card) {
+                    card.classList.add('th-svc-card--selected');
+                    card.classList.add('th-ai-filled');
+                    setTimeout(() => card.classList.remove('th-ai-filled'), 2000);
+                }
+            });
+
+            syncSelectFromCards();
+            updateSummary();
+
+            if (suggestedIds.length === 0) {
+                alert('AI could not find matching services. Try adding more services or changing the location.');
+            }
+        })
+        .catch(() => { hideAiLoading(); alert('AI service unavailable.'); });
+    });
 
     /* ── Service picker ────────────────────────────────── */
     const select   = document.querySelector('.js-service-select');
@@ -378,24 +402,140 @@ document.addEventListener('DOMContentLoaded', function () {
         this.classList.toggle('th-svc-card--selected');
         syncSelectFromCards();
         updateSummary();
-        vServices();
+        clearError('services');
     }));
 
     if (select) syncCardsFromSelect();
     updateSummary();
     applyFilters();
 
-    /* ── Submit ────────────────────────────────────────── */
+    /* ── Validation ────────────────────────────────────── */
+    const today = new Date(); today.setHours(0,0,0,0);
+
+    function showError(id, msg) {
+        const errEl = document.getElementById('err_' + id);
+        if (errEl) { errEl.textContent = msg; errEl.style.display = 'flex'; }
+        if (F[id]) { F[id].classList.add('is-invalid'); F[id].classList.remove('is-valid'); }
+    }
+
+    function clearError(id) {
+        const errEl = document.getElementById('err_' + id);
+        if (errEl) { errEl.textContent = ''; errEl.style.display = 'none'; }
+        if (F[id]) {
+            F[id].classList.remove('is-invalid');
+            if (F[id].value.trim()) F[id].classList.add('is-valid');
+            else F[id].classList.remove('is-valid');
+        }
+    }
+
+    function clearAll() {
+        Object.keys(F).forEach(clearError);
+        const svcErr = document.getElementById('err_services');
+        if (svcErr) { svcErr.textContent = ''; svcErr.style.display = 'none'; }
+    }
+
+    function val(key) { return F[key] ? F[key].value.trim() : ''; }
+
+    function showToast(msg, ok) {
+        const t = document.getElementById('validationToast');
+        const i = document.getElementById('toastIcon');
+        document.getElementById('toastMsg').textContent = msg;
+        i.className = 'th-toast-icon' + (ok ? ' success' : '');
+        i.innerHTML = ok ? '<i class="bi bi-check-lg"></i>' : '<i class="bi bi-exclamation-triangle-fill"></i>';
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 3500);
+    }
+
+    const today2 = new Date(); today2.setHours(0,0,0,0);
+
+    function vTitle() {
+        const v = val('title');
+        if (!v) return showError('title', 'Title is required.'), false;
+        if (v.length < 3) return showError('title', 'At least 3 characters.'), false;
+        return clearError('title'), true;
+    }
+    function vLocation() {
+        return clearError('location'), true;
+    }
+    function vDescription() {
+        const v = val('description');
+        if (!v) return showError('description', 'Description is required.'), false;
+        if (v.length < 10) return showError('description', 'At least 10 characters.'), false;
+        return clearError('description'), true;
+    }
+    function vPromoPrice() {
+        const v = parseFloat(val('promoPrice'));
+        if (!val('promoPrice')) return showError('promoPrice', 'Promotional price is required.'), false;
+        if (isNaN(v) || v <= 0) return showError('promoPrice', 'Must be greater than 0.'), false;
+        return clearError('promoPrice'), true;
+    }
+    function vOriginalPrice() {
+        const raw = val('originalPrice');
+        if (!raw) return clearError('originalPrice'), true;
+        const v = parseFloat(raw), promo = parseFloat(val('promoPrice'));
+        if (isNaN(v) || v <= 0) return showError('originalPrice', 'Must be greater than 0.'), false;
+        if (!isNaN(promo) && v <= promo) return showError('originalPrice', 'Must be higher than promo price.'), false;
+        return clearError('originalPrice'), true;
+    }
+    function vStartDate() {
+        const raw = val('startDate');
+        if (!raw) return showError('startDate', 'Start date is required.'), false;
+        const d = new Date(raw); d.setHours(0,0,0,0);
+        if (d < today2) return showError('startDate', 'Cannot be in the past.'), false;
+        return clearError('startDate'), true;
+    }
+    function vEndDate() {
+        const raw = val('endDate');
+        if (!raw) return showError('endDate', 'End date is required.'), false;
+        const startRaw = val('startDate');
+        if (startRaw) {
+            const s = new Date(startRaw); s.setHours(0,0,0,0);
+            const e = new Date(raw); e.setHours(0,0,0,0);
+            if (e <= s) return showError('endDate', 'Must be after start date.'), false;
+        }
+        return clearError('endDate'), true;
+    }
+    function vCapacity() {
+        const raw = val('capacity');
+        if (!raw) return clearError('capacity'), true;
+        const v = parseInt(raw, 10);
+        if (isNaN(v) || v < 1) return showError('capacity', 'Must be at least 1.'), false;
+        if (v > 10000) return showError('capacity', 'Cannot exceed 10,000.'), false;
+        return clearError('capacity'), true;
+    }
+    function vImageUrl() {
+        const raw = val('imageUrl');
+        if (!raw) return clearError('imageUrl'), true;
+        if (!/^https?:\/\/.+\..+/.test(raw)) return showError('imageUrl', 'Must start with http:// or https://'), false;
+        return clearError('imageUrl'), true;
+    }
+    function vServices() {
+        const n = document.querySelectorAll('.th-svc-card--selected').length;
+        const el = document.getElementById('err_services');
+        if (n === 0) {
+            if (el) { el.textContent = 'Please select at least one service.'; el.style.display = 'flex'; }
+            return false;
+        }
+        if (el) { el.textContent = ''; el.style.display = 'none'; }
+        return true;
+    }
+
+    if (F.title)         F.title.addEventListener('input', vTitle);
+    if (F.description)   F.description.addEventListener('input', vDescription);
+    if (F.promoPrice)    F.promoPrice.addEventListener('input', () => { vPromoPrice(); vOriginalPrice(); });
+    if (F.originalPrice) F.originalPrice.addEventListener('input', vOriginalPrice);
+    if (F.startDate)     F.startDate.addEventListener('change', () => { vStartDate(); vEndDate(); });
+    if (F.endDate)       F.endDate.addEventListener('change', vEndDate);
+    if (F.capacity)      F.capacity.addEventListener('input', vCapacity);
+    if (F.imageUrl)      F.imageUrl.addEventListener('input', vImageUrl);
+
     document.getElementById('offerForm')?.addEventListener('submit', function(e) {
         clearAll();
         const validators = [vTitle, vLocation, vDescription, vPromoPrice, vOriginalPrice, vStartDate, vEndDate, vCapacity, vImageUrl, vServices];
-        const results    = validators.map(fn => ({ ok: fn() }));
-        const allValid   = results.every(r => r.ok);
-
+        const allValid = validators.map(fn => fn()).every(r => r);
         if (!allValid) {
             e.preventDefault();
             showToast('Please fix the errors before saving.', false);
-            // Scroll to first invalid field
             const firstErr = document.querySelector('.is-invalid, .th-field-error[style*="flex"]');
             if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }

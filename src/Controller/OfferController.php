@@ -14,11 +14,12 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Knp\Component\Pager\PaginatorInterface;
+use App\Repository\ActualiteRepository;
 
 final class OfferController extends AbstractController
 {
     #[Route('/offers', name: 'app_offer_index')]
-public function index(Request $request, OfferRepository $offerRepository, PaginatorInterface $paginator): Response
+public function index(Request $request, OfferRepository $offerRepository, PaginatorInterface $paginator, ActualiteRepository $actualiteRepo): Response
 {
     $filters = [
         'q'        => trim((string) $request->query->get('q', '')),
@@ -35,11 +36,15 @@ public function index(Request $request, OfferRepository $offerRepository, Pagina
     );
 
     $topDestinations = $offerRepository->findTopDestinations(6);
+        $banners = $actualiteRepo->findActiveBanners();
+
 
     return $this->render('offer/index.html.twig', [
         'offers'          => $offers,
         'filters'         => $filters,
         'topDestinations' => $topDestinations,
+        'banners'         => $banners,
+
     ]);
 }
 

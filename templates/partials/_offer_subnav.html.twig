@@ -53,6 +53,13 @@
                   {% else %}background:rgba(255,255,255,0.75);border-color:rgba(80,149,198,0.2);color:#49617a;{% endif %}">
             📋 Reservations
         </a>
+
+        <a href="{{ path('app_actualite_index') }}"
+           style="padding:8px 16px;border-radius:999px;text-decoration:none;font-size:13px;font-weight:600;border:1px solid transparent;
+                  {% if route in ['app_actualite_index', 'app_actualite_new'] %}background:linear-gradient(135deg,#0FA5A2,#1788b6);color:white;
+                  {% else %}background:rgba(255,255,255,0.75);border-color:rgba(80,149,198,0.2);color:#49617a;{% endif %}">
+            📢 Banners
+        </a>
     {% endif %}
     {# Admin link #}
     {% if is_granted('ROLE_ADMIN') %}

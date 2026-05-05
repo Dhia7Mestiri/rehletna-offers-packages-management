@@ -204,6 +204,153 @@
             </div>
         {% endif %}
     </div>
+    {# ── Add this block to show.html.twig after the offer details and before reviews ── #}
+
+{% if activities is defined and activities is not empty %}
+<div class="th-form-card" style="margin-top:1.5rem">
+    <h3 class="th-form-section-title">
+        <i class="bi bi-compass-fill me-2" style="color:#1dbcaa"></i>
+        Activities in {{ offer.location }}
+    </h3>
+    <p style="font-size:13px;color:#6b8282;margin-bottom:1.25rem">
+        Things to do during your trip — recommended based on your destination
+    </p>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem">
+        {% for activity in activities %}
+            <div style="border-radius:14px;overflow:hidden;background:#f8fafc;border:1px solid #e2ecf5;transition:transform 0.2s ease"
+                 onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 20px rgba(27,58,107,0.1)'"
+                 onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='none'">
+
+                {# Activity image #}
+                <div style="position:relative;height:130px;overflow:hidden">
+                    {% if activity.image %}
+                        <img src="{{ activity.image }}" alt="{{ activity.titre }}"
+                             style="width:100%;height:100%;object-fit:cover">
+                    {% else %}
+                        <div style="width:100%;height:100%;background:linear-gradient(135deg,#1dbcaa20,#1b3a6b20);display:flex;align-items:center;justify-content:center;font-size:2.5rem">
+                            🏞️
+                        </div>
+                    {% endif %}
+
+                    {% if activity.categorie %}
+                        <div style="position:absolute;top:8px;left:8px;background:rgba(27,58,107,0.85);color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px">
+                            {{ activity.categorie }}
+                        </div>
+                    {% endif %}
+
+                    {% if activity.placesDisponibles is defined and activity.placesDisponibles > 0 %}
+                        <div style="position:absolute;top:8px;right:8px;background:rgba(29,188,170,0.9);color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px">
+                            {{ activity.placesDisponibles }} spots
+                        </div>
+                    {% endif %}
+                </div>
+
+                {# Activity info #}
+                <div style="padding:10px 12px">
+                    <div style="font-size:13px;font-weight:700;color:#1b3a6b;margin-bottom:4px;line-height:1.3">
+                        {{ activity.titre|length > 40 ? activity.titre|slice(0, 40) ~ '...' : activity.titre }}
+                    </div>
+
+                    <div style="display:flex;align-items:center;gap:4px;margin-bottom:6px">
+                        <i class="bi bi-geo-alt-fill" style="color:#1dbcaa;font-size:11px"></i>
+                        <span style="font-size:11px;color:#6b8282">{{ activity.lieu }}</span>
+                    </div>
+
+                    {% if activity.description %}
+                        <p style="font-size:11px;color:#6b8282;margin-bottom:8px;line-height:1.4">
+                            {{ activity.description|length > 60 ? activity.description|slice(0, 60) ~ '...' : activity.description }}
+                        </p>
+                    {% endif %}
+
+                    <div style="display:flex;align-items:center;justify-content:space-between">
+                        <div style="font-size:14px;font-weight:800;color:#1b3a6b">
+                            {{ activity.prix }} <span style="font-size:10px;font-weight:600;color:#6b8282">TND</span>
+                        </div>
+                        {% if activity.dateActivite %}
+                            <div style="font-size:10px;color:#9db8c0">
+                                <i class="bi bi-calendar3"></i>
+                                {{ activity.dateActivite|date('d/m/Y') }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+    {# ── Add this block to show.html.twig, after the offer details ── #}
+
+{# Pass from controller: averageStars, totalRatings, ratings #}
+
+<div class="th-form-card" style="margin-top:1.5rem">
+    <h3 class="th-form-section-title">
+        <i class="bi bi-star-fill me-2" style="color:#f5a623"></i>Traveller Reviews
+    </h3>
+
+    {# Average rating summary #}
+    <div style="display:flex;align-items:center;gap:1.5rem;margin-bottom:1.5rem;padding:1rem;background:linear-gradient(135deg,rgba(245,166,35,0.08),rgba(29,188,170,0.06));border-radius:14px;border:1px solid rgba(245,166,35,0.2)">
+        {% if averageStars is defined and averageStars %}
+            <div style="text-align:center;min-width:80px">
+                <div style="font-size:2.8rem;font-weight:800;color:#1b3a6b;line-height:1">{{ averageStars }}</div>
+                <div style="margin:4px 0">
+                    {% for i in 1..5 %}
+                        <span style="font-size:1rem;color:{% if i <= averageStars %}#f5a623{% else %}#dde8f0{% endif %}">★</span>
+                    {% endfor %}
+                </div>
+                <div style="font-size:11px;color:#6b8282">{{ totalRatings }} review(s)</div>
+            </div>
+            <div style="flex:1">
+                {% for star in 5..1 %}
+                    {% set count = ratings|filter(r => r.stars == star)|length %}
+                    {% set pct = totalRatings > 0 ? ((count / totalRatings) * 100)|round : 0 %}
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+                        <span style="font-size:11px;color:#6b8282;min-width:10px">{{ star }}</span>
+                        <span style="font-size:12px;color:#f5a623">★</span>
+                        <div style="flex:1;background:#f0f4f8;border-radius:999px;height:6px;overflow:hidden">
+                            <div style="width:{{ pct }}%;background:linear-gradient(90deg,#f5a623,#e8941a);height:100%;border-radius:999px;transition:width 0.3s"></div>
+                        </div>
+                        <span style="font-size:11px;color:#6b8282;min-width:24px">{{ count }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div style="text-align:center;width:100%;padding:1rem;color:#6b8282;font-size:13px">
+                <div style="font-size:2rem;margin-bottom:6px">⭐</div>
+                No reviews yet — be the first to rate this trip!
+            </div>
+        {% endif %}
+    </div>
+
+    {# Individual reviews #}
+    {% if ratings is defined and ratings is not empty %}
+        <div style="display:flex;flex-direction:column;gap:12px">
+            {% for rating in ratings %}
+                <div style="padding:14px;background:#f8fbff;border-radius:12px;border:1px solid #dde8f0">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                        <div style="display:flex;align-items:center;gap:8px">
+                            <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#1dbcaa,#1b3a6b);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700">
+                                {{ rating.user.username|first|upper }}
+                            </div>
+                            <div>
+                                <div style="font-size:13px;font-weight:700;color:#1b3a6b">{{ rating.user.username }}</div>
+                                <div style="font-size:11px;color:#6b8282">{{ rating.createdAt|date('d/m/Y') }}</div>
+                            </div>
+                        </div>
+                        <div>
+                            {% for i in 1..5 %}
+                                <span style="font-size:1rem;color:{% if i <= rating.stars %}#f5a623{% else %}#dde8f0{% endif %}">★</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+
 
 </div>
 

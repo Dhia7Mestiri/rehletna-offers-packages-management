@@ -8,6 +8,7 @@ use App\Entity\User;
 use App\Form\OfferType;
 use App\Repository\OfferRepository;
 use App\Repository\ServiceRepository;
+use App\Repository\RatingRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -15,11 +16,13 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Knp\Component\Pager\PaginatorInterface;
 use App\Repository\ActualiteRepository;
+use App\Repository\OfferActivityRepository;
+
 
 final class OfferController extends AbstractController
 {
     #[Route('/offers', name: 'app_offer_index')]
-public function index(Request $request, OfferRepository $offerRepository, PaginatorInterface $paginator, ActualiteRepository $actualiteRepo): Response
+public function index(Request $request, OfferRepository $offerRepository, PaginatorInterface $paginator, ActualiteRepository $actualiteRepo, RatingRepository $ratingRepo): Response
 {
     $filters = [
         'q'        => trim((string) $request->query->get('q', '')),
@@ -27,6 +30,7 @@ public function index(Request $request, OfferRepository $offerRepository, Pagina
         'type'     => trim((string) $request->query->get('type', '')),
         'minPrice' => trim((string) $request->query->get('minPrice', '')),
         'maxPrice' => trim((string) $request->query->get('maxPrice', '')),
+        
     ];
 
     $offers = $paginator->paginate(
@@ -37,23 +41,34 @@ public function index(Request $request, OfferRepository $offerRepository, Pagina
 
     $topDestinations = $offerRepository->findTopDestinations(6);
         $banners = $actualiteRepo->findActiveBanners();
+        $offerIds = [];
+foreach ($offers as $offer) {
+    $offerIds[] = $offer->getId();
+}
 
+$ratingsMap = $ratingRepo->getAverageStarsForOffers($offerIds);
 
     return $this->render('offer/index.html.twig', [
         'offers'          => $offers,
         'filters'         => $filters,
         'topDestinations' => $topDestinations,
         'banners'         => $banners,
+            'ratingsMap'      => $ratingsMap,
+
 
     ]);
 }
 
-    #[Route('/offers/{id}', name: 'app_offer_show', requirements: ['id' => '\d+'])]
-public function show(Offer $offer, ServiceRepository $serviceRepository): Response
-{
+#[Route('/offers/{id}', name: 'app_offer_show', requirements: ['id' => '\d+'])]
+public function show(
+    Offer $offer,
+    ServiceRepository $serviceRepository,
+    RatingRepository $ratingRepo,
+    OfferActivityRepository $activityRepo
+): Response {
     $serviceDetails = $serviceRepository->findDetailsByOfferId($offer->getId());
-
-    // Calculate remaining capacity
+ 
+    // Capacity
     $bookedSpots = 0;
     foreach ($offer->getReservations() as $r) {
         if ($r->getStatus() === 'CONFIRMED') {
@@ -63,7 +78,15 @@ public function show(Offer $offer, ServiceRepository $serviceRepository): Respon
     $capacity          = $offer->getCapacity() ?? 0;
     $remainingCapacity = max(0, $capacity - $bookedSpots);
     $percentageFull    = $capacity > 0 ? round(($bookedSpots / $capacity) * 100) : 0;
-
+ 
+    // Ratings
+    $averageStars = $ratingRepo->getAverageStars($offer);
+    $totalRatings = $ratingRepo->countByOffer($offer);
+    $ratings      = $ratingRepo->findByOffer($offer);
+ 
+    // Activity recommendations
+    $activities = $activityRepo->findByLocation($offer->getLocation() ?? '');
+ 
     return $this->render('offer/show.html.twig', [
         'offer'             => $offer,
         'serviceDetails'    => $serviceDetails,
@@ -71,8 +94,13 @@ public function show(Offer $offer, ServiceRepository $serviceRepository): Respon
         'bookedSpots'       => $bookedSpots,
         'capacity'          => $capacity,
         'percentageFull'    => $percentageFull,
+        'averageStars'      => $averageStars,
+        'totalRatings'      => $totalRatings,
+        'ratings'           => $ratings,
+        'activities'        => $activities,
     ]);
 }
+ 
 
     #[Route('/agency/offers', name: 'app_agency_offer_index')]
     public function myOffers(OfferRepository $offerRepository): Response

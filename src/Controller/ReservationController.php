@@ -7,6 +7,7 @@ use App\Entity\User;
 use App\Form\ReservationType;
 use App\Repository\OfferRepository;
 use App\Repository\ReservationRepository;
+use App\Repository\RatingRepository;
 use App\Service\MailerSendService;
 use App\Service\PdfTicketService;
 use App\Service\StripeService;
@@ -215,21 +216,25 @@ final class ReservationController extends AbstractController
     }
 
     #[Route('/my/{id}', name: 'app_reservation_my_show', requirements: ['id' => '\d+'])]
-    public function myShow(int $id, ReservationRepository $repo): Response
-    {
-        $user = $this->getUser();
-        if (!$user instanceof User) {
-            return $this->redirectToRoute('app_login');
-        }
-
-        $reservation = $repo->find($id);
-        if (!$reservation || $reservation->getUser()->getId() !== $user->getId()) {
-            throw $this->createNotFoundException('Reservation not found.');
-        }
-
-        return $this->render('reservation/my_show.html.twig', [
-            'reservation' => $reservation,
-        ]);
+    public function myShow(
+    int $id,
+    ReservationRepository $reservationRepo,
+    RatingRepository $ratingRepo
+): Response {
+    $this->denyAccessUnlessGranted('ROLE_USER');
+ 
+    $reservation = $reservationRepo->find($id);
+ 
+    if (!$reservation || $reservation->getUser() !== $this->getUser()) {
+        throw $this->createNotFoundException();
+    }
+ 
+    $existingRating = $ratingRepo->findByReservation($reservation);
+ 
+    return $this->render('reservation/my_show.html.twig', [
+        'reservation'   => $reservation,
+        'existingRating' => $existingRating,
+    ]);
     }
 
     #[Route('/agency', name: 'app_reservation_agency_list')]

@@ -3,264 +3,284 @@
 {% block title %}Offers{% endblock %}
 
 {% block body %}
-
 {% include 'partials/_offer_subnav.html.twig' %}
 
-<div class="th-hero">
-    <div class="th-search-bar">
-        <form method="get" action="{{ path('app_offer_index') }}" class="th-search-form">
-            <div class="th-search-field">
-                <span class="th-sf-label">Search</span>
-                <input type="text" name="q" value="{{ filters.q|default('') }}" class="th-sf-input" placeholder="Title or destination...">
-            </div>
-            <div class="th-search-field">
-                <span class="th-sf-label">Location</span>
-                <input type="text" name="location" value="{{ filters.location|default('') }}" class="th-sf-input" placeholder="City">
-            </div>
-            <div class="th-search-field">
-                <span class="th-sf-label">Service Type</span>
-                <select name="type" class="th-sf-input">
-                    <option value="">All types</option>
-                    <option value="HOTEL" {{ filters.type|default('') == 'HOTEL' ? 'selected' : '' }}>Hotel</option>
-                    <option value="VOL" {{ filters.type|default('') == 'VOL' ? 'selected' : '' }}>Vol</option>
-                </select>
-            </div>
-            <div class="th-search-field">
-                <span class="th-sf-label">Min Price</span>
-                <input type="number" step="0.01" name="minPrice" value="{{ filters.minPrice|default('') }}" class="th-sf-input" placeholder="0">
-            </div>
-            <div class="th-search-field">
-                <span class="th-sf-label">Max Price</span>
-                <input type="number" step="0.01" name="maxPrice" value="{{ filters.maxPrice|default('') }}" class="th-sf-input" placeholder="1000">
-            </div>
-            <button type="submit" class="th-search-btn">
-                <i class="bi bi-search"></i>
+{# ── AI Search Hero ── #}
+<div style="background:linear-gradient(135deg,#1b3a6b 0%,#0f6e56 100%);padding:1.5rem 2rem">
+    <div style="max-width:700px;margin:0 auto">
+        <p style="color:#fff;font-size:18px;font-weight:800;text-align:center;margin-bottom:4px">Find Your Perfect Trip</p>
+        <p style="color:rgba(255,255,255,0.65);font-size:12px;text-align:center;margin-bottom:1rem">Explore offers from top agencies — or let AI find it for you</p>
+        <div style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:14px;padding:4px 4px 4px 16px;display:flex;align-items:center;gap:8px">
+            <span style="background:rgba(245,166,35,0.3);color:#ffd27e;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;white-space:nowrap">✨ AI</span>
+            <input type="text" id="aiSearchInput"
+                   placeholder="Try: beach hotel under 500 TND, 5 days in Turkey..."
+                   style="flex:1;background:transparent;border:none;outline:none;color:#fff;font-size:13px;padding:8px 0"/>
+            <button onclick="submitAiSearch()" id="aiBtn"
+                    style="background:#f5a623;border:none;border-radius:10px;padding:10px 20px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">
+                Search ✨
             </button>
-        </form>
-    </div>
-    <div class="th-adv-row">
-        <a href="{{ path('app_offer_index') }}" class="th-reset-link">
-            <i class="bi bi-arrow-clockwise me-1"></i> Reset filters
-        </a>
+        </div>
     </div>
 </div>
 
-<div class="th-body">
+{# ── Main Layout ── #}
+<div style="display:flex;gap:0;min-height:80vh;background:#f4f7fb">
 
-    {# ── Banner Carousel ── #}
-    {% if banners is defined and banners is not empty %}
-        <div style="position:relative;border-radius:20px;overflow:hidden;margin-bottom:2rem;box-shadow:0 8px 32px rgba(27,58,107,0.12)">
-            <div id="bannerTrack" style="display:flex;transition:transform 0.5s ease">
-                {% for banner in banners %}
-                    <div style="min-width:100%;position:relative">
-                        {% if banner.offer %}
-                            <a href="{{ path('app_offer_show', {id: banner.offer.id}) }}"
-                               style="display:block;text-decoration:none"
-                               onclick="trackBannerClick({{ banner.id }})">
-                        {% else %}
-                            <div style="display:block">
-                        {% endif %}
-                            <img src="{{ banner.bannerUrl }}" alt="{{ banner.titre }}"
-                                 style="width:100%;height:340px;object-fit:cover;display:block">
-                            <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(27,58,107,0.75) 0%,transparent 60%);display:flex;flex-direction:column;justify-content:flex-end;padding:2rem">
-                                <div style="color:#fff;font-size:1.6rem;font-weight:800;text-shadow:0 2px 8px rgba(0,0,0,0.3);margin-bottom:8px">{{ banner.titre }}</div>
-                                {% if banner.offer %}
-                                    <div style="display:inline-block;background:#f5a623;color:#fff;border-radius:999px;padding:6px 18px;font-size:13px;font-weight:700;width:fit-content">Discover →</div>
-                                {% endif %}
-                            </div>
-                        {% if banner.offer %}
-                            </a>
-                        {% else %}
-                            </div>
-                        {% endif %}
-                    </div>
-                {% endfor %}
+    {# ── LEFT SIDEBAR ── #}
+    <div style="width:250px;min-width:250px;background:#fff;border-right:1px solid #e8eff6;padding:1.25rem;position:sticky;top:0;height:100vh;overflow-y:auto">
+
+        <form method="get" action="{{ path('app_offer_index') }}" id="filterForm">
+
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem">
+                <span style="font-size:14px;font-weight:800;color:#1b3a6b">🔧 Filters</span>
+                <a href="{{ path('app_offer_index') }}" style="font-size:11px;color:#1dbcaa;text-decoration:none;font-weight:600">↺ Reset all</a>
             </div>
 
-            {% if banners|length > 1 %}
-                <button id="bannerPrev" onclick="bannerGo(-1)" style="position:absolute;top:50%;left:12px;transform:translateY(-50%);background:rgba(255,255,255,0.85);border:none;border-radius:50%;width:40px;height:40px;font-size:16px;cursor:pointer;z-index:10">❮</button>
-                <button id="bannerNext" onclick="bannerGo(1)" style="position:absolute;top:50%;right:12px;transform:translateY(-50%);background:rgba(255,255,255,0.85);border:none;border-radius:50%;width:40px;height:40px;font-size:16px;cursor:pointer;z-index:10">❯</button>
-                <div style="position:absolute;bottom:14px;left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:10" id="bannerDots">
-                    {% for i in 0..banners|length - 1 %}
-                        <div class="th-banner-dot {% if i == 0 %}active{% endif %}" data-index="{{ i }}"
-                             onclick="bannerGoTo({{ i }})"
-                             style="width:8px;height:8px;border-radius:50%;background:{% if i == 0 %}#fff{% else %}rgba(255,255,255,0.5){% endif %};cursor:pointer;transition:all 0.2s ease"></div>
+            <div style="margin-bottom:1rem">
+                <label style="display:block;font-size:10px;font-weight:700;color:#6b8282;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Keyword</label>
+                <div style="background:#f8fafc;border:1.5px solid #e2ecf5;border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:6px">
+                    <i class="bi bi-search" style="color:#9db8c0;font-size:12px"></i>
+                    <input type="text" name="q" value="{{ filters.q|default('') }}" placeholder="Title or destination..."
+                           style="background:transparent;border:none;outline:none;color:#1b3a6b;font-size:12px;width:100%"/>
+                </div>
+            </div>
+
+            <div style="margin-bottom:1rem">
+                <label style="display:block;font-size:10px;font-weight:700;color:#6b8282;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Location</label>
+                <div style="background:#f8fafc;border:1.5px solid #e2ecf5;border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:6px">
+                    <i class="bi bi-geo-alt" style="color:#9db8c0;font-size:12px"></i>
+                    <input type="text" name="location" value="{{ filters.location|default('') }}" placeholder="City or country..."
+                           style="background:transparent;border:none;outline:none;color:#1b3a6b;font-size:12px;width:100%"/>
+                </div>
+            </div>
+
+            <div style="margin-bottom:1rem">
+                <label style="display:block;font-size:10px;font-weight:700;color:#6b8282;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Service Type</label>
+                <div style="display:flex;flex-direction:column;gap:6px">
+                    {% for val, label in {'': 'All types', 'HOTEL': '🏨 Hotel', 'VOL': '✈️ Flight'} %}
+                        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px 10px;border-radius:8px;border:1.5px solid {% if filters.type|default('') == val %}#1dbcaa{% else %}#e2ecf5{% endif %};background:{% if filters.type|default('') == val %}#e6f8f6{% else %}#f8fafc{% endif %}">
+                            <input type="radio" name="type" value="{{ val }}"
+                                   {% if filters.type|default('') == val %}checked{% endif %}
+                                   onchange="document.getElementById('filterForm').submit()"
+                                   style="accent-color:#1dbcaa"/>
+                            <span style="font-size:12px;font-weight:600;color:#1b3a6b">{{ label }}</span>
+                        </label>
                     {% endfor %}
                 </div>
-            {% endif %}
-        </div>
-    {% endif %}
-
-    <h1 class="th-section-title">Explore Our Offers</h1>
-    <p class="th-section-sub">Discover travel experiences from multiple agencies in one place.</p>
-
-    {# ── Best Destinations ── #}
-    {% if topDestinations is defined and topDestinations is not empty %}
-        <div style="margin-bottom:2.5rem">
-            <h2 style="font-size:1.4rem;font-weight:800;color:#1b3a6b;margin:0 0 4px;letter-spacing:-0.03em">🌍 Top Destinations</h2>
-            <p style="font-size:13px;color:#6b8282;margin:0 0 1.25rem">Most popular among our travellers</p>
-            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem">
-                {% for dest in topDestinations %}
-                    <a href="{{ path('app_offer_index', {location: dest.location}) }}"
-                       style="position:relative;border-radius:16px;overflow:hidden;text-decoration:none;display:block;aspect-ratio:4/3;box-shadow:0 4px 16px rgba(27,58,107,0.1);transition:transform 0.2s ease;"
-                       onmouseover="this.style.transform='translateY(-4px)'"
-                       onmouseout="this.style.transform='translateY(0)'">
-                        <img src="{{ dest.imageUrl ?: 'https://via.placeholder.com/400x300?text=' ~ dest.location }}"
-                             alt="{{ dest.location }}"
-                             style="width:100%;height:100%;object-fit:cover;display:block">
-                        <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(27,58,107,0.85) 0%,transparent 60%)"></div>
-                        <div style="position:absolute;bottom:0;left:0;right:0;padding:1rem;color:#fff">
-                            <div style="font-size:15px;font-weight:800;margin-bottom:4px">
-                                <i class="bi bi-geo-alt-fill"></i> {{ dest.location }}
-                            </div>
-                            <div style="display:flex;justify-content:space-between;font-size:11.5px;opacity:0.85;font-weight:600">
-                                <span>{{ dest.reservationCount }} booking(s)</span>
-                                <span>from {{ dest.minPrice }} TND</span>
-                            </div>
-                        </div>
-                    </a>
-                {% endfor %}
             </div>
-        </div>
-    {% endif %}
 
-    {% if offers is empty %}
-        <div class="th-empty">
-            <i class="bi bi-search-heart th-empty-icon"></i>
-            <h3 class="th-empty-title">No offers found</h3>
-            <p class="th-empty-sub">Try changing your filters or search keywords.</p>
-        </div>
-    {% else %}
-        <div class="th-grid">
-            {% for offer in offers %}
-                {% set serviceTypes = [] %}
-                {% for offerService in offer.offerServices %}
-                    {% if offerService.service and offerService.service.type not in serviceTypes %}
-                        {% set serviceTypes = serviceTypes|merge([offerService.service.type]) %}
-                    {% endif %}
-                {% endfor %}
-
-                {% set discount = 0 %}
-                {% if offer.originalPrice and offer.originalPrice > 0 and offer.promoPrice %}
-                    {% set discount = (((offer.originalPrice - offer.promoPrice) / offer.originalPrice) * 100)|round %}
-                {% endif %}
-
-                <div class="th-card">
-                    <div class="th-card-img-wrap">
-                        <img src="{{ offer.imageUrl ?: 'https://via.placeholder.com/600x400?text=Travel+Offer' }}"
-                             alt="{{ offer.title }}" class="th-card-img">
-                        {% if discount > 0 %}
-                            <div class="th-discount-badge">-{{ discount }}%</div>
-                        {% endif %}
-                        {% if offer.status == 'ACTIVE' %}
-                            <div class="th-status-badge th-status-active">
-                                <i class="bi bi-lightning-fill"></i> Active
-                            </div>
-                        {% elseif offer.status == 'ARCHIVED' %}
-                            <div class="th-status-badge th-status-archived">Archived</div>
-                        {% endif %}
-                        {% if serviceTypes is not empty %}
-                            <div class="th-chip-row">
-                                {% for type in serviceTypes %}
-                                    <span class="th-chip {% if type == 'HOTEL' %}th-chip-hotel{% elseif type == 'VOL' %}th-chip-vol{% else %}th-chip-default{% endif %}">
-                                        {{ type }}
-                                    </span>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
+            <div style="margin-bottom:1.25rem">
+                <label style="display:block;font-size:10px;font-weight:700;color:#6b8282;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Price Range (TND)</label>
+                <div style="display:flex;gap:8px">
+                    <div style="background:#f8fafc;border:1.5px solid #e2ecf5;border-radius:10px;padding:8px 10px;flex:1">
+                        <div style="font-size:10px;color:#9db8c0;margin-bottom:2px">Min</div>
+                        <input type="number" name="minPrice" value="{{ filters.minPrice|default('') }}" placeholder="0"
+                               style="background:transparent;border:none;outline:none;color:#1b3a6b;font-size:12px;width:100%"/>
                     </div>
-
-                    <div class="th-card-body">
-                        <h2 class="th-card-title">{{ offer.title }}</h2>
-                        <div class="th-card-location">
-                            <i class="bi bi-geo-alt-fill"></i>
-                            {{ offer.location ?: 'Location not specified' }}
-                        </div>
-                        <p class="th-card-desc">
-                            {{ offer.description|length > 100 ? offer.description|slice(0, 100) ~ '...' : offer.description }}
-                        </p>
-
-                        <div class="th-card-footer">
-                            <div class="th-price-wrap">
-                                <span class="th-price-label">à partir de</span>
-                                <div class="th-price-row">
-                                    <span class="th-price">{{ offer.promoPrice }}</span>
-                                    <span class="th-price-cur">TND</span>
-                                    {% if offer.originalPrice %}
-                                        <span class="th-price-old">{{ offer.originalPrice }} TND</span>
-                                    {% endif %}
-                                </div>
-                                <div class="th-dates">
-                                    <i class="bi bi-calendar3"></i>
-                                    {{ offer.startDate ? offer.startDate|date('d/m/Y') : '—' }}
-                                    &rarr;
-                                    {{ offer.endDate ? offer.endDate|date('d/m/Y') : '—' }}
-                                </div>
-                            </div>
-
-                            <div class="th-card-actions">
-                                <a href="{{ path('app_offer_show', {id: offer.id}) }}" class="th-btn-outline">🔍 Details</a>
-                                {% if is_granted('ROLE_AGENCY') and offer.user and offer.user.id == app.user.id %}
-                                    <a href="{{ path('app_offer_edit', {id: offer.id}) }}" class="th-btn-primary">✏️ Edit</a>
-                                {% elseif app.user and not is_granted('ROLE_AGENCY') and not is_granted('ROLE_ADMIN') %}
-                                    <a href="{{ path('app_reservation_book', {id: offer.id}) }}" class="th-btn-gold">🗓️ Reserve</a>
-                                {% elseif not app.user %}
-                                    <a href="{{ path('app_login') }}" class="th-btn-primary">🔐 Login to Reserve</a>
-                                {% else %}
-                                    <a href="{{ path('app_offer_show', {id: offer.id}) }}" class="th-btn-primary">🔎 Discover</a>
-                                {% endif %}
-                            </div>
-                        </div>
+                    <div style="background:#f8fafc;border:1.5px solid #e2ecf5;border-radius:10px;padding:8px 10px;flex:1">
+                        <div style="font-size:10px;color:#9db8c0;margin-bottom:2px">Max</div>
+                        <input type="number" name="maxPrice" value="{{ filters.maxPrice|default('') }}" placeholder="9999"
+                               style="background:transparent;border:none;outline:none;color:#1b3a6b;font-size:12px;width:100%"/>
                     </div>
                 </div>
-            {% endfor %}
+            </div>
+
+            <button type="submit" style="width:100%;background:linear-gradient(135deg,#1dbcaa,#1b3a6b);border:none;border-radius:10px;padding:10px;color:#fff;font-size:13px;font-weight:700;cursor:pointer">
+                Apply Filters
+            </button>
+
+        </form>
+
+        {# Top Destinations in sidebar #}
+        {% if topDestinations is defined and topDestinations is not empty %}
+            <div style="margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid #e8eff6">
+                <div style="font-size:12px;font-weight:800;color:#1b3a6b;margin-bottom:10px">🌍 Top Destinations</div>
+                <div style="display:flex;flex-direction:column;gap:6px">
+                    {% for dest in topDestinations %}
+                        <a href="{{ path('app_offer_index', {location: dest.location}) }}"
+                           style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;background:#f8fafc;border:1px solid #e2ecf5;text-decoration:none"
+                           onmouseover="this.style.background='#e6f8f6';this.style.borderColor='#1dbcaa'"
+                           onmouseout="this.style.background='#f8fafc';this.style.borderColor='#e2ecf5'">
+                            <div style="width:36px;height:36px;border-radius:8px;overflow:hidden;flex-shrink:0">
+                                <img src="{{ dest.imageUrl ?: 'https://via.placeholder.com/36?text=📍' }}" style="width:100%;height:100%;object-fit:cover">
+                            </div>
+                            <div>
+                                <div style="font-size:12px;font-weight:700;color:#1b3a6b">{{ dest.location }}</div>
+                                <div style="font-size:10px;color:#6b8282">{{ dest.reservationCount }} booking(s) · from {{ dest.minPrice }} TND</div>
+                            </div>
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+
+    </div>
+
+    {# ── RIGHT CONTENT ── #}
+    <div style="flex:1;padding:1.5rem;min-width:0">
+
+        {# Banner Carousel #}
+        {% if banners is defined and banners is not empty %}
+            <div style="position:relative;border-radius:16px;overflow:hidden;margin-bottom:1.5rem;box-shadow:0 4px 20px rgba(27,58,107,0.1)">
+                <div id="bannerTrack" style="display:flex;transition:transform 0.5s ease">
+                    {% for banner in banners %}
+                        <div style="min-width:100%;position:relative">
+                            {% if banner.offer %}
+                                <a href="{{ path('app_offer_show', {id: banner.offer.id}) }}" style="display:block;text-decoration:none" onclick="trackBannerClick({{ banner.id }})">
+                            {% else %}
+                                <div>
+                            {% endif %}
+                                <img src="{{ banner.bannerUrl }}" alt="{{ banner.titre }}" style="width:100%;height:260px;object-fit:cover;display:block">
+                                <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(27,58,107,0.75),transparent 60%);display:flex;flex-direction:column;justify-content:flex-end;padding:1.5rem">
+                                    <div style="color:#fff;font-size:1.3rem;font-weight:800;margin-bottom:6px">{{ banner.titre }}</div>
+                                    {% if banner.offer %}<div style="display:inline-block;background:#f5a623;color:#fff;border-radius:999px;padding:5px 14px;font-size:12px;font-weight:700;width:fit-content">Discover →</div>{% endif %}
+                                </div>
+                            {% if banner.offer %}</a>{% else %}</div>{% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+                {% if banners|length > 1 %}
+                    <button onclick="bannerGo(-1)" style="position:absolute;top:50%;left:10px;transform:translateY(-50%);background:rgba(255,255,255,0.85);border:none;border-radius:50%;width:34px;height:34px;font-size:14px;cursor:pointer;z-index:10">❮</button>
+                    <button onclick="bannerGo(1)" style="position:absolute;top:50%;right:10px;transform:translateY(-50%);background:rgba(255,255,255,0.85);border:none;border-radius:50%;width:34px;height:34px;font-size:14px;cursor:pointer;z-index:10">❯</button>
+                    <div style="position:absolute;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:5px;z-index:10">
+                        {% for i in 0..banners|length - 1 %}
+                            <div class="th-banner-dot" data-index="{{ i }}" onclick="bannerGoTo({{ i }})"
+                                 style="width:{% if i == 0 %}18px{% else %}7px{% endif %};height:7px;border-radius:999px;background:{% if i == 0 %}#fff{% else %}rgba(255,255,255,0.5){% endif %};cursor:pointer;transition:all 0.2s"></div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        {# Offers header #}
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+            <h1 style="font-size:1.2rem;font-weight:800;color:#1b3a6b;margin:0">Explore Our Offers</h1>
+            {% if offers is not empty %}
+                <span style="background:#e6f8f6;color:#0a7a70;font-size:12px;font-weight:700;padding:4px 12px;border-radius:999px">
+                    {{ offers.getTotalItemCount() }} offer(s)
+                </span>
+            {% endif %}
         </div>
 
-        {# Pagination #}
-        <div style="display:flex;justify-content:center;margin-top:2rem">
-            {{ knp_pagination_render(offers) }}
-        </div>
-    {% endif %}
+        {# Offers Grid #}
+        {% if offers is empty %}
+            <div style="text-align:center;padding:4rem 2rem;background:#fff;border-radius:16px">
+                <div style="font-size:3rem;margin-bottom:1rem">🔍</div>
+                <h3 style="color:#1b3a6b;font-size:16px;font-weight:800;margin-bottom:8px">No offers found</h3>
+                <p style="color:#6b8282;font-size:13px">Try changing your filters or search keywords.</p>
+                <a href="{{ path('app_offer_index') }}" style="display:inline-block;margin-top:1rem;background:#1dbcaa;color:#fff;border-radius:999px;padding:8px 20px;text-decoration:none;font-size:13px;font-weight:700">Reset filters</a>
+            </div>
+        {% else %}
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.25rem">
+                {% for offer in offers %}
+                    {% set serviceTypes = [] %}
+                    {% for offerService in offer.offerServices %}
+                        {% if offerService.service and offerService.service.type not in serviceTypes %}
+                            {% set serviceTypes = serviceTypes|merge([offerService.service.type]) %}
+                        {% endif %}
+                    {% endfor %}
+                    {% set discount = 0 %}
+                    {% if offer.originalPrice and offer.originalPrice > 0 and offer.promoPrice %}
+                        {% set discount = (((offer.originalPrice - offer.promoPrice) / offer.originalPrice) * 100)|round %}
+                    {% endif %}
+
+                    <div class="th-card">
+                        <div class="th-card-img-wrap">
+                            <img src="{{ offer.imageUrl ?: 'https://via.placeholder.com/600x400?text=Travel+Offer' }}" alt="{{ offer.title }}" class="th-card-img">
+                            {% if discount > 0 %}<div class="th-discount-badge">-{{ discount }}%</div>{% endif %}
+                            {% if offer.status == 'ACTIVE' %}<div class="th-status-badge th-status-active"><i class="bi bi-lightning-fill"></i> Active</div>{% endif %}
+                            {% if serviceTypes is not empty %}
+                                <div class="th-chip-row">
+                                    {% for type in serviceTypes %}
+                                        <span class="th-chip {% if type == 'HOTEL' %}th-chip-hotel{% elseif type == 'VOL' %}th-chip-vol{% else %}th-chip-default{% endif %}">{{ type }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="th-card-body">
+                            <h2 class="th-card-title">{{ offer.title }}</h2>
+                            {% set offerRating = ratingsMap[offer.id] ?? null %}
+                            {% if offerRating %}
+                                <div style="display:flex;align-items:center;gap:4px;margin-bottom:5px">
+                                    {% for i in 1..5 %}<span style="font-size:13px;color:{% if i <= offerRating.avg %}#f5a623{% else %}#dde8f0{% endif %}">★</span>{% endfor %}
+                                    <span style="font-size:11px;font-weight:700;color:#1b3a6b">{{ offerRating.avg }}</span>
+                                    <span style="font-size:11px;color:#6b8282">({{ offerRating.total }})</span>
+                                </div>
+                            {% else %}
+                                <div style="font-size:11px;color:#c0d0d8;margin-bottom:5px">No reviews yet</div>
+                            {% endif %}
+                            <div class="th-card-location"><i class="bi bi-geo-alt-fill"></i> {{ offer.location ?: 'Location not specified' }}</div>
+                            <p class="th-card-desc">{{ offer.description|length > 90 ? offer.description|slice(0, 90) ~ '...' : offer.description }}</p>
+                            <div class="th-card-footer">
+                                <div class="th-price-wrap">
+                                    <span class="th-price-label">à partir de</span>
+                                    <div class="th-price-row">
+                                        <span class="th-price">{{ offer.promoPrice }}</span>
+                                        <span class="th-price-cur">TND</span>
+                                        {% if offer.originalPrice %}<span class="th-price-old">{{ offer.originalPrice }} TND</span>{% endif %}
+                                    </div>
+                                    <div class="th-dates"><i class="bi bi-calendar3"></i> {{ offer.startDate ? offer.startDate|date('d/m/Y') : '—' }} → {{ offer.endDate ? offer.endDate|date('d/m/Y') : '—' }}</div>
+                                </div>
+                                <div class="th-card-actions">
+                                    <a href="{{ path('app_offer_show', {id: offer.id}) }}" class="th-btn-outline">🔍 Details</a>
+                                    {% if is_granted('ROLE_AGENCY') and offer.user and offer.user.id == app.user.id %}
+                                        <a href="{{ path('app_offer_edit', {id: offer.id}) }}" class="th-btn-primary">✏️ Edit</a>
+                                    {% elseif app.user and not is_granted('ROLE_AGENCY') and not is_granted('ROLE_ADMIN') %}
+                                        <a href="{{ path('app_reservation_book', {id: offer.id}) }}" class="th-btn-gold">🗓️ Reserve</a>
+                                    {% elseif not app.user %}
+                                        <a href="{{ path('app_login') }}" class="th-btn-primary">🔐 Login</a>
+                                    {% else %}
+                                        <a href="{{ path('app_offer_show', {id: offer.id}) }}" class="th-btn-primary">🔎 Discover</a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div style="display:flex;justify-content:center;margin-top:2rem">
+                {{ knp_pagination_render(offers) }}
+            </div>
+        {% endif %}
+    </div>
 </div>
 
 <style>
-.pagination { display:flex;justify-content:center;align-items:center;gap:6px;flex-wrap:wrap;list-style:none;padding:0;margin:1.5rem 0; }
-.pagination .page-item .page-link { border-radius:10px!important;border:1.5px solid #dde8f0;color:#1b3a6b;font-weight:600;font-size:13px;padding:8px 14px;background:#fff;text-decoration:none;display:block;transition:all 0.15s ease; }
-.pagination .page-item.active .page-link { background:linear-gradient(135deg,#1dbcaa,#1b3a6b)!important;border-color:transparent!important;color:#fff!important;box-shadow:0 4px 12px rgba(29,188,170,0.3); }
-.pagination .page-item .page-link:hover { background:#e6f8f6!important;border-color:#1dbcaa!important;color:#0a7a70!important; }
-.pagination .page-item.disabled .page-link { opacity:0.4;pointer-events:none; }
+.pagination{display:flex;justify-content:center;align-items:center;gap:6px;flex-wrap:wrap;list-style:none;padding:0;margin:1.5rem 0}
+.pagination .page-item .page-link{border-radius:10px!important;border:1.5px solid #dde8f0;color:#1b3a6b;font-weight:600;font-size:13px;padding:8px 14px;background:#fff;text-decoration:none;display:block;transition:all .15s ease}
+.pagination .page-item.active .page-link{background:linear-gradient(135deg,#1dbcaa,#1b3a6b)!important;border-color:transparent!important;color:#fff!important}
+.pagination .page-item .page-link:hover{background:#e6f8f6!important;border-color:#1dbcaa!important;color:#0a7a70!important}
+.pagination .page-item.disabled .page-link{opacity:.4;pointer-events:none}
 </style>
 
 <script>
-var bannerTrack   = document.getElementById('bannerTrack');
-var bannerCurrent = 0;
-var bannerTimer   = null;
-var bannerTotal   = bannerTrack ? bannerTrack.querySelectorAll('div[style*="min-width"]').length : 0;
+var bannerTrack=document.getElementById('bannerTrack');
+var bannerCurrent=0,bannerTimer=null;
+var bannerTotal=bannerTrack?bannerTrack.querySelectorAll('div[style*="min-width"]').length:0;
+function bannerGoTo(i){if(!bannerTrack)return;bannerCurrent=(i+bannerTotal)%bannerTotal;bannerTrack.style.transform='translateX(-'+(bannerCurrent*100)+'%)';document.querySelectorAll('.th-banner-dot').forEach(function(d,j){d.style.background=j===bannerCurrent?'#fff':'rgba(255,255,255,0.5)';d.style.width=j===bannerCurrent?'18px':'7px';});}
+function bannerGo(dir){clearInterval(bannerTimer);bannerGoTo(bannerCurrent+dir);bannerTimer=setInterval(function(){bannerGoTo(bannerCurrent+1);},4000);}
+function trackBannerClick(id){fetch('/agency/banners/'+id+'/click',{method:'POST'}).catch(function(){});}
+if(bannerTotal>1){bannerTimer=setInterval(function(){bannerGoTo(bannerCurrent+1);},4000);}
 
-function bannerGoTo(index) {
-    if (!bannerTrack) return;
-    bannerCurrent = (index + bannerTotal) % bannerTotal;
-    bannerTrack.style.transform = 'translateX(-' + (bannerCurrent * 100) + '%)';
-    document.querySelectorAll('.th-banner-dot').forEach(function(d, i) {
-        d.style.background = i === bannerCurrent ? '#fff' : 'rgba(255,255,255,0.5)';
-        d.style.width = i === bannerCurrent ? '24px' : '8px';
-        d.style.borderRadius = '999px';
-    });
+function submitAiSearch(){
+    var query=document.getElementById('aiSearchInput').value.trim();
+    if(!query)return;
+    var btn=document.getElementById('aiBtn');
+    btn.textContent='Searching...';btn.disabled=true;
+    fetch('/api/ai/smart-search',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:query})})
+    .then(function(r){return r.json();})
+    .then(function(data){
+        if(data.error){btn.textContent='Search ✨';btn.disabled=false;return;}
+        var p=new URLSearchParams();
+        if(data.q)p.set('q',data.q);if(data.location)p.set('location',data.location);
+        if(data.type)p.set('type',data.type);if(data.minPrice)p.set('minPrice',data.minPrice);
+        if(data.maxPrice)p.set('maxPrice',data.maxPrice);
+        window.location.href='{{ path('app_offer_index') }}?'+p.toString();
+    })
+    .catch(function(){btn.textContent='Search ✨';btn.disabled=false;});
 }
-
-function bannerGo(dir) {
-    clearInterval(bannerTimer);
-    bannerGoTo(bannerCurrent + dir);
-    bannerTimer = setInterval(function() { bannerGoTo(bannerCurrent + 1); }, 4000);
-}
-
-function trackBannerClick(id) {
-    fetch('/agency/banners/' + id + '/click', { method: 'POST' }).catch(function() {});
-}
-
-if (bannerTotal > 1) {
-    bannerTimer = setInterval(function() { bannerGoTo(bannerCurrent + 1); }, 4000);
-}
+document.getElementById('aiSearchInput').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();submitAiSearch();}});
 </script>
 
 {% endblock %}

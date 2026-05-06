@@ -450,4 +450,10 @@ public function show(
 
         return $errors;
     }
+#[Route('/agency/offers/ai-creator', name: 'app_ai_offer_creator')]
+public function aiCreator(): Response
+{
+    $this->denyAccessUnlessGranted('ROLE_AGENCY');
+    return $this->render('offer/ai_creator.html.twig');
+}
 }

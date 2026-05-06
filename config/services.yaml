@@ -34,3 +34,7 @@ services:
     App\Service\AiOfferService:
         arguments:
             $apiKey: '%env(GROQ_API_KEY)%'
+    
+    App\Repository\OfferActivityRepository:
+        arguments:
+            $connection: '@doctrine.dbal.default_connection'

@@ -1,0 +1,283 @@
+{% extends 'base.html.twig' %}
+{% block title %}AI Offer Creator{% endblock %}
+
+{% block body %}
+{% include 'partials/_offer_subnav.html.twig' %}
+
+<div class="th-body" style="max-width:900px;margin:0 auto">
+
+    <div class="th-page-header" style="padding-left:0;padding-right:0;margin-bottom:1.5rem">
+        <div>
+            <h1 class="th-page-title">🪄 AI Offer Creator</h1>
+            <p class="th-page-sub">Describe your offer in natural language — AI fills everything for you.</p>
+        </div>
+    </div>
+
+    {# ── Step 1: AI Prompt ── #}
+    <div class="th-form-card" id="step1">
+        <h3 class="th-form-section-title"><span style="color:#f5a623">✨ Step 1</span> — Describe your offer</h3>
+        <p style="font-size:13px;color:#6b8282;margin-bottom:1rem">
+            Write naturally — AI will extract all the details automatically.
+        </p>
+
+        <div style="background:linear-gradient(135deg,rgba(27,58,107,0.04),rgba(29,188,170,0.04));border:1.5px solid rgba(29,188,170,0.2);border-radius:14px;padding:1rem;margin-bottom:1rem">
+            <div style="font-size:11px;color:#6b8282;font-weight:700;margin-bottom:8px">💡 Examples:</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px">
+                {% for example in [
+                    'Luxury beach hotel in Turkey, June 10-20, 2500 TND per person',
+                    'Family trip to Paris, July 1-10, hotel + flight, 3000 TND',
+                    'Weekend in Djerba, August 5-7, 800 TND, all inclusive',
+                    'Cultural tour of Rome, September 15-22, 1800 TND'
+                ] %}
+                    <button type="button" onclick="useExample(this.textContent)"
+                            style="background:#fff;border:1px solid #e2ecf5;border-radius:999px;padding:5px 12px;font-size:11px;color:#1b3a6b;cursor:pointer;transition:all 0.15s"
+                            onmouseover="this.style.borderColor='#1dbcaa';this.style.color='#0a7a70'"
+                            onmouseout="this.style.borderColor='#e2ecf5';this.style.color='#1b3a6b'">
+                        {{ example }}
+                    </button>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div style="position:relative">
+            <textarea id="aiPrompt" rows="3"
+                      placeholder="e.g. Luxury beach resort in Sousse, Tunisia. 5 days June 15-20. Price 1500 TND per person. Hotel + flight included."
+                      style="width:100%;background:#f8fafc;border:1.5px solid #e2ecf5;border-radius:12px;padding:12px 16px;font-size:13px;color:#1b3a6b;resize:none;outline:none;font-family:inherit;transition:border-color 0.2s;box-sizing:border-box"
+                      onfocus="this.style.borderColor='#1dbcaa'"
+                      onblur="this.style.borderColor='#e2ecf5'"></textarea>
+        </div>
+
+        <button onclick="generateOffer()" id="generateBtn"
+                style="margin-top:1rem;width:100%;background:linear-gradient(135deg,#1b3a6b,#0f6e56);border:none;border-radius:12px;padding:12px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;transition:opacity 0.2s">
+            🪄 Generate Offer with AI
+        </button>
+
+        <div id="aiLoader" style="display:none;text-align:center;padding:1rem;color:#6b8282;font-size:13px">
+            <div style="width:32px;height:32px;border:3px solid #e2ecf5;border-top-color:#1dbcaa;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 8px"></div>
+            AI is crafting your offer...
+        </div>
+    </div>
+
+    {# ── Step 2: Photo Picker ── #}
+    <div class="th-form-card" id="step2" style="display:none">
+        <h3 class="th-form-section-title"><span style="color:#f5a623">✨ Step 2</span> — Choose a cover photo</h3>
+        <p style="font-size:13px;color:#6b8282;margin-bottom:1rem">Photos fetched from Pexels based on your destination. Click to select.</p>
+
+        <div id="pexelsGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1rem">
+            {# Photos injected by JS #}
+        </div>
+
+        <div id="selectedPhotoWrap" style="display:none;background:#e6f8f6;border:1.5px solid #1dbcaa;border-radius:12px;padding:10px 14px;font-size:13px;color:#0a7a70;font-weight:600">
+            ✅ Photo selected — scroll down to review your offer
+        </div>
+    </div>
+
+    {# ── Step 3: Review & Edit ── #}
+    <div class="th-form-card" id="step3" style="display:none">
+        <h3 class="th-form-section-title"><span style="color:#f5a623">✨ Step 3</span> — Review & Submit</h3>
+        <p style="font-size:13px;color:#6b8282;margin-bottom:1.25rem">AI has filled everything — review and adjust before saving.</p>
+
+        <form method="post" action="{{ path('app_offer_new') }}" id="aiOfferForm">
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+                <div>
+                    <label style="display:block;font-size:11px;font-weight:700;color:#6b8282;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Title *</label>
+                    <input type="text" id="ai_title" name="offer[title]"
+                           style="width:100%;background:#f8fafc;border:1.5px solid #e2ecf5;border-radius:10px;padding:10px 14px;font-size:13px;color:#1b3a6b;outline:none;box-sizing:border-box"
+                           onfocus="this.style.borderColor='#1dbcaa'" onblur="this.style.borderColor='#e2ecf5'"/>
+                </div>
+                <div>
+                    <label style="display:block;font-size:11px;font-weight:700;color:#6b8282;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Location *</label>
+                    <input type="text" id="ai_location" name="offer[location]"
+                           style="width:100%;background:#f8fafc;border:1.5px solid #e2ecf5;border-radius:10px;padding:10px 14px;font-size:13px;color:#1b3a6b;outline:none;box-sizing:border-box"
+                           onfocus="this.style.borderColor='#1dbcaa'" onblur="this.style.borderColor='#e2ecf5'"/>
+                </div>
+                <div>
+                    <label style="display:block;font-size:11px;font-weight:700;color:#6b8282;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Promo Price (TND) *</label>
+                    <input type="number" id="ai_promoPrice" name="offer[promoPrice]" step="0.01"
+                           style="width:100%;background:#f8fafc;border:1.5px solid #e2ecf5;border-radius:10px;padding:10px 14px;font-size:13px;color:#1b3a6b;outline:none;box-sizing:border-box"
+                           onfocus="this.style.borderColor='#1dbcaa'" onblur="this.style.borderColor='#e2ecf5'"/>
+                </div>
+                <div>
+                    <label style="display:block;font-size:11px;font-weight:700;color:#6b8282;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Original Price (TND)</label>
+                    <input type="number" id="ai_originalPrice" name="offer[originalPrice]" step="0.01"
+                           style="width:100%;background:#f8fafc;border:1.5px solid #e2ecf5;border-radius:10px;padding:10px 14px;font-size:13px;color:#1b3a6b;outline:none;box-sizing:border-box"
+                           onfocus="this.style.borderColor='#1dbcaa'" onblur="this.style.borderColor='#e2ecf5'"/>
+                </div>
+                <div>
+                    <label style="display:block;font-size:11px;font-weight:700;color:#6b8282;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Start Date *</label>
+                    <input type="date" id="ai_startDate" name="offer[startDate]"
+                           style="width:100%;background:#f8fafc;border:1.5px solid #e2ecf5;border-radius:10px;padding:10px 14px;font-size:13px;color:#1b3a6b;outline:none;box-sizing:border-box"
+                           onfocus="this.style.borderColor='#1dbcaa'" onblur="this.style.borderColor='#e2ecf5'"/>
+                </div>
+                <div>
+                    <label style="display:block;font-size:11px;font-weight:700;color:#6b8282;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">End Date *</label>
+                    <input type="date" id="ai_endDate" name="offer[endDate]"
+                           style="width:100%;background:#f8fafc;border:1.5px solid #e2ecf5;border-radius:10px;padding:10px 14px;font-size:13px;color:#1b3a6b;outline:none;box-sizing:border-box"
+                           onfocus="this.style.borderColor='#1dbcaa'" onblur="this.style.borderColor='#e2ecf5'"/>
+                </div>
+            </div>
+
+            <div style="margin-bottom:1rem">
+                <label style="display:block;font-size:11px;font-weight:700;color:#6b8282;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Description *</label>
+                <textarea id="ai_description" name="offer[description]" rows="4"
+                          style="width:100%;background:#f8fafc;border:1.5px solid #e2ecf5;border-radius:10px;padding:10px 14px;font-size:13px;color:#1b3a6b;outline:none;resize:vertical;font-family:inherit;box-sizing:border-box"
+                          onfocus="this.style.borderColor='#1dbcaa'" onblur="this.style.borderColor='#e2ecf5'"></textarea>
+            </div>
+
+            <div style="margin-bottom:1rem">
+                <label style="display:block;font-size:11px;font-weight:700;color:#6b8282;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Cover Photo URL</label>
+                <div style="display:flex;gap:8px;align-items:center">
+                    <input type="text" id="ai_imageUrl" name="offer[imageUrl]"
+                           style="flex:1;background:#f8fafc;border:1.5px solid #e2ecf5;border-radius:10px;padding:10px 14px;font-size:12px;color:#1b3a6b;outline:none"
+                           onfocus="this.style.borderColor='#1dbcaa'" onblur="this.style.borderColor='#e2ecf5'"
+                           placeholder="Auto-filled when you select a photo above"/>
+                    <div id="imagePreviewThumb" style="width:60px;height:44px;border-radius:8px;overflow:hidden;flex-shrink:0;background:#f0f4f8;display:flex;align-items:center;justify-content:center;font-size:1.2rem">🖼️</div>
+                </div>
+            </div>
+
+            {# Hidden fields that the real offer form needs #}
+            <input type="hidden" name="offer[status]" value="ACTIVE"/>
+
+            <div style="display:flex;gap:10px;margin-top:1.5rem">
+                <a href="{{ path('app_offer_new') }}"
+                   style="flex:1;background:linear-gradient(135deg,#1dbcaa,#1b3a6b);border:none;border-radius:12px;padding:12px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;text-align:center;text-decoration:none;display:block"
+                   id="goToFormBtn">
+                    📝 Open Full Form with AI Data
+                </a>
+                <a href="{{ path('app_agency_offer_index') }}" class="th-btn-outline" style="flex:0.4;text-align:center">
+                    Cancel
+                </a>
+            </div>
+
+        </form>
+    </div>
+
+</div>
+
+<style>
+@keyframes spin { to { transform: rotate(360deg); } }
+.pexels-thumb { border-radius:12px;overflow:hidden;cursor:pointer;border:3px solid transparent;transition:all 0.2s;aspect-ratio:16/9 }
+.pexels-thumb img { width:100%;height:100%;object-fit:cover;display:block }
+.pexels-thumb.selected { border-color:#1dbcaa;box-shadow:0 0 0 2px rgba(29,188,170,0.3) }
+.pexels-thumb:hover { transform:translateY(-2px);box-shadow:0 6px 16px rgba(27,58,107,0.12) }
+</style>
+
+<script>
+var PEXELS_KEY = 'lgqFnUXZ924MNBzu1YLZrUy9Yay2EdRT06eIhTonqTvEHFENH3CUTPNZ';
+var selectedPhotoUrl = '';
+
+function useExample(text) {
+    document.getElementById('aiPrompt').value = text;
+    document.getElementById('aiPrompt').focus();
+}
+
+function generateOffer() {
+    var prompt = document.getElementById('aiPrompt').value.trim();
+    if (!prompt) {
+        alert('Please describe your offer first!');
+        return;
+    }
+
+    document.getElementById('generateBtn').disabled = true;
+    document.getElementById('generateBtn').textContent = '⏳ Generating...';
+    document.getElementById('aiLoader').style.display = 'block';
+
+    fetch('/api/ai/generate-offer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: prompt })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        document.getElementById('aiLoader').style.display = 'none';
+        document.getElementById('generateBtn').disabled = false;
+        document.getElementById('generateBtn').textContent = '🪄 Generate Offer with AI';
+
+        if (data.error) { alert('AI error: ' + data.error); return; }
+
+        // Fill form fields
+        if (data.title)         document.getElementById('ai_title').value         = data.title;
+        if (data.location)      document.getElementById('ai_location').value      = data.location;
+        if (data.description)   document.getElementById('ai_description').value   = data.description;
+        if (data.promoPrice)    document.getElementById('ai_promoPrice').value    = data.promoPrice;
+        if (data.originalPrice) document.getElementById('ai_originalPrice').value = data.originalPrice;
+        if (data.startDate)     document.getElementById('ai_startDate').value     = data.startDate;
+        if (data.endDate)       document.getElementById('ai_endDate').value       = data.endDate;
+
+        // Show step 2 and 3
+        document.getElementById('step2').style.display = 'block';
+        document.getElementById('step3').style.display = 'block';
+
+        // Fetch Pexels photos
+        if (data.location) fetchPexelsPhotos(data.location);
+
+        // Scroll to step 2
+        document.getElementById('step2').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    })
+    .catch(function(err) {
+        document.getElementById('aiLoader').style.display = 'none';
+        document.getElementById('generateBtn').disabled = false;
+        document.getElementById('generateBtn').textContent = '🪄 Generate Offer with AI';
+        alert('AI service unavailable. Please try again.');
+    });
+}
+
+function fetchPexelsPhotos(location) {
+    var grid = document.getElementById('pexelsGrid');
+    grid.innerHTML = '<div style="grid-column:span 3;text-align:center;padding:2rem;color:#6b8282;font-size:13px">🔍 Searching photos for ' + location + '...</div>';
+
+    fetch('https://api.pexels.com/v1/search?query=' + encodeURIComponent(location + ' travel') + '&per_page=6&orientation=landscape', {
+        headers: { 'Authorization': PEXELS_KEY }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        grid.innerHTML = '';
+        if (!data.photos || !data.photos.length) {
+            grid.innerHTML = '<div style="grid-column:span 3;text-align:center;color:#6b8282;font-size:13px">No photos found. Enter image URL manually below.</div>';
+            return;
+        }
+
+        data.photos.forEach(function(photo) {
+            var div = document.createElement('div');
+            div.className = 'pexels-thumb';
+            div.innerHTML = '<img src="' + photo.src.medium + '" alt="' + (photo.alt || location) + '">';
+            div.onclick = function() {
+                document.querySelectorAll('.pexels-thumb').forEach(function(t) { t.classList.remove('selected'); });
+                div.classList.add('selected');
+                selectedPhotoUrl = photo.src.large;
+                document.getElementById('ai_imageUrl').value = selectedPhotoUrl;
+
+                // Update preview
+                var thumb = document.getElementById('imagePreviewThumb');
+                thumb.innerHTML = '<img src="' + photo.src.tiny + '" style="width:100%;height:100%;object-fit:cover">';
+
+                document.getElementById('selectedPhotoWrap').style.display = 'block';
+            };
+            grid.appendChild(div);
+        });
+    })
+    .catch(function() {
+        grid.innerHTML = '<div style="grid-column:span 3;text-align:center;color:#e53e3e;font-size:13px">⚠️ Could not load photos. Enter image URL manually.</div>';
+    });
+}
+
+// Go to form button — store AI data in sessionStorage and redirect
+document.getElementById('goToFormBtn') && document.getElementById('goToFormBtn').addEventListener('click', function(e) {
+    e.preventDefault();
+    var aiData = {
+        title:         document.getElementById('ai_title').value,
+        location:      document.getElementById('ai_location').value,
+        description:   document.getElementById('ai_description').value,
+        promoPrice:    document.getElementById('ai_promoPrice').value,
+        originalPrice: document.getElementById('ai_originalPrice').value,
+        startDate:     document.getElementById('ai_startDate').value,
+        endDate:       document.getElementById('ai_endDate').value,
+        imageUrl:      document.getElementById('ai_imageUrl').value,
+    };
+    sessionStorage.setItem('aiOfferData', JSON.stringify(aiData));
+    window.location.href = '{{ path('app_offer_new') }}';
+});
+</script>
+
+{% endblock %}

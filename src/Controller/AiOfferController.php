@@ -122,4 +122,96 @@ class AiOfferController extends AbstractController
             return $this->json(['error' => 'AI service unavailable: ' . $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
+#[Route('/smart-search', name: 'api_ai_smart_search', methods: ['POST'])]
+public function smartSearch(Request $request): JsonResponse
+{
+    $data  = json_decode($request->getContent(), true);
+    $query = trim((string) ($data['query'] ?? ''));
+ 
+    if (!$query) {
+        return $this->json(['error' => 'Query is required.'], 400);
+    }
+ 
+    $prompt = <<<PROMPT
+You are a travel search assistant. Extract search filters from this natural language query: "{$query}"
+ 
+Return ONLY a JSON object with these fields (omit fields you can't determine):
+- "q": keyword search (title or destination)
+- "location": city or country name
+- "type": either "HOTEL" or "VOL" (only if clearly mentioned)
+- "minPrice": minimum price in TND (number only)
+- "maxPrice": maximum price in TND (number only)
+ 
+Examples:
+- "beach trip in Djerba under 800 TND" → {"location": "Djerba", "maxPrice": 800}
+- "flight to Paris" → {"type": "VOL", "location": "Paris"}
+- "family hotel under 500" → {"type": "HOTEL", "maxPrice": 500}
+- "5 days in Turkey between 1000 and 2000 TND" → {"location": "Turkey", "minPrice": 1000, "maxPrice": 2000}
+ 
+Return ONLY the JSON object, no explanation, no markdown.
+PROMPT;
+ 
+    try {
+        $result = $this->aiService->callGroq($prompt);
+        $clean  = trim(preg_replace('/^```json|```$/m', '', $result));
+        $parsed = json_decode($clean, true);
+ 
+        if (!is_array($parsed)) {
+            return $this->json(['error' => 'Could not parse AI response.'], 500);
+        }
+ 
+        return $this->json($parsed);
+ 
+    } catch (\Throwable $e) {
+        return $this->json(['error' => $e->getMessage()], 500);
+    }
+}
+#[Route('/generate-offer', name: 'api_ai_generate_offer', methods: ['POST'])]
+public function generateOffer(Request $request): JsonResponse
+{
+    $data   = json_decode($request->getContent(), true);
+    $prompt = trim((string) ($data['prompt'] ?? ''));
+ 
+    if (!$prompt) {
+        return $this->json(['error' => 'Prompt is required.'], 400);
+    }
+ 
+    $today     = date('Y-m-d');
+    $nextMonth = date('Y-m-d', strtotime('+30 days'));
+ 
+    $systemPrompt = <<<PROMPT
+You are a travel offer creation assistant. Extract structured data from this offer description: "{$prompt}"
+ 
+Return ONLY a valid JSON object with these fields:
+- "title": catchy offer title (max 100 chars)
+- "location": city and country (e.g. "Sousse, Tunisia")
+- "description": compelling 3-4 sentence description for travelers
+- "promoPrice": promotional price as number (TND)
+- "originalPrice": original price as number, 15-25% higher than promoPrice (TND)
+- "startDate": start date in Y-m-d format (use dates from prompt or default to {$nextMonth})
+- "endDate": end date in Y-m-d format (must be after startDate)
+ 
+Rules:
+- If price not mentioned, suggest a reasonable price for the destination
+- If dates not mentioned, use upcoming dates starting from {$nextMonth}
+- Description should be engaging and mention key highlights
+- Return ONLY the JSON object, no markdown, no explanation
+PROMPT;
+ 
+    try {
+        $result = $this->aiService->callGroq($systemPrompt);
+        $clean  = trim(preg_replace('/^```json|^```|```$/m', '', $result));
+        $parsed = json_decode($clean, true);
+ 
+        if (!is_array($parsed)) {
+            return $this->json(['error' => 'Could not parse AI response. Please try again.'], 500);
+        }
+ 
+        return $this->json($parsed);
+ 
+    } catch (\Throwable $e) {
+        return $this->json(['error' => $e->getMessage()], 500);
+    }
+}
+
 }

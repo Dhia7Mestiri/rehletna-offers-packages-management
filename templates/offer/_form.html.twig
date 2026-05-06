@@ -185,6 +185,8 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    
+
 
     /* ── Field finder ── */
     function findInput(namePart) {
@@ -209,6 +211,31 @@ document.addEventListener('DOMContentLoaded', function () {
         capacity:      findInput('capacity'),
         imageUrl:      findInput('imageUrl'),
     };
+    var aiData = sessionStorage.getItem('aiOfferData');
+if (aiData) {
+    try {
+        var d = JSON.parse(aiData);
+        sessionStorage.removeItem('aiOfferData'); // clear after use
+ 
+        if (d.title && F.title)               F.title.value         = d.title;
+        if (d.location && F.location)         F.location.value      = d.location;
+        if (d.description && F.description)   F.description.value   = d.description;
+        if (d.promoPrice && F.promoPrice)     F.promoPrice.value    = d.promoPrice;
+        if (d.originalPrice && F.originalPrice) F.originalPrice.value = d.originalPrice;
+        if (d.startDate && F.startDate)       F.startDate.value     = d.startDate;
+        if (d.endDate && F.endDate)           F.endDate.value       = d.endDate;
+        if (d.imageUrl && F.imageUrl)         F.imageUrl.value      = d.imageUrl;
+ 
+        // Show success banner
+        var banner = document.createElement('div');
+        banner.style.cssText = 'background:linear-gradient(135deg,rgba(29,188,170,0.1),rgba(27,58,107,0.05));border:1.5px solid rgba(29,188,170,0.3);border-radius:12px;padding:10px 16px;margin-bottom:1rem;font-size:13px;color:#0a7a70;font-weight:600;display:flex;align-items:center;gap:8px';
+        banner.innerHTML = '✨ <span>AI has pre-filled your offer — review and adjust before saving!</span>';
+        var form = document.getElementById('offerForm');
+        if (form) form.insertBefore(banner, form.firstChild);
+ 
+    } catch(e) {
+        sessionStorage.removeItem('aiOfferData');
+    }}
 
     /* ── Location Autocomplete ── */
     var locationInput  = F.location;

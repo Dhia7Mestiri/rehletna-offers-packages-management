@@ -8,59 +8,83 @@
 
 <div class="th-body">
 
-    {# ── Top grid: Image + Panel ── #}
-    <div class="th-detail-grid">
+    {# ── Top grid: Image Gallery + Panel ── #}
+    <div style="display:grid;grid-template-columns:1fr 620px;gap:1.5rem;margin-bottom:1.5rem;align-items:start">
 
-        {# Left — Image #}
-        <div class="th-detail-img-wrap">
-            <img
-                src="{{ offer.imageUrl ?: 'https://via.placeholder.com/900x500?text=Travel+Offer' }}"
-                alt="{{ offer.title }}"
-                class="th-detail-img"
-            >
-            {% set discount = 0 %}
-            {% if offer.originalPrice and offer.originalPrice > 0 and offer.promoPrice %}
-                {% set discount = (((offer.originalPrice - offer.promoPrice) / offer.originalPrice) * 100)|round %}
-            {% endif %}
-            {% if discount > 0 %}
-                <div class="th-discount-badge">-{{ discount }}%</div>
-            {% endif %}
-            {% if offer.status == 'ACTIVE' %}
-                <div class="th-status-badge th-status-active">
-                    <i class="bi bi-lightning-fill"></i> Active
+        {# Left — Image Gallery #}
+        <div>
+            {# Main image #}
+            <div style="position:relative;border-radius:20px;overflow:hidden;margin-bottom:8px">
+                <img id="mainOfferImage"
+                    src="{{ offer.imageUrl ?: 'https://via.placeholder.com/900x500?text=Travel+Offer' }}"
+                    alt="{{ offer.title }}"
+                    style="width:100%;height:420px;object-fit:cover;display:block">
+
+                {% set discount = 0 %}
+                {% if offer.originalPrice and offer.originalPrice > 0 and offer.promoPrice %}
+                    {% set discount = (((offer.originalPrice - offer.promoPrice) / offer.originalPrice) * 100)|round %}
+                {% endif %}
+                {% if discount > 0 %}
+                    <div class="th-discount-badge">-{{ discount }}%</div>
+                {% endif %}
+                {% if offer.status == 'ACTIVE' %}
+                    <div class="th-status-badge th-status-active">
+                        <i class="bi bi-lightning-fill"></i> Active
+                    </div>
+                {% endif %}
+            </div>
+
+            {# Pexels thumbnail gallery #}
+            <div id="pexelsGallery" style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px">
+                {# Main image thumbnail #}
+                <div style="border-radius:10px;overflow:hidden;cursor:pointer;border:2px solid #1dbcaa"
+                     onclick="switchMainImage('{{ offer.imageUrl ?: 'https://via.placeholder.com/900x500?text=Travel+Offer' }}', this)">
+                    <img src="{{ offer.imageUrl ?: 'https://via.placeholder.com/900x500?text=Travel+Offer' }}"
+                         style="width:100%;height:80px;object-fit:cover;display:block">
                 </div>
-            {% elseif offer.status == 'ARCHIVED' %}
-                <div class="th-status-badge th-status-archived">Archived</div>
-            {% endif %}
+                {# Pexels images will be injected here by JS #}
+                <div id="pexelsThumbs" style="display:contents"></div>
+            </div>
         </div>
 
         {# Right — Info panel #}
-        <div class="th-detail-panel">
+        <div style="background:#fff;border-radius:20px;padding:1.5rem;border:1px solid #e8eff6;box-shadow:0 4px 20px rgba(27,58,107,0.06)">
 
-            <h1 class="th-detail-title">{{ offer.title }}</h1>
+            <h1 style="font-size:1.4rem;font-weight:800;color:#1b3a6b;margin-bottom:6px;line-height:1.2">{{ offer.title }}</h1>
 
-            <div class="th-detail-location">
-                <i class="bi bi-geo-alt-fill"></i>
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:1rem;color:#6b8282;font-size:13px">
+                <i class="bi bi-geo-alt-fill" style="color:#1dbcaa"></i>
                 {{ offer.location ?: 'Location not specified' }}
             </div>
 
+            {# Average stars #}
+            {% if averageStars is defined and averageStars %}
+                <div style="display:flex;align-items:center;gap:6px;margin-bottom:1rem">
+                    {% for i in 1..5 %}
+                        <span style="font-size:16px;color:{% if i <= averageStars %}#f5a623{% else %}#dde8f0{% endif %}">★</span>
+                    {% endfor %}
+                    <span style="font-size:13px;font-weight:700;color:#1b3a6b">{{ averageStars }}</span>
+                    <span style="font-size:12px;color:#6b8282">({{ totalRatings }} review(s))</span>
+                </div>
+            {% endif %}
+
             {# Price #}
-            <div class="th-detail-price-block">
-                <span class="th-price-label">à partir de</span>
-                <div class="th-price-row">
-                    <span class="th-price">{{ offer.promoPrice }}</span>
-                    <span class="th-price-cur">TND</span>
+            <div style="background:linear-gradient(135deg,rgba(29,188,170,0.08),rgba(27,58,107,0.04));border-radius:14px;padding:1rem;margin-bottom:1rem;border:1px solid rgba(29,188,170,0.15)">
+                <span style="font-size:11px;color:#6b8282;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">à partir de</span>
+                <div style="display:flex;align-items:baseline;gap:6px;margin-top:4px">
+                    <span style="font-size:2rem;font-weight:800;color:#1b3a6b">{{ offer.promoPrice }}</span>
+                    <span style="font-size:14px;font-weight:700;color:#6b8282">TND</span>
                     {% if offer.originalPrice %}
-                        <span class="th-price-old">{{ offer.originalPrice }} TND</span>
+                        <span style="font-size:13px;color:#9db8c0;text-decoration:line-through">{{ offer.originalPrice }} TND</span>
                     {% endif %}
                 </div>
             </div>
 
-            {# Currency converter widget #}
-            <div class="th-currency-widget">
-                <div class="th-currency-header">
-                    <span style="font-size:13px;font-weight:600;color:var(--navy)">💱 Price in other currencies</span>
-                    <select id="currencySelect" class="th-currency-select">
+            {# Currency converter #}
+            <div style="background:#f8fafc;border:1px solid #e2ecf5;border-radius:14px;padding:1rem;margin-bottom:1rem">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                    <span style="font-size:12px;font-weight:700;color:#1b3a6b">💱 Convert price</span>
+                    <select id="currencySelect" style="background:#fff;border:1px solid #e2ecf5;border-radius:8px;padding:4px 8px;font-size:12px;color:#1b3a6b;outline:none">
                         <option value="EUR">🇪🇺 EUR</option>
                         <option value="USD">🇺🇸 USD</option>
                         <option value="GBP">🇬🇧 GBP</option>
@@ -71,44 +95,38 @@
                         <option value="JPY">🇯🇵 JPY</option>
                     </select>
                 </div>
-                <div class="th-currency-result" id="currencyResult">
-                    <div class="th-currency-loading">Loading rates...</div>
-                </div>
+                <div id="currencyResult" style="font-size:13px;color:#6b8282">Loading rates...</div>
             </div>
 
             {# Dates #}
-            <div class="th-detail-meta-grid" style="margin-bottom:0.75rem">
-                <div class="th-meta-item">
-                    <span class="th-meta-label"><i class="bi bi-calendar3"></i> Start</span>
-                    <span class="th-meta-value">{{ offer.startDate ? offer.startDate|date('d/m/Y') : '—' }}</span>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1rem">
+                <div style="background:#f8fafc;border:1px solid #e2ecf5;border-radius:10px;padding:10px 12px">
+                    <div style="font-size:10px;color:#9db8c0;font-weight:700;text-transform:uppercase;margin-bottom:4px"><i class="bi bi-calendar3"></i> START</div>
+                    <div style="font-size:14px;font-weight:700;color:#1b3a6b">{{ offer.startDate ? offer.startDate|date('d/m/Y') : '—' }}</div>
                 </div>
-                <div class="th-meta-item">
-                    <span class="th-meta-label"><i class="bi bi-calendar-check"></i> End</span>
-                    <span class="th-meta-value">{{ offer.endDate ? offer.endDate|date('d/m/Y') : '—' }}</span>
+                <div style="background:#f8fafc;border:1px solid #e2ecf5;border-radius:10px;padding:10px 12px">
+                    <div style="font-size:10px;color:#9db8c0;font-weight:700;text-transform:uppercase;margin-bottom:4px"><i class="bi bi-calendar-check"></i> END</div>
+                    <div style="font-size:14px;font-weight:700;color:#1b3a6b">{{ offer.endDate ? offer.endDate|date('d/m/Y') : '—' }}</div>
                 </div>
             </div>
 
             {# Capacity bar #}
             {% if capacity is defined and capacity > 0 %}
-                <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:0.875rem 1.25rem;margin-bottom:0.75rem;">
-                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:6px;">
-                        <span style="font-size:13px;font-weight:700;color:var(--navy)">
-                            <i class="bi bi-people-fill"></i> Availability
-                        </span>
+                <div style="background:#f8fafc;border:1px solid #e2ecf5;border-radius:14px;padding:1rem;margin-bottom:1rem">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                        <span style="font-size:12px;font-weight:700;color:#1b3a6b"><i class="bi bi-people-fill"></i> Availability</span>
                         {% if remainingCapacity <= 0 %}
-                            <span style="background:#fff0f0;color:#a32d2d;font-size:12px;font-weight:700;border-radius:999px;padding:3px 12px;">🚫 Fully Booked</span>
+                            <span style="background:#fff0f0;color:#a32d2d;font-size:11px;font-weight:700;border-radius:999px;padding:3px 10px">🚫 Fully Booked</span>
                         {% elseif remainingCapacity <= 5 %}
-                            <span style="background:#fff4e6;color:#c05621;font-size:12px;font-weight:700;border-radius:999px;padding:3px 12px;">🔥 Only {{ remainingCapacity }} spot(s) left!</span>
-                        {% elseif percentageFull >= 50 %}
-                            <span style="background:#fef6e7;color:#92400e;font-size:12px;font-weight:700;border-radius:999px;padding:3px 12px;">⚡ {{ remainingCapacity }} spots remaining</span>
+                            <span style="background:#fff4e6;color:#c05621;font-size:11px;font-weight:700;border-radius:999px;padding:3px 10px">🔥 Only {{ remainingCapacity }} left!</span>
                         {% else %}
-                            <span style="background:var(--teal-light);color:var(--teal-dark);font-size:12px;font-weight:700;border-radius:999px;padding:3px 12px;">✅ {{ remainingCapacity }} of {{ capacity }} spots available</span>
+                            <span style="background:#e6f8f6;color:#0a7a70;font-size:11px;font-weight:700;border-radius:999px;padding:3px 10px">✅ {{ remainingCapacity }} spots available</span>
                         {% endif %}
                     </div>
-                    <div style="background:#e8f0ef;border-radius:999px;height:10px;overflow:hidden;margin-bottom:6px;">
-                        <div style="height:100%;border-radius:999px;width:{{ percentageFull > 100 ? 100 : percentageFull }}%;background:{% if percentageFull >= 100 %}linear-gradient(90deg,#ef4444,#f87171){% elseif percentageFull >= 75 %}linear-gradient(90deg,#f97316,#fb923c){% elseif percentageFull >= 40 %}linear-gradient(90deg,#f59e0b,#fbbf24){% else %}linear-gradient(90deg,#1dbcaa,#2dd4bf){% endif %};min-width:{% if percentageFull > 0 %}8px{% else %}0{% endif %};"></div>
+                    <div style="background:#e8f0ef;border-radius:999px;height:8px;overflow:hidden;margin-bottom:6px">
+                        <div style="height:100%;border-radius:999px;width:{{ percentageFull > 100 ? 100 : percentageFull }}%;background:{% if percentageFull >= 100 %}linear-gradient(90deg,#ef4444,#f87171){% elseif percentageFull >= 75 %}linear-gradient(90deg,#f97316,#fb923c){% elseif percentageFull >= 40 %}linear-gradient(90deg,#f59e0b,#fbbf24){% else %}linear-gradient(90deg,#1dbcaa,#2dd4bf){% endif %};min-width:{% if percentageFull > 0 %}8px{% else %}0{% endif %}"></div>
                     </div>
-                    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);font-weight:600">
+                    <div style="display:flex;justify-content:space-between;font-size:11px;color:#9db8c0;font-weight:600">
                         <span>{{ bookedSpots }} booked</span>
                         <span>{{ percentageFull }}% full · {{ capacity }} total</span>
                     </div>
@@ -116,50 +134,33 @@
             {% endif %}
 
             {# Actions #}
-            <div class="th-detail-actions">
+            <div style="display:flex;flex-direction:column;gap:8px">
                 {% if is_granted('ROLE_AGENCY') and offer.user and offer.user.id == app.user.id %}
-                    <a href="{{ path('app_offer_edit', {id: offer.id}) }}" class="th-btn-primary">
-                        ✏️ Edit Offer
-                    </a>
+                    <a href="{{ path('app_offer_edit', {id: offer.id}) }}" class="th-btn-primary" style="text-align:center">✏️ Edit Offer</a>
                 {% elseif app.user and not is_granted('ROLE_AGENCY') and not is_granted('ROLE_ADMIN') %}
                     {% if remainingCapacity is defined and remainingCapacity <= 0 %}
-                        <button class="th-btn-primary" disabled style="opacity:0.5;cursor:not-allowed">
-                            🚫 Fully Booked
-                        </button>
+                        <button class="th-btn-primary" disabled style="opacity:0.5;cursor:not-allowed;text-align:center">🚫 Fully Booked</button>
                     {% else %}
-                        <a href="{{ path('app_reservation_book', {id: offer.id}) }}" class="th-btn-gold">
-                            🗓️ Reserve Now
-                        </a>
+                        <a href="{{ path('app_reservation_book', {id: offer.id}) }}" class="th-btn-gold" style="text-align:center">🗓️ Reserve Now</a>
                     {% endif %}
                 {% elseif not app.user %}
-                    <a href="{{ path('app_login') }}" class="th-btn-primary">
-                        🔐 Login to Reserve
-                    </a>
+                    <a href="{{ path('app_login') }}" class="th-btn-primary" style="text-align:center">🔐 Login to Reserve</a>
                 {% endif %}
-                <a href="{{ path('app_offer_index') }}" class="th-btn-outline">
-                    ← Back to offers
-                </a>
+                <a href="{{ path('app_offer_index') }}" class="th-btn-outline" style="text-align:center">← Back to offers</a>
             </div>
 
         </div>
     </div>
 
-    {# ── Description (full width) ── #}
+    {# ── Description ── #}
     <div class="th-services-card" style="margin-bottom:1.5rem">
-        <h3 class="th-services-title">
-            <i class="bi bi-file-text-fill me-2"></i> About this offer
-        </h3>
-        <p style="font-size:15px;line-height:1.75;color:var(--text-body);margin:0">
-            {{ offer.description ?: 'No description available.' }}
-        </p>
+        <h3 class="th-services-title"><i class="bi bi-file-text-fill me-2"></i>About this offer</h3>
+        <p style="font-size:15px;line-height:1.75;color:var(--text-body);margin:0">{{ offer.description ?: 'No description available.' }}</p>
     </div>
 
-    {# ── Included services (full width) ── #}
-    <div class="th-services-card">
-        <h3 class="th-services-title">
-            <i class="bi bi-grid-1x2-fill me-2"></i> Included services
-        </h3>
-
+    {# ── Services ── #}
+    <div class="th-services-card" style="margin-bottom:1.5rem">
+        <h3 class="th-services-title"><i class="bi bi-grid-1x2-fill me-2"></i>Included services</h3>
         {% if serviceDetails is empty %}
             <p class="th-services-empty">No services linked to this offer yet.</p>
         {% else %}
@@ -169,21 +170,14 @@
                         <div class="th-service-badge-wrap">
                             <span class="service-type-badge {% if service.kind == 'HOTEL' %}th-badge-hotel{% elseif service.kind == 'VOL' %}th-badge-vol{% endif %}">
                                 {% if service.kind == 'HOTEL' %}<i class="bi bi-building"></i>
-                                {% elseif service.kind == 'VOL' %}<i class="bi bi-airplane"></i>
-                                {% endif %}
+                                {% elseif service.kind == 'VOL' %}<i class="bi bi-airplane"></i>{% endif %}
                                 {{ service.kind }}
                             </span>
                         </div>
                         <div class="flex-grow-1">
                             <div class="service-name">{{ service.name }}</div>
-                            <div class="service-description">
-                                {{ service.description ?: 'No description available.' }}
-                            </div>
-                            {% if service.price %}
-                                <div class="th-service-price">
-                                    <i class="bi bi-tag-fill"></i> {{ service.price }} TND
-                                </div>
-                            {% endif %}
+                            <div class="service-description">{{ service.description ?: 'No description available.' }}</div>
+                            {% if service.price %}<div class="th-service-price"><i class="bi bi-tag-fill"></i> {{ service.price }} TND</div>{% endif %}
                             {% if service.kind == 'HOTEL' %}
                                 <div class="th-service-meta">
                                     <span><i class="bi bi-geo-alt"></i> {{ service.location ?: '—' }}</span>
@@ -195,7 +189,6 @@
                                     <span><i class="bi bi-hash"></i> {{ service.flightNumber ?: '—' }}</span>
                                     <span><i class="bi bi-airplane"></i> {{ service.departureCity ?: '—' }} → {{ service.arrivalCity ?: '—' }}</span>
                                     <span><i class="bi bi-clock"></i> {{ service.departureAt ? service.departureAt|date('d/m/Y H:i') : '—' }}</span>
-                                    <span><i class="bi bi-clock-history"></i> {{ service.arrivalAt ? service.arrivalAt|date('d/m/Y H:i') : '—' }}</span>
                                 </div>
                             {% endif %}
                         </div>
@@ -204,209 +197,181 @@
             </div>
         {% endif %}
     </div>
-    {# ── Add this block to show.html.twig after the offer details and before reviews ── #}
 
-{% if activities is defined and activities is not empty %}
-<div class="th-form-card" style="margin-top:1.5rem">
-    <h3 class="th-form-section-title">
-        <i class="bi bi-compass-fill me-2" style="color:#1dbcaa"></i>
-        Activities in {{ offer.location }}
-    </h3>
-    <p style="font-size:13px;color:#6b8282;margin-bottom:1.25rem">
-        Things to do during your trip — recommended based on your destination
-    </p>
-
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem">
-        {% for activity in activities %}
-            <div style="border-radius:14px;overflow:hidden;background:#f8fafc;border:1px solid #e2ecf5;transition:transform 0.2s ease"
-                 onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 20px rgba(27,58,107,0.1)'"
-                 onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='none'">
-
-                {# Activity image #}
-                <div style="position:relative;height:130px;overflow:hidden">
-                    {% if activity.image %}
-                        <img src="{{ activity.image }}" alt="{{ activity.titre }}"
-                             style="width:100%;height:100%;object-fit:cover">
-                    {% else %}
-                        <div style="width:100%;height:100%;background:linear-gradient(135deg,#1dbcaa20,#1b3a6b20);display:flex;align-items:center;justify-content:center;font-size:2.5rem">
-                            🏞️
-                        </div>
-                    {% endif %}
-
-                    {% if activity.categorie %}
-                        <div style="position:absolute;top:8px;left:8px;background:rgba(27,58,107,0.85);color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px">
-                            {{ activity.categorie }}
-                        </div>
-                    {% endif %}
-
-                    {% if activity.placesDisponibles is defined and activity.placesDisponibles > 0 %}
-                        <div style="position:absolute;top:8px;right:8px;background:rgba(29,188,170,0.9);color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px">
-                            {{ activity.placesDisponibles }} spots
-                        </div>
-                    {% endif %}
-                </div>
-
-                {# Activity info #}
-                <div style="padding:10px 12px">
-                    <div style="font-size:13px;font-weight:700;color:#1b3a6b;margin-bottom:4px;line-height:1.3">
-                        {{ activity.titre|length > 40 ? activity.titre|slice(0, 40) ~ '...' : activity.titre }}
-                    </div>
-
-                    <div style="display:flex;align-items:center;gap:4px;margin-bottom:6px">
-                        <i class="bi bi-geo-alt-fill" style="color:#1dbcaa;font-size:11px"></i>
-                        <span style="font-size:11px;color:#6b8282">{{ activity.lieu }}</span>
-                    </div>
-
-                    {% if activity.description %}
-                        <p style="font-size:11px;color:#6b8282;margin-bottom:8px;line-height:1.4">
-                            {{ activity.description|length > 60 ? activity.description|slice(0, 60) ~ '...' : activity.description }}
-                        </p>
-                    {% endif %}
-
-                    <div style="display:flex;align-items:center;justify-content:space-between">
-                        <div style="font-size:14px;font-weight:800;color:#1b3a6b">
-                            {{ activity.prix }} <span style="font-size:10px;font-weight:600;color:#6b8282">TND</span>
-                        </div>
-                        {% if activity.dateActivite %}
-                            <div style="font-size:10px;color:#9db8c0">
-                                <i class="bi bi-calendar3"></i>
-                                {{ activity.dateActivite|date('d/m/Y') }}
-                            </div>
+    {# ── Activities ── #}
+    {% if activities is defined and activities is not empty %}
+    <div class="th-form-card" style="margin-bottom:1.5rem">
+        <h3 class="th-form-section-title">
+            <i class="bi bi-compass-fill me-2" style="color:#1dbcaa"></i>Activities in {{ offer.location }}
+        </h3>
+        <p style="font-size:13px;color:#6b8282;margin-bottom:1.25rem">Things to do during your trip — recommended based on your destination</p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem">
+            {% for activity in activities %}
+                <div style="border-radius:14px;overflow:hidden;background:#f8fafc;border:1px solid #e2ecf5;transition:transform 0.2s ease"
+                     onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 20px rgba(27,58,107,0.1)'"
+                     onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='none'">
+                    <div style="position:relative;height:130px;overflow:hidden">
+                        {% if activity.image %}
+                            <img src="{{ activity.image }}" alt="{{ activity.titre }}" style="width:100%;height:100%;object-fit:cover">
+                        {% else %}
+                            <div style="width:100%;height:100%;background:linear-gradient(135deg,#1dbcaa20,#1b3a6b20);display:flex;align-items:center;justify-content:center;font-size:2.5rem">🏞️</div>
+                        {% endif %}
+                        {% if activity.categorie %}
+                            <div style="position:absolute;top:8px;left:8px;background:rgba(27,58,107,0.85);color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px">{{ activity.categorie }}</div>
+                        {% endif %}
+                        {% if activity.placesDisponibles > 0 %}
+                            <div style="position:absolute;top:8px;right:8px;background:rgba(29,188,170,0.9);color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px">{{ activity.placesDisponibles }} spots</div>
                         {% endif %}
                     </div>
-                </div>
-            </div>
-        {% endfor %}
-    </div>
-</div>
-{% endif %}
-
-    {# ── Add this block to show.html.twig, after the offer details ── #}
-
-{# Pass from controller: averageStars, totalRatings, ratings #}
-
-<div class="th-form-card" style="margin-top:1.5rem">
-    <h3 class="th-form-section-title">
-        <i class="bi bi-star-fill me-2" style="color:#f5a623"></i>Traveller Reviews
-    </h3>
-
-    {# Average rating summary #}
-    <div style="display:flex;align-items:center;gap:1.5rem;margin-bottom:1.5rem;padding:1rem;background:linear-gradient(135deg,rgba(245,166,35,0.08),rgba(29,188,170,0.06));border-radius:14px;border:1px solid rgba(245,166,35,0.2)">
-        {% if averageStars is defined and averageStars %}
-            <div style="text-align:center;min-width:80px">
-                <div style="font-size:2.8rem;font-weight:800;color:#1b3a6b;line-height:1">{{ averageStars }}</div>
-                <div style="margin:4px 0">
-                    {% for i in 1..5 %}
-                        <span style="font-size:1rem;color:{% if i <= averageStars %}#f5a623{% else %}#dde8f0{% endif %}">★</span>
-                    {% endfor %}
-                </div>
-                <div style="font-size:11px;color:#6b8282">{{ totalRatings }} review(s)</div>
-            </div>
-            <div style="flex:1">
-                {% for star in 5..1 %}
-                    {% set count = ratings|filter(r => r.stars == star)|length %}
-                    {% set pct = totalRatings > 0 ? ((count / totalRatings) * 100)|round : 0 %}
-                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
-                        <span style="font-size:11px;color:#6b8282;min-width:10px">{{ star }}</span>
-                        <span style="font-size:12px;color:#f5a623">★</span>
-                        <div style="flex:1;background:#f0f4f8;border-radius:999px;height:6px;overflow:hidden">
-                            <div style="width:{{ pct }}%;background:linear-gradient(90deg,#f5a623,#e8941a);height:100%;border-radius:999px;transition:width 0.3s"></div>
-                        </div>
-                        <span style="font-size:11px;color:#6b8282;min-width:24px">{{ count }}</span>
-                    </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <div style="text-align:center;width:100%;padding:1rem;color:#6b8282;font-size:13px">
-                <div style="font-size:2rem;margin-bottom:6px">⭐</div>
-                No reviews yet — be the first to rate this trip!
-            </div>
-        {% endif %}
-    </div>
-
-    {# Individual reviews #}
-    {% if ratings is defined and ratings is not empty %}
-        <div style="display:flex;flex-direction:column;gap:12px">
-            {% for rating in ratings %}
-                <div style="padding:14px;background:#f8fbff;border-radius:12px;border:1px solid #dde8f0">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-                        <div style="display:flex;align-items:center;gap:8px">
-                            <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#1dbcaa,#1b3a6b);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700">
-                                {{ rating.user.username|first|upper }}
-                            </div>
-                            <div>
-                                <div style="font-size:13px;font-weight:700;color:#1b3a6b">{{ rating.user.username }}</div>
-                                <div style="font-size:11px;color:#6b8282">{{ rating.createdAt|date('d/m/Y') }}</div>
-                            </div>
-                        </div>
-                        <div>
-                            {% for i in 1..5 %}
-                                <span style="font-size:1rem;color:{% if i <= rating.stars %}#f5a623{% else %}#dde8f0{% endif %}">★</span>
-                            {% endfor %}
+                    <div style="padding:10px 12px">
+                        <div style="font-size:13px;font-weight:700;color:#1b3a6b;margin-bottom:4px">{{ activity.titre|length > 40 ? activity.titre|slice(0,40)~'...' : activity.titre }}</div>
+                        <div style="font-size:11px;color:#6b8282;margin-bottom:6px"><i class="bi bi-geo-alt-fill" style="color:#1dbcaa"></i> {{ activity.lieu }}</div>
+                        <div style="display:flex;align-items:center;justify-content:space-between">
+                            <div style="font-size:14px;font-weight:800;color:#1b3a6b">{{ activity.prix }} <span style="font-size:10px;color:#6b8282">TND</span></div>
+                            {% if activity.dateActivite %}
+                                <div style="font-size:10px;color:#9db8c0"><i class="bi bi-calendar3"></i> {{ activity.dateActivite|date('d/m/Y') }}</div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
             {% endfor %}
         </div>
+    </div>
     {% endif %}
-</div>
 
+    {# ── Reviews ── #}
+    <div class="th-form-card" style="margin-bottom:1.5rem">
+        <h3 class="th-form-section-title">
+            <i class="bi bi-star-fill me-2" style="color:#f5a623"></i>Traveller Reviews
+        </h3>
+        <div style="display:flex;align-items:center;gap:1.5rem;margin-bottom:1.5rem;padding:1rem;background:linear-gradient(135deg,rgba(245,166,35,0.08),rgba(29,188,170,0.06));border-radius:14px;border:1px solid rgba(245,166,35,0.2)">
+            {% if averageStars is defined and averageStars %}
+                <div style="text-align:center;min-width:80px">
+                    <div style="font-size:2.8rem;font-weight:800;color:#1b3a6b;line-height:1">{{ averageStars }}</div>
+                    <div style="margin:4px 0">{% for i in 1..5 %}<span style="font-size:1rem;color:{% if i <= averageStars %}#f5a623{% else %}#dde8f0{% endif %}">★</span>{% endfor %}</div>
+                    <div style="font-size:11px;color:#6b8282">{{ totalRatings }} review(s)</div>
+                </div>
+                <div style="flex:1">
+                    {% for star in 5..1 %}
+                        {% set count = ratings|filter(r => r.stars == star)|length %}
+                        {% set pct = totalRatings > 0 ? ((count / totalRatings) * 100)|round : 0 %}
+                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+                            <span style="font-size:11px;color:#6b8282;min-width:10px">{{ star }}</span>
+                            <span style="font-size:12px;color:#f5a623">★</span>
+                            <div style="flex:1;background:#f0f4f8;border-radius:999px;height:6px;overflow:hidden">
+                                <div style="width:{{ pct }}%;background:linear-gradient(90deg,#f5a623,#e8941a);height:100%;border-radius:999px"></div>
+                            </div>
+                            <span style="font-size:11px;color:#6b8282;min-width:24px">{{ count }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div style="text-align:center;width:100%;padding:1rem;color:#6b8282;font-size:13px">
+                    <div style="font-size:2rem;margin-bottom:6px">⭐</div>
+                    No reviews yet — be the first to rate this trip!
+                </div>
+            {% endif %}
+        </div>
+        {% if ratings is defined and ratings is not empty %}
+            <div style="display:flex;flex-direction:column;gap:12px">
+                {% for rating in ratings %}
+                    <div style="padding:14px;background:#f8fbff;border-radius:12px;border:1px solid #dde8f0">
+                        <div style="display:flex;justify-content:space-between;align-items:center">
+                            <div style="display:flex;align-items:center;gap:8px">
+                                <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#1dbcaa,#1b3a6b);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700">{{ rating.user.username|first|upper }}</div>
+                                <div>
+                                    <div style="font-size:13px;font-weight:700;color:#1b3a6b">{{ rating.user.username }}</div>
+                                    <div style="font-size:11px;color:#6b8282">{{ rating.createdAt|date('d/m/Y') }}</div>
+                                </div>
+                            </div>
+                            <div>{% for i in 1..5 %}<span style="font-size:1rem;color:{% if i <= rating.stars %}#f5a623{% else %}#dde8f0{% endif %}">★</span>{% endfor %}</div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
 
 </div>
 
 <script>
+// ── Pexels Gallery ──
+(function() {
+    var PEXELS_KEY = 'lgqFnUXZ924MNBzu1YLZrUy9Yay2EdRT06eIhTonqTvEHFENH3CUTPNZ';
+    var query = encodeURIComponent('{{ offer.location|default(offer.title)|e('js') }} travel');
+    var thumbsContainer = document.getElementById('pexelsThumbs');
+    var mainImg = document.getElementById('mainOfferImage');
+
+    if (!thumbsContainer || !mainImg) return;
+
+    fetch('https://api.pexels.com/v1/search?query=' + query + '&per_page=14&orientation=landscape', {
+        headers: { 'Authorization': PEXELS_KEY }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (!data.photos || !data.photos.length) return;
+        data.photos.slice(0, 14).forEach(function(photo) {
+            var div = document.createElement('div');
+            div.style.cssText = 'border-radius:10px;overflow:hidden;cursor:pointer;border:2px solid transparent;transition:border-color 0.2s';
+            div.onmouseenter = function() { if(div.style.borderColor !== 'rgb(29, 188, 170)') div.style.opacity = '0.8'; };
+            div.onmouseleave = function() { div.style.opacity = '1'; };
+            div.onclick = function() { switchMainImage(photo.src.large, div); };
+            var img = document.createElement('img');
+            img.src = photo.src.medium;
+            img.style.cssText = 'width:100%;height:70px;object-fit:cover;display:block';
+            img.alt = photo.alt || 'Travel photo';
+            div.appendChild(img);
+            thumbsContainer.appendChild(div);
+        });
+    })
+    .catch(function() {});
+})();
+
+window.switchMainImage = function(url, thumbEl) {
+    var mainImg = document.getElementById('mainOfferImage');
+    if (mainImg) {
+        mainImg.style.opacity = '0';
+        setTimeout(function() {
+            mainImg.src = url;
+            mainImg.style.opacity = '1';
+        }, 150);
+    }
+    // Update border highlight
+    document.querySelectorAll('#pexelsGallery > div, #pexelsThumbs > div').forEach(function(el) {
+        el.style.borderColor = 'transparent';
+    });
+    if (thumbEl) thumbEl.style.borderColor = '#1dbcaa';
+};
+
+// Add transition to main image
+document.addEventListener('DOMContentLoaded', function() {
+    var mainImg = document.getElementById('mainOfferImage');
+    if (mainImg) mainImg.style.transition = 'opacity 0.15s ease';
+});
+
+// ── Currency converter ──
 document.addEventListener('DOMContentLoaded', function() {
     var select   = document.getElementById('currencySelect');
     var resultEl = document.getElementById('currencyResult');
-
     if (!select || !resultEl) return;
-
     var amount = {{ offer.promoPrice }};
 
     function loadRate(currency) {
-        resultEl.innerHTML = '<div class="th-currency-loading">🔄 Converting to ' + currency + '...</div>';
+        resultEl.innerHTML = '🔄 Converting...';
         fetch('/api/exchange/convert?amount=' + amount + '&currencies=' + currency)
-            .then(function(r) {
-                if (!r.ok) throw new Error('HTTP ' + r.status);
-                return r.json();
-            })
+            .then(function(r) { return r.json(); })
             .then(function(data) {
-                if (data.error) {
-                    resultEl.innerHTML = '<div class="th-currency-loading" style="color:#e53e3e">⚠️ Rate unavailable</div>';
+                if (data.error || !data.conversions[currency]) {
+                    resultEl.innerHTML = '⚠️ Rate unavailable';
                     return;
                 }
                 var conv = data.conversions[currency];
-                if (!conv) return;
                 resultEl.innerHTML =
-                    '<div class="th-currency-amount">' +
-                        '<span class="th-currency-sym">' + conv.symbol + '</span>' +
-                        '<span class="th-currency-val">' + conv.amount.toFixed(2) + '</span>' +
-                        '<span class="th-currency-code">' + currency + '</span>' +
-                    '</div>' +
-                    '<div class="th-currency-rate">1 TND = ' + conv.rate.toFixed(4) + ' ' + currency + '</div>';
+                    '<span style="font-size:1.4rem;font-weight:800;color:#1b3a6b">' + conv.symbol + conv.amount.toFixed(2) + ' ' + currency + '</span>' +
+                    '<span style="font-size:11px;color:#9db8c0;display:block;margin-top:2px">1 TND = ' + conv.rate.toFixed(4) + ' ' + currency + '</span>';
             })
             .catch(function() {
-                setTimeout(function() {
-                    fetch('/api/exchange/convert?amount=' + amount + '&currencies=' + currency)
-                        .then(function(r) { return r.json(); })
-                        .then(function(data) {
-                            if (data.error || !data.conversions[currency]) {
-                                resultEl.innerHTML = '<div class="th-currency-loading" style="color:#e53e3e">⚠️ Unable to load rates</div>';
-                                return;
-                            }
-                            var conv = data.conversions[currency];
-                            resultEl.innerHTML =
-                                '<div class="th-currency-amount">' +
-                                    '<span class="th-currency-sym">' + conv.symbol + '</span>' +
-                                    '<span class="th-currency-val">' + conv.amount.toFixed(2) + '</span>' +
-                                    '<span class="th-currency-code">' + currency + '</span>' +
-                                '</div>' +
-                                '<div class="th-currency-rate">1 TND = ' + conv.rate.toFixed(4) + ' ' + currency + '</div>';
-                        })
-                        .catch(function() {
-                            resultEl.innerHTML = '<div class="th-currency-loading" style="color:#e53e3e">⚠️ Unable to load rates</div>';
-                        });
-                }, 1000);
+                setTimeout(function() { loadRate(currency); }, 1000);
             });
     }
 

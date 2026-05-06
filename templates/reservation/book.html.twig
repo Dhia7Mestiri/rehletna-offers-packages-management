@@ -26,14 +26,26 @@
 
     <div class="th-detail-grid">
 
-        {# Left — Offer image #}
-        <div class="th-detail-img-wrap">
-            <img src="{{ offer.imageUrl ?: 'https://via.placeholder.com/900x500?text=Travel+Offer' }}"
-                 alt="{{ offer.title }}" class="th-detail-img">
-            <div class="th-status-badge th-status-active">
-                <i class="bi bi-lightning-fill"></i> Active
-            </div>
+{# Left — Image Gallery #}
+<div>
+    <div style="position:relative;border-radius:20px;overflow:hidden;margin-bottom:8px">
+        <img id="mainBookImage"
+             src="{{ offer.imageUrl ?: 'https://via.placeholder.com/900x500?text=Travel+Offer' }}"
+             alt="{{ offer.title }}"
+             style="width:100%;height:320px;object-fit:cover;display:block;transition:opacity 0.15s ease">
+        <div class="th-status-badge th-status-active">
+            <i class="bi bi-lightning-fill"></i> Active
         </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px">
+        <div style="border-radius:10px;overflow:hidden;cursor:pointer;border:2px solid #1dbcaa"
+             onclick="switchBookImage('{{ offer.imageUrl ?: 'https://via.placeholder.com/900x500' }}', this)">
+            <img src="{{ offer.imageUrl ?: 'https://via.placeholder.com/900x500' }}"
+                 style="width:100%;height:80px;object-fit:cover;display:block">
+        </div>
+        <div id="pexelsBookThumbs" style="display:contents"></div>
+    </div>
+</div>
 
         {# Right — Booking form #}
         <div class="th-detail-panel">
@@ -177,5 +189,44 @@ document.addEventListener('DOMContentLoaded', function() {
 
     updateTotal();
 });
+// Pexels gallery for book page
+(function() {
+    var PEXELS_KEY = 'lgqFnUXZ924MNBzu1YLZrUy9Yay2EdRT06eIhTonqTvEHFENH3CUTPNZ';
+    var query = encodeURIComponent('{{ offer.location|default(offer.title)|e('js') }} travel');
+    var thumbsContainer = document.getElementById('pexelsBookThumbs');
+    var mainImg = document.getElementById('mainBookImage');
+    if (!thumbsContainer || !mainImg) return;
+
+    fetch('https://api.pexels.com/v1/search?query=' + query + '&per_page=14&orientation=landscape', {
+        headers: { 'Authorization': PEXELS_KEY }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (!data.photos) return;
+        data.photos.slice(0, 14).forEach(function(photo) {
+            var div = document.createElement('div');
+            div.style.cssText = 'border-radius:10px;overflow:hidden;cursor:pointer;border:2px solid transparent';
+            div.onclick = function() { switchBookImage(photo.src.large, div); };
+            var img = document.createElement('img');
+            img.src = photo.src.medium;
+            img.style.cssText = 'width:100%;height:80px;object-fit:cover;display:block';
+            div.appendChild(img);
+            thumbsContainer.appendChild(div);
+        });
+    })
+    .catch(function() {});
+})();
+
+window.switchBookImage = function(url, thumbEl) {
+    var mainImg = document.getElementById('mainBookImage');
+    if (mainImg) {
+        mainImg.style.opacity = '0';
+        setTimeout(function() { mainImg.src = url; mainImg.style.opacity = '1'; }, 150);
+    }
+    document.querySelectorAll('#pexelsBookThumbs > div, [onclick*="switchBookImage"]').forEach(function(el) {
+        el.style.borderColor = 'transparent';
+    });
+    if (thumbEl) thumbEl.style.borderColor = '#1dbcaa';
+};
 </script>
 {% endblock %}

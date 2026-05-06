@@ -108,4 +108,25 @@ class AiOfferService
 
         return trim($data['choices'][0]['message']['content'] ?? '');
     }
+public function callGroq(string $prompt): string
+{
+    $response = $this->httpClient->request('POST',
+        'https://api.groq.com/openai/v1/chat/completions', [
+        'headers' => [
+            'Authorization' => 'Bearer ' . $this->apiKey,
+            'Content-Type'  => 'application/json',
+        ],
+        'json' => [
+            'model'    => 'llama-3.3-70b-versatile',
+            'messages' => [
+                ['role' => 'user', 'content' => $prompt]
+            ],
+            'max_tokens'  => 200,
+            'temperature' => 0.3,
+        ],
+    ]);
+ 
+    $data = $response->toArray();
+    return $data['choices'][0]['message']['content'] ?? '';
+}
 }

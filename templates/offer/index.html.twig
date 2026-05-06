@@ -40,7 +40,7 @@
                 <label style="display:block;font-size:10px;font-weight:700;color:#6b8282;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Keyword</label>
                 <div style="background:#f8fafc;border:1.5px solid #e2ecf5;border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:6px">
                     <i class="bi bi-search" style="color:#9db8c0;font-size:12px"></i>
-                    <input type="text" name="q" value="{{ filters.q|default('') }}" placeholder="Title or destination..."
+                    <input type="text" id="filterQ" name="q" value="{{ filters.q|default('') }}" placeholder="Title or destination..."
                            style="background:transparent;border:none;outline:none;color:#1b3a6b;font-size:12px;width:100%"/>
                 </div>
             </div>
@@ -49,7 +49,7 @@
                 <label style="display:block;font-size:10px;font-weight:700;color:#6b8282;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Location</label>
                 <div style="background:#f8fafc;border:1.5px solid #e2ecf5;border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:6px">
                     <i class="bi bi-geo-alt" style="color:#9db8c0;font-size:12px"></i>
-                    <input type="text" name="location" value="{{ filters.location|default('') }}" placeholder="City or country..."
+                    <input type="text" id="filterLocation"  name="location" value="{{ filters.location|default('') }}" placeholder="City or country..."
                            style="background:transparent;border:none;outline:none;color:#1b3a6b;font-size:12px;width:100%"/>
                 </div>
             </div>
@@ -74,12 +74,12 @@
                 <div style="display:flex;gap:8px">
                     <div style="background:#f8fafc;border:1.5px solid #e2ecf5;border-radius:10px;padding:8px 10px;flex:1">
                         <div style="font-size:10px;color:#9db8c0;margin-bottom:2px">Min</div>
-                        <input type="number" name="minPrice" value="{{ filters.minPrice|default('') }}" placeholder="0"
+                        <input type="number" id="filterMin" name="minPrice" value="{{ filters.minPrice|default('') }}" placeholder="0"
                                style="background:transparent;border:none;outline:none;color:#1b3a6b;font-size:12px;width:100%"/>
                     </div>
                     <div style="background:#f8fafc;border:1.5px solid #e2ecf5;border-radius:10px;padding:8px 10px;flex:1">
                         <div style="font-size:10px;color:#9db8c0;margin-bottom:2px">Max</div>
-                        <input type="number" name="maxPrice" value="{{ filters.maxPrice|default('') }}" placeholder="9999"
+                        <input type="number" id="filterMax" name="maxPrice" value="{{ filters.maxPrice|default('') }}" placeholder="9999"
                                style="background:transparent;border:none;outline:none;color:#1b3a6b;font-size:12px;width:100%"/>
                     </div>
                 </div>
@@ -281,6 +281,19 @@ function submitAiSearch(){
     .catch(function(){btn.textContent='Search ✨';btn.disabled=false;});
 }
 document.getElementById('aiSearchInput').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();submitAiSearch();}});
+// Real-time filters
+var filterTimer = null;
+function autoSubmitFilter() {
+    clearTimeout(filterTimer);
+    filterTimer = setTimeout(function() {
+        document.getElementById('filterForm').submit();
+    }, 600);
+}
+
+document.getElementById('filterQ') && document.getElementById('filterQ').addEventListener('input', autoSubmitFilter);
+document.getElementById('filterLocation') && document.getElementById('filterLocation').addEventListener('input', autoSubmitFilter);
+document.getElementById('filterMin') && document.getElementById('filterMin').addEventListener('input', autoSubmitFilter);
+document.getElementById('filterMax') && document.getElementById('filterMax').addEventListener('input', autoSubmitFilter);
 </script>
 
 {% endblock %}

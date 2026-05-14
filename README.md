@@ -54,12 +54,6 @@ The objective of this module is to provide agencies and administrators with a ro
 **Dhia Mestiri**  
 Offers & Packages Management Module
 
-## 🏫 Academic Context
-
-Developed as part of an integrated project at:
-
-**ESPRIT – Ecole Supérieure Privée d'Ingénierie et de Technologies**
-
 ## 📸 Preview
 
 Screenshots and demo images will be added soon.
